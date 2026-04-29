@@ -27,6 +27,18 @@ enum MovementRole {
   TRANSFER_DEBIT
 }
 
+enum TransactionType {
+  EXPENSE
+  INCOME
+  TRANSFER
+}
+
+enum TransactionKind {
+  DEFAULT
+  INVOICE
+  ORDER
+}
+
 model User {
   id    Int    @id @default(autoincrement())
   email String @unique
@@ -77,7 +89,10 @@ model Transaction {
   description String
   amount      Int
   date        DateTime
-  status      TransactionStatus
+
+  kind   TransactionKind   @default(DEFAULT)
+  status TransactionStatus @default(PROJECTED)
+  type   TransactionType
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
