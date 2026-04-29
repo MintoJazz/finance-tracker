@@ -6,3 +6,92 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum BucketType {
+  WALLET
+  CREDIT
+  RESERVE
+}
+
+enum TransactionStatus {
+  PROJECTED
+  PENDING
+  SETTLED
+  CANCELED
+}
+
+enum MovementRole {
+  DEBIT
+  CREDIT
+  TRANSFER_CREDIT
+  TRANSFER_DEBIT
+}
+
+model User {
+  id    Int    @id @default(autoincrement())
+  email String @unique
+
+  memberships Membership[]
+}
+
+model Workspace {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  memberships  Membership[]
+  buckets      Bucket[]
+  transactions Transaction[]
+}
+
+model Membership {
+  id          Int @id @default(autoincrement())
+  userId      Int
+  workspaceId Int
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  buckets Bucket[]
+
+  @@unique([userId, workspaceId])
+}
+
+model Bucket {
+  id          Int  @id @default(autoincrement())
+  memberId    Int?
+  workspaceId Int
+
+  name String
+  type BucketType
+
+  member    Membership? @relation(fields: [memberId], references: [id])
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  movements Movement[]
+}
+
+model Transaction {
+  id          Int @id @default(autoincrement())
+  workspaceId Int
+
+  description String
+  amount      Int
+  date        DateTime
+  status      TransactionStatus
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  movements Movement[]
+}
+
+model Movement {
+  id            Int @id @default(autoincrement())
+  bucketId      Int
+  transactionId Int
+
+  amount Int
+  role   MovementRole
+
+  bucket      Bucket      @relation(fields: [bucketId], references: [id], onDelete: Restrict)
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+}
