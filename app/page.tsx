@@ -1,6 +1,11 @@
+import { findAllTransactions } from "@/features/transaction/actions";
 import TransactionContainer from "@/features/transaction/list/transaction-container";
 
-export default function Page() {
+export default async function Page() {
+    const [transactions] = await Promise.all([
+        findAllTransactions()
+    ])
+
     return <div>
         <TransactionContainer />
     </div>
