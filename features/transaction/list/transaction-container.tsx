@@ -39,6 +39,10 @@ export default function TransactionContainer() {
 
     const statusConfig = STATUS_CONFIG[transaction.status]
 
+    const onStatusChange = () => {
+        console.log('status mudou')
+    }
+
     return <TransactionCard >
         <TransactionCardInfo transaction={transaction} />
         <TransactionCardFooter>
@@ -47,7 +51,7 @@ export default function TransactionContainer() {
                 <ShareSwitcher />
             </TransactionCardFooterLeft>
             <TransactionCardFooterRight>
-                <StatusBadge statusConfig={statusConfig} />
+                <StatusBadge statusConfig={statusConfig} current={transaction.status} onClick={onStatusChange} />
                 <TransactionMenu actions={actions} />
             </TransactionCardFooterRight>
         </TransactionCardFooter>
