@@ -1,19 +1,36 @@
-import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { STATUS_CONFIG } from "@/constants/status"
+import TransactionCard, { TransactionCardFooter, TransactionCardFooterLeft, TransactionCardFooterRight, TransactionCardInfo } from "@/features/transaction/list/transaction-card"
+import ShareSwitcher from "@/features/transaction/share-switcher"
+import StatusBadge from "@/features/transaction/status-badge"
+import TransactionMenu from "@/features/transaction/transaction-menu"
+import { Transaction } from "@/generated/prisma/client"
 
 export default function Page() {
-  return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
+    const transaction: Transaction = {
+        description: 'TesteDescrição',
+        status: "PENDING",
+        date: new Date(),
+        amount: 5000,
+        workspaceId: -1,
+        id: -1
+    }
+
+    const statusConfig = STATUS_CONFIG[transaction.status]
+
+    return <div>
+        <TransactionCard >
+            <TransactionCardInfo transaction={transaction} />
+            <TransactionCardFooter>
+                <TransactionCardFooterLeft>
+                    <Checkbox />
+                    <ShareSwitcher />
+                </TransactionCardFooterLeft>
+                <TransactionCardFooterRight>
+                    <StatusBadge statusConfig={statusConfig} />
+                    <TransactionMenu />
+                </TransactionCardFooterRight>
+            </TransactionCardFooter>
+        </TransactionCard>
     </div>
-  )
 }
