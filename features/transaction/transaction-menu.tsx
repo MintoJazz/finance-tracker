@@ -1,16 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Transaction } from "@/generated/prisma/browser";
+import { ActionSet } from "@/types/action-set";
+import { TransactionDetails } from "@/types/database";
 import { MoreHorizontal } from "lucide-react";
 import { ComponentProps } from "react";
 
-export interface ActionSet extends ComponentProps<typeof DropdownMenuItem>{
-    onAction: (transaction: Transaction) => void
-}
-
 interface Props {
-    actions: ActionSet[]
-    transaction: Transaction
+    actions: ActionSet<TransactionDetails>[]
+    transaction: TransactionDetails
 }
 
 export default function TransactionMenu({ actions, transaction }: Props) {
