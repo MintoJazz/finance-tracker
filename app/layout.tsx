@@ -2,6 +2,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { SiteHeader } from "@/components/site-header"
 import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
@@ -23,9 +24,12 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, "font-sans", inter.variable)}
     >
       <body>
-        <div className="max-w-2xl mx-auto p-6 md:py-12 flex flex-col gap-4">
-          <ThemeProvider>{children}</ThemeProvider>
-        </div>
+        <ThemeProvider>
+          <SiteHeader />
+          <div className="max-w-2xl mx-auto p-6 md:py-12 flex flex-col gap-4">
+            {children}
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   )
