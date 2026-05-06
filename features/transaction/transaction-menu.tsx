@@ -21,9 +21,7 @@ export default function TransactionMenu({ actions, transaction }: Props) {
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-            {actions.map((actionProps, index) => (
-                <DropdownMenuItem key={index} {...actionProps} onClick={() => actionProps.onAction(transaction)} />
-            ))}
+            {actions.map((actionProps, index) => <DropdownMenuItem key={index} {...actionProps} onClick={() => actionProps.onAction(transaction)} />)}
         </DropdownMenuContent>
     </DropdownMenu>
 }

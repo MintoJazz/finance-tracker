@@ -9,6 +9,8 @@ import TransactionCard, { TransactionCardInfo, TransactionCardFooter, Transactio
 import { Checkbox } from "@/components/ui/checkbox"
 import { TransactionDetails } from "../types/database"
 import { useManager } from "@/hooks/use-manager"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
+import { Receipt } from "lucide-react"
 
 interface Props {
     transactions: TransactionDetails[]
@@ -16,6 +18,22 @@ interface Props {
 
 export default function TransactionContainer({ transactions }: Props) {
     const { onDelete, onEdit } = useManager<Transaction>();
+
+    if (transactions.length === 0) {
+        return (
+            <Empty>
+                <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                        <Receipt />
+                    </EmptyMedia>
+                    <EmptyTitle>Nenhuma transação</EmptyTitle>
+                    <EmptyDescription>
+                        Você ainda não possui transações registradas.
+                    </EmptyDescription>
+                </EmptyHeader>
+            </Empty>
+        )
+    }
 
     const actions: ActionSet[] = [
         {
@@ -33,21 +51,25 @@ export default function TransactionContainer({ transactions }: Props) {
         console.log('status mudou', status)
     }
 
-    return transactions.map(transaction => {
-        const statusConfig = STATUS_CONFIG[transaction.status]
+    return <div>
+        {
+            transactions.map(transaction => {
+                const statusConfig = STATUS_CONFIG[transaction.status]
 
-        return <TransactionCard key={transaction.id}>
-            <TransactionCardInfo transaction={transaction} />
-            <TransactionCardFooter>
-                <TransactionCardFooterLeft>
-                    <Checkbox />
-                    <ShareSwitcher />
-                </TransactionCardFooterLeft>
-                <TransactionCardFooterRight>
-                    <StatusBadge statusConfig={statusConfig} current={transaction.status} onClick={onStatusChange} />
-                    <TransactionMenu actions={actions} transaction={transaction} />
-                </TransactionCardFooterRight>
-            </TransactionCardFooter>
-        </TransactionCard>
-    })
+                return <TransactionCard key={transaction.id}>
+                    <TransactionCardInfo transaction={transaction} />
+                    <TransactionCardFooter>
+                        <TransactionCardFooterLeft>
+                            <Checkbox />
+                            <ShareSwitcher />
+                        </TransactionCardFooterLeft>
+                        <TransactionCardFooterRight>
+                            <StatusBadge statusConfig={statusConfig} current={transaction.status} onClick={onStatusChange} />
+                            <TransactionMenu actions={actions} transaction={transaction} />
+                        </TransactionCardFooterRight>
+                    </TransactionCardFooter>
+                </TransactionCard>
+            })
+        }
+    </div>
 }

@@ -7,6 +7,6 @@ export default async function Page() {
     ])
 
     return <div>
-        <TransactionContainer />
+        <TransactionContainer transactions={transactions}/>
     </div>
 }
