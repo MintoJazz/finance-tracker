@@ -9,22 +9,24 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { TransactionDetails } from "../../../types/database"
 import TransactionEmpty from "./transaction-empty"
 import { useTransactionFeatures } from "./use-transaction-features"
+import { ACTIONS_CONFIG } from "./action-registry"
 
 interface Props {
     transactions: TransactionDetails[]
 }
 
 export default function TransactionContainer({ transactions }: Props) {
-    const { items, actions, onStatusChange, isSelected, select } = useTransactionFeatures(transactions)
+    const { items, actions, onStatusChange, isSelected, select, getAction } = useTransactionFeatures(transactions)
 
     return <div className="flex flex-col gap-2">
         {(items) ? items.map(transaction => {
             const statusConfig = STATUS_CONFIG[transaction.status]
+            const actionConfig = ACTIONS_CONFIG[getAction(transaction.id) ?? 'stable']
             const originalTransaction = transactions.find(t => t.id === transaction.id) || transaction;
 
-            return <TransactionCard key={transaction.id}>
+            return <TransactionCard key={transaction.id} actionConfig={actionConfig}>
                 <TransactionCardInfo transaction={transaction} />
-                <TransactionCardFooter>
+                <TransactionCardFooter actionConfig={actionConfig}>
                     <TransactionCardFooterLeft>
                         <Checkbox checked={isSelected(transaction.id)} onCheckedChange={() => select(transaction.id)} />
                         <ShareSwitcher />

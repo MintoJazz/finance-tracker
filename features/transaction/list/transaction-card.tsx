@@ -3,13 +3,15 @@ import { Transaction } from "@/generated/prisma/client"
 import { formatarData, formatarDinheiro } from "@/lib/formatters"
 import { cn } from "@/lib/utils"
 import { Plus } from "lucide-react"
+import { ActionConfig } from "./action-registry"
 
 interface Props {
     children: React.ReactNode
+    actionConfig: ActionConfig
 }
 
-export default function TransactionCard({ children }: Props) {
-    return <div className={cn("border rounded-2xl overflow-hidden transition-all duration-300 border-border shadow-sm")}>
+export default function TransactionCard({ children, actionConfig }: Props) {
+    return <div className={cn("border rounded-2xl overflow-hidden transition-all duration-300 border-border shadow-sm", actionConfig.border)}>
         {children}
     </div>
 }
@@ -41,8 +43,8 @@ export function TransactionCardInfo({ transaction }: CardInfoProps) {
     </div>
 }
 
-export function TransactionCardFooter({ children }: { children: React.ReactNode }) {
-    return <div className={cn("px-4 py-1.5 border-t flex justify-between items-center transition-colors duration-500")}>
+export function TransactionCardFooter({ children, actionConfig }: Props) {
+    return <div className={cn("px-4 py-1.5 border-t flex justify-between items-center transition-colors duration-500", actionConfig.border, actionConfig.footerBg)}>
         {children}
     </div>
 }

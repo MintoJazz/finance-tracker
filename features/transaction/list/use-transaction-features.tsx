@@ -15,6 +15,7 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
     }
 
     const isSelected = (id: number) => selected.includes(id)
+    const getAction = (id: number) => drafts[id]?.action
 
     const actions: ActionSet<TransactionDetails>[] = [
         {
@@ -34,6 +35,7 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         isSelected,
         select,
         actions,
-        onStatusChange
+        onStatusChange,
+        getAction
     }
 }
