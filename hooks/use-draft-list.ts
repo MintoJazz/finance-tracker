@@ -1,19 +1,24 @@
-import { useCallback, useRef, useState } from "react"
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useCallback, useMemo, useRef, useState } from "react"
 
-export type PendingChange<T> = {
+export type WithId = {
+    id: number
+}
+
+export type PendingChange<T extends WithId> = {
     action: "add" | "edit" | "remove",
     domain?: T | Partial<T>,
     original?: T
 }
 
-type Drafts<T> = Record<number, PendingChange<T>>
+type Drafts<T extends WithId> = Record<number, PendingChange<T>>
 
-function omitKey<T>(record: Drafts<T>, id: number): Drafts<T> {
+function omitKey<T extends WithId>(record: Drafts<T>, id: number): Drafts<T> {
     const { [id]: _, ...rest } = record
     return rest
 }
 
-export function useDraftList<Domain>() {
+export function useDraftList<Domain extends WithId>(originals: Domain[] = []) {
     const [drafts, setDrafts] = useState<Record<number, PendingChange<Domain>>>({})
     const index = useRef(-1);
 
@@ -38,5 +43,19 @@ export function useDraftList<Domain>() {
         else setDrafts(prev => ({ ...prev, [id]: { action: "remove" } }))
     }, [discard])
 
-    return { drafts, add, edit, remove }
+    const getNewDrafts = useCallback(() => Object.entries(drafts).filter(([_, change]) => change.action === "add").map(([_, change]) => change.domain as Domain), [drafts])
+
+    const items = useMemo(() => {
+        const combined = originals.map(element => {
+            const draft = drafts[element.id];
+            
+            if (draft?.action === "edit" && draft.domain) return { ...element, ...draft.domain } as Domain
+            
+            return element;
+        });
+
+        return [...combined, ...getNewDrafts()];
+    }, [originals, drafts, getNewDrafts]);
+
+    return { drafts, add, edit, remove, items }
 }

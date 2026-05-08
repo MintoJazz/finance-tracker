@@ -11,7 +11,7 @@ import { TransactionDetails } from "../../../types/database"
 import { useManager } from "@/hooks/use-manager"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
 import { Receipt } from "lucide-react"
-// import { useDraftList } from "@/hooks/use-draft-list"
+import { useDraftList } from "@/hooks/use-draft-list"
 import { ActionSet } from "@/types/action-set"
 import { useSelection } from "@/hooks/use-selection"
 
@@ -22,7 +22,7 @@ interface Props {
 export default function TransactionContainer({ transactions }: Props) {
     const { onDelete, onEdit } = useManager<TransactionDetails>()
     const { select, selected } = useSelection()
-    // const {} = useDraftList<TransactionDetails>();
+    const { edit, items } = useDraftList<TransactionDetails>(transactions);
 
     if (transactions.length === 0) {
         return (
@@ -52,14 +52,15 @@ export default function TransactionContainer({ transactions }: Props) {
         }
     ]
 
-    const onStatusChange = (status: TransactionStatus) => {
-        console.log('status mudou', status)
+    const onStatusChange = (id: number, status: TransactionStatus, transaction: TransactionDetails) => {
+        edit(id, {status}, transaction)
     }
 
     return <div className="flex flex-col gap-2">
         {
-            transactions.map(transaction => {
+            items.map(transaction => {
                 const statusConfig = STATUS_CONFIG[transaction.status]
+                const originalTransaction = transactions.find(t => t.id === transaction.id) || transaction;
 
                 return <TransactionCard key={transaction.id}>
                     <TransactionCardInfo transaction={transaction} />
@@ -69,7 +70,7 @@ export default function TransactionContainer({ transactions }: Props) {
                             <ShareSwitcher  />
                         </TransactionCardFooterLeft>
                         <TransactionCardFooterRight>
-                            <StatusBadge statusConfig={statusConfig} current={transaction.status} onClick={onStatusChange} />
+                            <StatusBadge statusConfig={statusConfig} current={transaction.status} onClick={(status) => onStatusChange(transaction.id, status, originalTransaction)} />
                             <TransactionMenu actions={actions} transaction={transaction} />
                         </TransactionCardFooterRight>
                     </TransactionCardFooter>
