@@ -1,6 +1,6 @@
 "use client"
 
-import { STATUS_CONFIG } from "@/constants/status"
+import { STATUS_CONFIG } from "@/features/transaction/status-badge/status-config"
 import ShareSwitcher from "../share-switcher"
 import StatusBadge from "../status-badge"
 import TransactionMenu from "../transaction-menu"

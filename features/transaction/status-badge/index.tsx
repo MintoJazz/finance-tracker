@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { STATUS_CONFIG, StatusConfig } from "@/constants/status";
+import { STATUS_CONFIG, StatusConfig } from "@/features/transaction/status-badge/status-config";
 import { TransactionStatus } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
