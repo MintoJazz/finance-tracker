@@ -9,11 +9,10 @@ import TransactionCard, { TransactionCardInfo, TransactionCardFooter, Transactio
 import { Checkbox } from "@/components/ui/checkbox"
 import { TransactionDetails } from "../../../types/database"
 import { useManager } from "@/hooks/use-manager"
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
-import { Receipt } from "lucide-react"
 import { useDraftList } from "@/hooks/use-draft-list"
-import { ActionSet } from "@/types/action-set"
 import { useSelection } from "@/hooks/use-selection"
+import TransactionEmpty from "./transaction-empty"
+import { ActionSet } from "@/types/action-set"
 
 interface Props {
     transactions: TransactionDetails[]
@@ -24,20 +23,8 @@ export default function TransactionContainer({ transactions }: Props) {
     const { select, selected } = useSelection()
     const { edit, items } = useDraftList<TransactionDetails>(transactions);
 
-    if (transactions.length === 0) {
-        return (
-            <Empty>
-                <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                        <Receipt />
-                    </EmptyMedia>
-                    <EmptyTitle>Nenhuma transação</EmptyTitle>
-                    <EmptyDescription>
-                        Você ainda não possui transações registradas.
-                    </EmptyDescription>
-                </EmptyHeader>
-            </Empty>
-        )
+    const onStatusChange = (id: number, status: TransactionStatus, transaction: TransactionDetails) => {
+        edit(id, { status }, transaction)
     }
 
     const actions: ActionSet<TransactionDetails>[] = [
@@ -49,33 +36,28 @@ export default function TransactionContainer({ transactions }: Props) {
             children: "Excluir",
             onAction: onDelete,
             variant: "destructive",
-        }
+        },
     ]
 
-    const onStatusChange = (id: number, status: TransactionStatus, transaction: TransactionDetails) => {
-        edit(id, {status}, transaction)
-    }
-
     return <div className="flex flex-col gap-2">
-        {
-            items.map(transaction => {
-                const statusConfig = STATUS_CONFIG[transaction.status]
-                const originalTransaction = transactions.find(t => t.id === transaction.id) || transaction;
+        {(items) ? items.map(transaction => {
+            const statusConfig = STATUS_CONFIG[transaction.status]
+            const originalTransaction = transactions.find(t => t.id === transaction.id) || transaction;
 
-                return <TransactionCard key={transaction.id}>
-                    <TransactionCardInfo transaction={transaction} />
-                    <TransactionCardFooter>
-                        <TransactionCardFooterLeft>
-                            <Checkbox checked={selected.includes(transaction.id)} onCheckedChange={() => select(transaction.id)}/>
-                            <ShareSwitcher  />
-                        </TransactionCardFooterLeft>
-                        <TransactionCardFooterRight>
-                            <StatusBadge statusConfig={statusConfig} current={transaction.status} onClick={(status) => onStatusChange(transaction.id, status, originalTransaction)} />
-                            <TransactionMenu actions={actions} transaction={transaction} />
-                        </TransactionCardFooterRight>
-                    </TransactionCardFooter>
-                </TransactionCard>
-            })
+            return <TransactionCard key={transaction.id}>
+                <TransactionCardInfo transaction={transaction} />
+                <TransactionCardFooter>
+                    <TransactionCardFooterLeft>
+                        <Checkbox checked={selected.includes(transaction.id)} onCheckedChange={() => select(transaction.id)} />
+                        <ShareSwitcher />
+                    </TransactionCardFooterLeft>
+                    <TransactionCardFooterRight>
+                        <StatusBadge statusConfig={statusConfig} current={transaction.status} onClick={(status) => onStatusChange(transaction.id, status, originalTransaction)} />
+                        <TransactionMenu actions={actions} transaction={transaction} />
+                    </TransactionCardFooterRight>
+                </TransactionCardFooter>
+            </TransactionCard>
+        }) : <TransactionEmpty />
         }
     </div>
 }
