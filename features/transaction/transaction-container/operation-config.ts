@@ -1,5 +1,5 @@
 import { TransactionType } from "@/generated/prisma/enums";
-import { ArrowDownCircle, ArrowLeftRight, ArrowUpCircle, ArrowUpLeftFromCircleIcon, LucideIcon } from "lucide-react";
+import { ArrowDownCircle, ArrowLeftRight, ArrowUpCircle, LucideIcon } from "lucide-react";
 
 export type OperationConfig = {
     label: string
