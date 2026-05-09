@@ -89,6 +89,7 @@ model Transaction {
   description String
   amount      Int
   date        DateTime
+  isShared    Boolean  @default(false)
 
   kind   TransactionKind   @default(DEFAULT)
   status TransactionStatus @default(PROJECTED)

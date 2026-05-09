@@ -10,12 +10,10 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
     const { select, selected } = useSelection()
     const { edit, items, drafts } = useDraftList<TransactionDetails>(initialTransactions)
 
-    const onStatusChange = (id: number, status: TransactionStatus, transaction: TransactionDetails) => {
-        edit(id, { status }, transaction)
-    }
-
     const isSelected = (id: number) => selected.includes(id)
-    const getAction = (id: number) => drafts[id]?.action
+    const getAction = (id: number) => drafts[id]?.action ?? 'stable'
+    const onIsSharedChange = (id: number, isShared: boolean, transaction: TransactionDetails) => edit(id, { isShared }, transaction)
+    const onStatusChange = (id: number, status: TransactionStatus, transaction: TransactionDetails) => edit(id, { status }, transaction)
 
     const actions: ActionSet<TransactionDetails>[] = [
         {
@@ -36,6 +34,7 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         select,
         actions,
         onStatusChange,
+        onIsSharedChange,
         getAction
     }
 }

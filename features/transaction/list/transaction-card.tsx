@@ -1,9 +1,10 @@
-import { ItemTitle } from "@/components/ui/item"
+import { ItemDescription, ItemTitle } from "@/components/ui/item"
 import { Transaction } from "@/generated/prisma/client"
 import { formatarData, formatarDinheiro } from "@/lib/formatters"
 import { cn } from "@/lib/utils"
 import { Plus } from "lucide-react"
-import { ActionConfig } from "./action-registry"
+import { ActionConfig } from "./action-config"
+import { OperationConfig } from "./operation-config"
 
 interface Props {
     children: React.ReactNode
@@ -18,17 +19,21 @@ export default function TransactionCard({ children, actionConfig }: Props) {
 
 interface CardInfoProps {
     transaction: Transaction
+    operationConfig: OperationConfig
 }
 
-export function TransactionCardInfo({ transaction }: CardInfoProps) {
+export function TransactionCardInfo({ transaction, operationConfig }: CardInfoProps) {
+    const Icon = operationConfig.icon
+
     return <div className="p-3 space-y-2">
         <div className="flex justify-between items-start gap-4">
             <div className="flex gap-3 min-w-0">
-                <div className={cn("rounded-xl h-fit shrink-0 self-center")}>
-                    <Plus />
+                <div className={cn("p-2 rounded-xl h-fit shrink-0", operationConfig.bg, operationConfig.color)}>
+                    <Icon size={18} className={operationConfig.color} />
                 </div>
                 <div className="min-w-0 flex flex-col justify-between">
                     <ItemTitle>{transaction.description}</ItemTitle>
+                    <ItemDescription>{operationConfig.label}</ItemDescription>
                 </div>
             </div>
             <div className="text-right shrink-0">

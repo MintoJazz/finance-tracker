@@ -3,7 +3,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ActionSet } from "@/types/action-set";
 import { TransactionDetails } from "@/types/database";
 import { MoreHorizontal } from "lucide-react";
-import { ComponentProps } from "react";
 
 interface Props {
     actions: ActionSet<TransactionDetails>[]
