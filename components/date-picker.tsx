@@ -1,100 +1,142 @@
-'use client'
+"use client"
 
+import * as React from "react"
 import { CalendarIcon } from "lucide-react"
-import { InputGroup, InputGroupAddon, InputGroupButton } from "./ui/input-group"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { Calendar } from "./ui/calendar"
+import { Calendar } from "@/components/ui/calendar"
 import { ptBR } from "date-fns/locale"
-import { useState, useCallback } from "react"
-import { useDateMaskSegmented } from "@/hooks/use-date-mask"
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from "@/components/ui/input-group"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
-interface Props {
-    date: Date | undefined
-    setDate: (date: Date | undefined) => void
-    className?: string
+const maskDateString = (value: string) => {
+    const v = value.replace(/\D/g, "").slice(0, 8)
+    if (v.length >= 5) return `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`
+    if (v.length >= 3) return `${v.slice(0, 2)}/${v.slice(2)}`
+    return v
 }
 
-export default function DatePicker({ date, setDate, className }: Props) {
-    const [open, setOpen] = useState<boolean>(false)
-    const [month, setMonth] = useState<Date | undefined>(date)
-    
-    const handleDateChange = useCallback((newDate: Date | undefined) => {
-        setDate(newDate)
-        if (newDate) setMonth(newDate)
-    }, [setDate])
-    
-    const dateMask = useDateMaskSegmented({
-        date,
-        onChange: handleDateChange
-    })
+const formatDateToPTBR = (date: Date | undefined) => {
+    if (!date) return ""
+    const d = date.getDate().toString().padStart(2, "0")
+    const m = (date.getMonth() + 1).toString().padStart(2, "0")
+    const y = date.getFullYear()
+    return `${d}/${m}/${y}`
+}
 
-    const handleKeyDown = (segment: 'day' | 'month' | 'year') => (e: React.KeyboardEvent<HTMLInputElement>) => {
-        const result = dateMask[segment].onKeyDown(e)
-        if (result === 'openCalendar') {
-            setOpen(true)
-        }
+const parseDateFromPTBR = (str: string) => {
+    if (str.length !== 10) return undefined
+    const [d, m, y] = str.split("/")
+    const date = new Date(Number(y), Number(m) - 1, Number(d))
+
+    if (date.getDate() === Number(d) && date.getMonth() === Number(m) - 1) {
+        return date
     }
-
-    return (
-        <InputGroup className={className}>
-            <div className="flex h-full items-center gap-1 px-3 flex-1">
-                <input
-                    ref={dateMask.day.ref}
-                    type="text"
-                    inputMode="numeric"
-                    value={dateMask.day.value}
-                    onChange={dateMask.day.onChange}
-                    onKeyDown={handleKeyDown('day')}
-                    placeholder="dd"
-                    className="w-6 bg-transparent text-center outline-none placeholder:text-muted-foreground"
-                />
-                <span className="text-muted-foreground">/</span>
-                <input
-                    ref={dateMask.month.ref}
-                    type="text"
-                    inputMode="numeric"
-                    value={dateMask.month.value}
-                    onChange={dateMask.month.onChange}
-                    onKeyDown={handleKeyDown('month')}
-                    placeholder="mm"
-                    className="w-6 bg-transparent text-center outline-none placeholder:text-muted-foreground"
-                />
-                <span className="text-muted-foreground">/</span>
-                <input
-                    ref={dateMask.year.ref}
-                    type="text"
-                    inputMode="numeric"
-                    value={dateMask.year.value}
-                    onChange={dateMask.year.onChange}
-                    onKeyDown={handleKeyDown('year')}
-                    placeholder="aaaa"
-                    className="w-10 bg-transparent text-center outline-none placeholder:text-muted-foreground"
-                />
-            </div>
-            <InputGroupAddon align="inline-end">
-                <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                        <InputGroupButton variant="ghost" size="icon-xs">
-                            <CalendarIcon />
-                        </InputGroupButton>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                        <Calendar 
-                            mode="single" 
-                            selected={date} 
-                            month={month} 
-                            onMonthChange={setMonth} 
-                            onSelect={(selectedDate) => {
-                                if (selectedDate) {
-                                    setDate(selectedDate)
-                                    setOpen(false)
-                                }
-                            }}
-                            locale={ptBR} 
-                        />
-                    </PopoverContent>
-                </Popover>
-            </InputGroupAddon>
-        </InputGroup>
-    )
+    return undefined
 }
+
+export interface DatePickerProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {
+    value?: Date | string;
+    onChange?: (date: Date | undefined) => void;
+}
+
+export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
+    ({ value, onChange, className, ...props }, ref) => {
+        const [open, setOpen] = React.useState(false)
+
+        const initialDate = value instanceof Date ? value : undefined
+        const [month, setMonth] = React.useState<Date | undefined>(initialDate)
+
+        const [inputValue, setInputValue] = React.useState(formatDateToPTBR(initialDate))
+
+        React.useEffect(() => {
+            if (value instanceof Date) {
+                setInputValue(formatDateToPTBR(value))
+                setMonth(value)
+            } else if (!value) {
+                setInputValue("")
+            }
+        }, [value])
+
+        const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const maskedValue = maskDateString(e.target.value)
+            setInputValue(maskedValue)
+
+            if (maskedValue.length === 10) {
+                const parsedDate = parseDateFromPTBR(maskedValue)
+                if (parsedDate) {
+                    onChange?.(parsedDate)
+                    setMonth(parsedDate)
+                }
+            } else if (maskedValue.length === 0) {
+                // Se apagar tudo, limpa o estado
+                onChange?.(undefined)
+            }
+        }
+
+        const handleSelectCalendar = (date: Date | undefined) => {
+            if (date) {
+                onChange?.(date)
+                setInputValue(formatDateToPTBR(date))
+                setMonth(date)
+                setOpen(false)
+            }
+        }
+
+        return (
+            <InputGroup className={cn("w-full", className)}>
+                <InputGroupInput
+                    {...props}
+                    ref={ref} 
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="dd/mm/aaaa"
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                        if (e.key === "ArrowDown") {
+                            e.preventDefault()
+                            setOpen(true)
+                        }
+                        props.onKeyDown?.(e)
+                    }}
+                />
+                <InputGroupAddon align="inline-end">
+                    <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                            <InputGroupButton
+                                variant="ghost"
+                                size="icon-xs"
+                                aria-label="Selecionar data"
+                                tabIndex={-1}
+                            >
+                                <CalendarIcon className="h-4 w-4" />
+                            </InputGroupButton>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                                mode="single"
+                                selected={value instanceof Date ? value : undefined}
+                                month={month}
+                                onMonthChange={setMonth}
+                                onSelect={handleSelectCalendar}
+                                locale={ptBR}
+                            />
+                        </PopoverContent>
+                    </Popover>
+                </InputGroupAddon>
+            </InputGroup>
+        )
+    }
+)
+
+DatePicker.displayName = "DatePicker"
+export default DatePicker
