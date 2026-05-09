@@ -1,12 +1,10 @@
-import DatePicker from "@/components/date-picker"
-import { MoneyInput } from "@/components/money-input"
 import { Button } from "@/components/ui/button"
 import { TransactionFormType } from "./schemas/types"
-import { Controller, ControllerProps, SubmitErrorHandler, UseFormReturn } from "react-hook-form"
-import { Field, FieldLabel, FieldError, FieldGroup } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import { Controller, SubmitErrorHandler, UseFormReturn } from "react-hook-form"
+import { FieldGroup } from "@/components/ui/field"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { FIELD_REGISTRY } from "./field-registry"
 
 interface Props {
     initialData?: TransactionFormType,
@@ -16,36 +14,10 @@ interface Props {
 }
 
 export default function TransactionForm({ form, onSubmit, onError }: Props) {
-
-    const descriptionField: ControllerProps<TransactionFormType> = {
-        name: "description",
+    const field = (key: keyof typeof FIELD_REGISTRY) => ({
         control: form.control,
-        render: ({ field, fieldState }) => <Field>
-            <FieldLabel>Descrição</FieldLabel>
-            <Input {...field} placeholder="Ex.: Celular (1/5)" value={field.value as string} />
-            <FieldError errors={[fieldState.error]}></FieldError>
-        </Field>
-    }
-
-    const amontField: ControllerProps<TransactionFormType> = {
-        name: "amount",
-        control: form.control,
-        render: ({ field, fieldState }) => <Field className="gap-0 -my-2 items-center *:w-auto" data-invalid={!!fieldState.error}>
-            <FieldLabel>Valor</FieldLabel>
-            <MoneyInput id="amount" className="w-auto text-center text-2xl font-black tracking-tight" value={field.value as number} onChange={field.onChange} placeholder="0,00" />
-            <FieldError errors={[fieldState.error]} />
-        </Field>
-    }
-
-    const dateField: ControllerProps<TransactionFormType> = {
-        name: "date",
-        control: form.control,
-        render: ({ field, fieldState }) => <Field data-invalid={!!fieldState.error}>
-            <FieldLabel>Data</FieldLabel>
-            <DatePicker date={field.value as Date} setDate={field.onChange} />
-            <FieldError errors={[fieldState.error]} />
-        </Field>
-    }
+        ...FIELD_REGISTRY[key],
+    })
 
     return <form id="transaction-form" onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-6">
         <FieldGroup className="gap-2">
@@ -54,12 +26,12 @@ export default function TransactionForm({ form, onSubmit, onError }: Props) {
                     teste
                     <Separator />
                 </CardHeader>
-                <Controller {...amontField} />
+                <Controller {...field('amount')} />
             </Card>
-            <Controller {...descriptionField} />
-            <Controller {...dateField} />
+            <Controller {...field('description')} />
+            <Controller {...field('date')} />
         </FieldGroup>
-        <Button type="submit" form="transaction-form" >
+        <Button type="submit" form="transaction-form">
             Salvar
         </Button>
     </form>
