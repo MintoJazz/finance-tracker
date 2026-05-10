@@ -1,48 +1,66 @@
-"use client"
-
-import { STATUS_CONFIG } from "@/features/transaction/status-badge/status-config"
-import ShareSwitcher from "../share-switcher"
-import StatusBadge from "../status-badge"
-import TransactionMenu from "../transaction-menu"
-import TransactionCard, { TransactionCardInfo, TransactionCardFooter, TransactionCardFooterLeft, TransactionCardFooterRight } from "./transaction-card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { TransactionDetails } from "../../../types/database"
-import TransactionEmpty from "./transaction-empty"
-import { useTransactionFeatures } from "./use-transaction-features"
-import { ACTIONS_CONFIG } from "./action-config"
-import { OPERATION_CONFIG } from "./operation-config"
-import { SWITCHER_STYLE } from "../share-switcher/switcher-style"
+import { ItemDescription, ItemTitle } from "@/components/ui/item"
+import { Transaction } from "@/generated/prisma/client"
+import { formatarData, formatarDinheiro } from "@/lib/formatters"
+import { cn } from "@/lib/utils"
+import { ActionConfig } from "./action-config"
+import { OperationConfig } from "./operation-config"
 
 interface Props {
-    transactions: TransactionDetails[]
+    children: React.ReactNode
+    actionConfig: ActionConfig
 }
 
-export default function TransactionContainer({ transactions }: Props) {
-    const { items, actions, onStatusChange, onIsSharedChange, isSelected, select, getAction } = useTransactionFeatures(transactions)
+export default function TransactionCard({ children, actionConfig }: Props) {
+    return <div className={cn("border rounded-2xl overflow-hidden transition-all duration-300 border-border shadow-sm", actionConfig.border)}>
+        {children}
+    </div>
+}
 
-    return <div className="flex flex-col gap-2">
-        {(items) ? items.map(transaction => {
-            const statusConfig = STATUS_CONFIG[transaction.status]
-            const operationConfig = OPERATION_CONFIG[transaction.type]
-            const actionConfig = ACTIONS_CONFIG[getAction(transaction.id)]
-            const isSharedClassName = SWITCHER_STYLE[Number(transaction.isShared)]
-            const originalTransaction = transactions.find(t => t.id === transaction.id) || transaction;
+interface CardInfoProps {
+    transaction: Transaction
+    operationConfig: OperationConfig
+}
 
-            return <TransactionCard key={transaction.id} actionConfig={actionConfig}>
-                <TransactionCardInfo transaction={transaction} operationConfig={operationConfig} />
-                <TransactionCardFooter actionConfig={actionConfig}>
-                    <TransactionCardFooterLeft>
-                        <Checkbox checked={isSelected(transaction.id)} onCheckedChange={() => select(transaction.id)} />
-                        <ShareSwitcher onClick={(isShared) => onIsSharedChange(transaction.id, isShared, originalTransaction)} isShared={transaction.isShared} className={isSharedClassName} />
-                    </TransactionCardFooterLeft>
-                    <TransactionCardFooterRight>
-                        <StatusBadge statusConfig={statusConfig} current={transaction.status} 
-                            onClick={(status) => onStatusChange(transaction.id, status, originalTransaction)} />
-                        <TransactionMenu actions={actions} transaction={transaction} />
-                    </TransactionCardFooterRight>
-                </TransactionCardFooter>
-            </TransactionCard>
-        }) : <TransactionEmpty />
-        }
+export function TransactionCardInfo({ transaction, operationConfig }: CardInfoProps) {
+    const Icon = operationConfig.icon
+
+    return <div className="p-3 space-y-2">
+        <div className="flex justify-between items-start gap-4">
+            <div className="flex gap-3 min-w-0">
+                <div className={cn("p-2 rounded-xl h-fit shrink-0", operationConfig.bg, operationConfig.color)}>
+                    <Icon size={18} className={operationConfig.color} />
+                </div>
+                <div className="min-w-0 flex flex-col justify-between">
+                    <ItemTitle>{transaction.description}</ItemTitle>
+                    <ItemDescription>{operationConfig.label}</ItemDescription>
+                </div>
+            </div>
+            <div className="text-right shrink-0">
+                <p className={cn("text-xs font-black tracking-tight")}>
+                    {formatarDinheiro(transaction.amount)}
+                </p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mt-1">
+                    {formatarData(transaction.date)}
+                </p>
+            </div>
+        </div>
+    </div>
+}
+
+export function TransactionCardFooter({ children, actionConfig }: Props) {
+    return <div className={cn("px-4 py-1.5 border-t flex justify-between items-center transition-colors duration-500", actionConfig.border, actionConfig.footerBg)}>
+        {children}
+    </div>
+}
+
+export function TransactionCardFooterLeft({ children }: { children: React.ReactNode }) {
+    return <div className="flex items-center gap-4">
+        {children}
+    </div>
+}
+
+export function TransactionCardFooterRight({ children }: { children: React.ReactNode }) {
+    return <div className="flex items-center gap-2">
+        {children}
     </div>
 }

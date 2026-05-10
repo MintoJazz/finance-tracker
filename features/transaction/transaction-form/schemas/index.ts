@@ -11,7 +11,7 @@ export const baseTransactionSchema = z.object({
     amount: z.number().positive("O valor deve ser maior que zero").int(),
     date: z.coerce.date({ message: "Data inválida" }),
     activeBadges: z.array(z.enum(Object.keys(SCHEMA_REGISTRY) as [keyof typeof SCHEMA_REGISTRY])),
-    initialType: z.enum(Object.keys(TransactionType) as [keyof typeof TransactionType])
+    type: z.enum(Object.keys(TransactionType) as [keyof typeof TransactionType])
 })
 
 export const transactionFormSchema = baseTransactionSchema.merge(z.object(newTransactionSchema).partial()).superRefine((data, ctx) => {
