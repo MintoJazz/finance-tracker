@@ -18,7 +18,6 @@ interface Props {
 }
 
 export default function TransactionForm({ form, onSubmit, onError, children }: Props) {
-
     return <FormProvider {...form}>
         <form id="transaction-form" onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-6">
             <FieldGroup className="gap-2">

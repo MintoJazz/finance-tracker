@@ -1,16 +1,14 @@
+import { FieldErrors, UseFormReturn } from "react-hook-form";
 import TransactionForm, { TransactionAmountField, TransactionDateField, TransactionDescriptionField } from ".";
 import { TransactionFormType } from "./schemas/types";
-import { TransactionDetails } from "@/types/database";
-import { useTransactionForm } from "./use-transaction-form";
 
 interface Props {
-    initialData?: TransactionDetails
-    onSuccess: (data: TransactionFormType) => void
+    form: UseFormReturn<TransactionFormType>
+    onError: (errors: FieldErrors<TransactionFormType>) => void;
+    onSubmit: (data: TransactionFormType) => Promise<void>;
 }
 
-export default function TransactionFormLayout({ initialData, onSuccess }: Props) {
-    const { form, onError, onSubmit } = useTransactionForm(onSuccess, initialData)
-
+export default function TransactionFormLayout({ form, onError, onSubmit }: Props) {
     return <TransactionForm form={form} onError={onError} onSubmit={onSubmit}>
         <TransactionAmountField />
         <TransactionDescriptionField />

@@ -8,7 +8,7 @@ import TransactionCard, { TransactionCardInfo, TransactionCardFooter, Transactio
 import { Checkbox } from "@/components/ui/checkbox"
 import { TransactionDetails } from "../../../types/database"
 import TransactionEmpty from "./transaction-empty"
-import { useTransactionFeatures } from "./use-transaction-features"
+import { useTransactionFeatures } from "./hook"
 import { ACTIONS_CONFIG } from "./action-config"
 import { OPERATION_CONFIG } from "./operation-config"
 import { SWITCHER_STYLE } from "../share-switcher/switcher-style"
