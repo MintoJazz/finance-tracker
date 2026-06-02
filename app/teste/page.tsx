@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 import { TransactionFormType } from "@/features/transaction/transaction-form/schemas/types"
 import { transactionFormSchema } from "@/features/transaction/transaction-form/schemas"
-import TransactionFormLayout from "@/features/transaction/transaction-form/layout"
+import TransactionFormLayout from "@/features/transaction/transaction-form"
 
 function FormDebug<T extends FieldValues>({ control }: { control: Control<T> }) {
     const formValues = useWatch({ control })
@@ -25,6 +25,7 @@ export default function TransactionTestPage() {
         defaultValues: {
             description: "",
             amount: 0,
+            activeBadges: []
         },
         mode: "onChange"
     })

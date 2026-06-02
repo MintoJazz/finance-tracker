@@ -1,4 +1,4 @@
-import { Action } from "@/transactions/types/display";
+import { Action } from "@/types/changes";
 
 export interface ActionConfig {
     footerBg: string

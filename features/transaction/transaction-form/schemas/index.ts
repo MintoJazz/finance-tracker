@@ -1,6 +1,6 @@
 import { TransactionType } from "@/generated/prisma/enums";
 import * as z from "zod"
-import { SCHEMA_REGISTRY } from "./schema-registry";
+import { SCHEMA_REGISTRY, SchemaBadgeType } from "./schema-registry";
 
 export const newTransactionSchema = {
     ...SCHEMA_REGISTRY
@@ -10,7 +10,7 @@ export const baseTransactionSchema = z.object({
     description: z.string().min(1, "A descrição é obrigatória"),
     amount: z.number().positive("O valor deve ser maior que zero").int(),
     date: z.coerce.date({ message: "Data inválida" }),
-    activeBadges: z.array(z.enum(Object.keys(SCHEMA_REGISTRY) as [keyof typeof SCHEMA_REGISTRY])),
+    activeBadges: z.array(z.enum(Object.keys(SCHEMA_REGISTRY) as SchemaBadgeType[])),
     type: z.enum(Object.keys(TransactionType) as [keyof typeof TransactionType])
 })
 
