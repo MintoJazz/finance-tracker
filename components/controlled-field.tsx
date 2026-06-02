@@ -1,3 +1,5 @@
+'use client'
+
 import { useFormContext, useController } from "react-hook-form"
 import { Slot } from "@radix-ui/react-slot"
 import { FieldError } from "./ui/field"

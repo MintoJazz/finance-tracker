@@ -5,7 +5,7 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Separator } from "@/components/ui/separator";
 
 export function TransactionAmountField() {
-    return <Card className="bg-background">
+    return <Card>
         <CardHeader className="-mt-3 p-0 flex flex-col justify-center items-center">
             <FieldLabel>Valor</FieldLabel>
             <Separator />

@@ -6,7 +6,7 @@ import { ActionSet } from "@/types/action-set"
 import { TransactionStatus } from "@/generated/prisma/browser"
 
 export function useTransactionFeatures(initialTransactions: TransactionDetails[]) {
-    const { onDelete, onEdit } = useManager<TransactionDetails>()
+    const { onDelete, onEdit, isCreateOpen, setIsCreateOpen } = useManager<TransactionDetails>()
     const { select, selected } = useSelection()
     const { edit, items, drafts } = useDraftList<TransactionDetails>(initialTransactions)
 
@@ -35,6 +35,10 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         actions,
         onStatusChange,
         onIsSharedChange,
-        getAction
+        getAction,
+        createDialogProps: {
+            isOpen: isCreateOpen,
+            onOpenChange: setIsCreateOpen
+        }
     }
 }

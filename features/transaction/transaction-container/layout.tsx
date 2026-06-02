@@ -12,13 +12,16 @@ import { useTransactionFeatures } from "./hook"
 import { ACTIONS_CONFIG } from "./action-config"
 import { OPERATION_CONFIG } from "./operation-config"
 import { SWITCHER_STYLE } from "../share-switcher/switcher-style"
+import CreateTransaction from "../transaction-form/create-form"
+import { Bucket } from "@/generated/prisma/client"
 
 interface Props {
     transactions: TransactionDetails[]
+    buckets: Bucket[]
 }
 
-export default function TransactionContainer({ transactions }: Props) {
-    const { items, actions, onStatusChange, onIsSharedChange, isSelected, select, getAction } = useTransactionFeatures(transactions)
+export default function TransactionContainer({ transactions, buckets }: Props) {
+    const { items, actions, onStatusChange, onIsSharedChange, isSelected, select, getAction, createDialogProps } = useTransactionFeatures(transactions)
 
     return <div className="flex flex-col gap-2">
         {(items) ? items.map(transaction => {
@@ -36,13 +39,14 @@ export default function TransactionContainer({ transactions }: Props) {
                         <ShareSwitcher onClick={(isShared) => onIsSharedChange(transaction.id, isShared, originalTransaction)} isShared={transaction.isShared} className={isSharedClassName} />
                     </TransactionCardFooterLeft>
                     <TransactionCardFooterRight>
-                        <StatusBadge statusConfig={statusConfig} current={transaction.status} 
+                        <StatusBadge statusConfig={statusConfig} current={transaction.status}
                             onClick={(status) => onStatusChange(transaction.id, status, originalTransaction)} />
                         <TransactionMenu actions={actions} transaction={transaction} />
                     </TransactionCardFooterRight>
                 </TransactionCardFooter>
             </TransactionCard>
-        }) : <TransactionEmpty />
-        }
+        }) : <TransactionEmpty />}
+
+        <CreateTransaction buckets={buckets} {...createDialogProps} />
     </div>
 }

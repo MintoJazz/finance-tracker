@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from "@/components/ui/button"
 import { TransactionFormType } from "./schemas/types"
 import { FormProvider, SubmitErrorHandler, UseFormReturn } from "react-hook-form"

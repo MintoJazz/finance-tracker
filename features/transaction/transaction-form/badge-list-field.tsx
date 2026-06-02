@@ -1,3 +1,5 @@
+'use client'
+
 import { BADGE_REGISTRY as BADGE_LABELS } from "./badge-labels";
 import { useController, useFormContext } from "react-hook-form";
 import { TransactionFormType } from "./schemas/types";
