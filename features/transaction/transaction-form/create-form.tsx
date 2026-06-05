@@ -4,9 +4,11 @@ import { Control, FieldErrors, FieldValues, Resolver, useForm, useWatch } from "
 import { TransactionFormType } from "./schemas/types"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { transactionFormSchema } from "./schemas"
-import TransactionFormLayout from "."
+import TransactionFormLayout from "./form-layou"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Bucket } from "@/generated/prisma/client"
+import { useEffect } from "react"
+import { toast } from "sonner"
 
 function FormDebug<T extends FieldValues>({ control }: { control: Control<T> }) {
     const formValues = useWatch({ control })
@@ -21,13 +23,13 @@ function FormDebug<T extends FieldValues>({ control }: { control: Control<T> }) 
 interface Props {
     buckets: Bucket[]
     isOpen: boolean
-    onClose?: () => void
+    isIncome: boolean
+    onClose?: (open: boolean) => void
     onSubmit: (data: TransactionFormType) => void
 }
 
-const resolver = zodResolver(transactionFormSchema) as Resolver<TransactionFormType>
-
-export default function CreateTransaction({ isOpen, onClose, buckets, onSubmit }: Props) {
+export default function CreateTransaction({ isOpen, onClose, buckets, onSubmit, isIncome }: Props) {
+    const resolver = zodResolver(transactionFormSchema) as Resolver<TransactionFormType>
     const form = useForm<TransactionFormType>({
         resolver,
         defaultValues: {
@@ -40,8 +42,13 @@ export default function CreateTransaction({ isOpen, onClose, buckets, onSubmit }
     })
 
     const onError = (errors: FieldErrors<TransactionFormType>) => {
-        console.error("❌ FALHA NA VALIDAÇÃO:", errors)
+        toast.error("Erro ao criar Transação!")
+        console.log("❌ FALHA NA VALIDAÇÃO:", errors)
     }
+
+    form.setValue("type", (isIncome) ? "INCOME" : "EXPENSE")
+    useEffect(() => {if (!isOpen) form.reset()}, [isOpen, form])
+
 
     return <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-h-[90vh] flex flex-col">

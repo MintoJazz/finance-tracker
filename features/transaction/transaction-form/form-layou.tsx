@@ -1,12 +1,12 @@
 import { FieldErrors, UseFormReturn } from "react-hook-form";
 import TransactionForm from "./form-layout";
 import { TransactionFormType } from "./schemas/types";
-import TransactionBadgeList from "./badge-list-field";
-import { TransactionAmountField } from "./amount-field";
-import { TransactionDateField } from "./date-field";
-import { TransactionDescriptionField } from "./description-field";
+import TransactionBadgeList from "./fields/badge-list-field";
+import { TransactionAmountField } from "./fields/amount-field";
+import { TransactionDateField } from "./fields/date-field";
+import { TransactionDescriptionField } from "./fields/description-field";
 import { Bucket } from "@/generated/prisma/client";
-import TransactionBucketField from "./bucket-field";
+import TransactionBucketField from "./fields/bucket-field";
 
 interface Props {
     form: UseFormReturn<TransactionFormType>

@@ -4,10 +4,13 @@ import { useSelection } from "@/hooks/use-selection"
 import { TransactionDetails } from "@/types/database"
 import { ActionSet } from "@/types/action-set"
 import { TransactionStatus } from "@/generated/prisma/browser"
-import { toDomain } from "../factory/toDomain"
+import { toDomain } from "../mappers/toDomain"
 import { TransactionFormType } from "../transaction-form/schemas/types"
+import { useState } from "react"
 
 export function useTransactionFeatures(initialTransactions: TransactionDetails[]) {
+    const [isIncome, setIsIncome] = useState<boolean>(false)
+
     const { onDelete, onEdit, isCreateOpen, setIsCreateOpen } = useManager<TransactionDetails>()
     const { select, selected } = useSelection()
     const { edit, items, drafts, add } = useDraftList<TransactionDetails>(initialTransactions)
@@ -16,6 +19,10 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
     const getAction = (id: number) => drafts[id]?.action ?? 'stable'
     const onIsSharedChange = (id: number, isShared: boolean, transaction: TransactionDetails) => edit(id, { isShared }, transaction)
     const onStatusChange = (id: number, status: TransactionStatus, transaction: TransactionDetails) => edit(id, { status }, transaction)
+    const onAddClick = (isIncome: boolean) => {
+        setIsIncome(isIncome)
+        setIsCreateOpen(true)
+    }
 
     function onSubmitCreate(data: TransactionFormType) {
         const transaction = toDomain(data)
@@ -45,10 +52,12 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         onIsSharedChange,
         getAction,
         setIsCreateOpen,
+        onAddClick,
         createDialogProps: {
+            isIncome,
             isOpen: isCreateOpen,
-            onOpenChange: setIsCreateOpen,
-            onSubmit: onSubmitCreate
+            onClose: setIsCreateOpen,
+            onSubmit: onSubmitCreate,
         }
     }
 }

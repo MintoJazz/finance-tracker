@@ -1,8 +1,8 @@
 'use client'
 
-import { BADGE_REGISTRY as BADGE_LABELS } from "./badge-labels";
+import { BADGE_REGISTRY as BADGE_LABELS } from "../badge-labels";
 import { useController, useFormContext } from "react-hook-form";
-import { TransactionFormType } from "./schemas/types";
+import { TransactionFormType } from "../schemas/types";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
