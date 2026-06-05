@@ -1,6 +1,6 @@
 import { Movement } from "@/generated/prisma/client";
 import { TransactionType } from "@/generated/prisma/enums";
-import { TransactionFormType } from "../transaction-form/schemas/types";
+import { TransactionFormType } from "../form/schema/types";
 
 export const MOVEMENT_BUILDERS: Record<TransactionType, (data: TransactionFormType) => Partial<Movement>[]> = {
     EXPENSE: (data) => [{ amount: data.amount, role: "DEBIT", bucketId: data.bucketId }],
