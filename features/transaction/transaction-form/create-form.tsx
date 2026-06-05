@@ -19,14 +19,15 @@ function FormDebug<T extends FieldValues>({ control }: { control: Control<T> }) 
 }
 
 interface Props {
+    buckets: Bucket[]
     isOpen: boolean
     onClose?: () => void
-    buckets: Bucket[]
+    onSubmit: (data: TransactionFormType) => void
 }
 
 const resolver = zodResolver(transactionFormSchema) as Resolver<TransactionFormType>
 
-export default function CreateTransaction({ isOpen, onClose, buckets }: Props) {
+export default function CreateTransaction({ isOpen, onClose, buckets, onSubmit }: Props) {
     const form = useForm<TransactionFormType>({
         resolver,
         defaultValues: {
@@ -37,15 +38,6 @@ export default function CreateTransaction({ isOpen, onClose, buckets }: Props) {
         },
         mode: "onChange"
     })
-
-    const onSubmit = async (data: TransactionFormType) => {
-        try {
-            console.log("✅ DADOS VALIDADOS COM SUCESSO:", data)
-            alert(`Sucesso! \n\n${JSON.stringify(data, null, 2)}`)
-        } catch (error) {
-            console.error("Erro ao salvar transação:", error)
-        }
-    }
 
     const onError = (errors: FieldErrors<TransactionFormType>) => {
         console.error("❌ FALHA NA VALIDAÇÃO:", errors)

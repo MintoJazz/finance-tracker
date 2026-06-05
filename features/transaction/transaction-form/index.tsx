@@ -11,7 +11,7 @@ import TransactionBucketField from "./bucket-field";
 interface Props {
     form: UseFormReturn<TransactionFormType>
     onError: (errors: FieldErrors<TransactionFormType>) => void;
-    onSubmit: (data: TransactionFormType) => Promise<void>;
+    onSubmit: (data: TransactionFormType) => void;
     buckets: Bucket[]
 }
 

@@ -16,7 +16,7 @@ export function useDraftList<Domain extends WithId>(originals: Domain[] = []) {
     const add = useCallback((data: Domain) => {
         const id = index.current
         index.current -= 1
-        setDrafts(prev => ({ ...prev, [id]: { action: "add", domain: data } }))
+        setDrafts(prev => ({ ...prev, [id]: { action: "add", domain: {...data, id} } }))
     }, [])
 
     const edit = useCallback((id: number, data: Partial<Domain>, original?: Domain) => setDrafts((prev) => {

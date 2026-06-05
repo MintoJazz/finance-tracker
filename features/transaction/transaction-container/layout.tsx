@@ -14,6 +14,8 @@ import { OPERATION_CONFIG } from "./operation-config"
 import { SWITCHER_STYLE } from "../share-switcher/switcher-style"
 import CreateTransaction from "../transaction-form/create-form"
 import { Bucket } from "@/generated/prisma/client"
+import { Button } from "@/components/ui/button"
+import { Minus } from "lucide-react"
 
 interface Props {
     transactions: TransactionDetails[]
@@ -21,9 +23,11 @@ interface Props {
 }
 
 export default function TransactionContainer({ transactions, buckets }: Props) {
-    const { items, actions, onStatusChange, onIsSharedChange, isSelected, select, getAction, createDialogProps } = useTransactionFeatures(transactions)
+    const { items, actions, onStatusChange, onIsSharedChange, isSelected, select, getAction, createDialogProps, setIsCreateOpen } = useTransactionFeatures(transactions)
 
     return <div className="flex flex-col gap-2">
+        <Button onClick={() => setIsCreateOpen(true)} ><Minus/> Pagar</Button>
+
         {(items) ? items.map(transaction => {
             const statusConfig = STATUS_CONFIG[transaction.status]
             const operationConfig = OPERATION_CONFIG[transaction.type]
