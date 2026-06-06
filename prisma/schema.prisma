@@ -33,69 +33,34 @@ enum TransactionType {
   TRANSFER
 }
 
-enum TransactionKind {
-  DEFAULT
-  INVOICE
-  ORDER
-}
-
 model User {
-  id    Int    @id @default(autoincrement())
-  email String @unique
-
-  memberships Membership[]
-}
-
-model Workspace {
   id   Int    @id @default(autoincrement())
   name String
 
-  memberships  Membership[]
-  buckets      Bucket[]
-  transactions Transaction[]
-}
-
-model Membership {
-  id          Int @id @default(autoincrement())
-  userId      Int
-  workspaceId Int
-
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-
   buckets Bucket[]
-
-  @@unique([userId, workspaceId])
 }
 
 model Bucket {
-  id          Int  @id @default(autoincrement())
-  memberId    Int?
-  workspaceId Int
+  id     Int @id @default(autoincrement())
+  userId Int
 
   name String
   type BucketType
 
-  member    Membership? @relation(fields: [memberId], references: [id])
-  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   movements Movement[]
 }
 
 model Transaction {
   id          Int @id @default(autoincrement())
-  workspaceId Int
 
   description String
   amount      Int
   date        DateTime
-  isShared    Boolean  @default(false)
 
-  kind   TransactionKind   @default(DEFAULT)
   status TransactionStatus @default(PROJECTED)
   type   TransactionType
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   movements Movement[]
 }

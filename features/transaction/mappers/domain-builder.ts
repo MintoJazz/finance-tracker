@@ -21,9 +21,6 @@ export function toDomain(data: TransactionFormType): TransactionDetails {
         date: schema.date,
         type: schema.type,
         movements,
-        workspaceId: 0,
-        isShared: false,
-        kind: "DEFAULT",
         status: (schema.date > new Date()) ? "PROJECTED" : "PENDING"
     }, schema)
 }

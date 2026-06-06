@@ -1,301 +1,196 @@
-import "dotenv/config";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../generated/prisma/client";
-
-const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: `${process.env.DATABASE_URL}` }),
-});
+import { BucketType, TransactionType, TransactionStatus, MovementRole } from "@/generated/prisma/enums"
+import { prisma } from "@/lib/prisma"
 
 async function main() {
-  console.log("🌱 Seeding database...\n");
-
-  // ─── Cleanup (ordem reversa das dependências) ──────────────────────
-  await prisma.movement.deleteMany();
-  await prisma.transaction.deleteMany();
-  await prisma.bucket.deleteMany();
-  await prisma.membership.deleteMany();
-  await prisma.workspace.deleteMany();
-  await prisma.user.deleteMany();
-
-  console.log("🧹 Banco limpo.\n");
-
-  // ─── Users ─────────────────────────────────────────────────────────
+  // Users
   const joao = await prisma.user.create({
-    data: { email: "joao@email.com" },
-  });
+    data: { name: 'João Silva' },
+  })
 
   const maria = await prisma.user.create({
-    data: { email: "maria@email.com" },
-  });
+    data: { name: 'Maria Silva' },
+  })
 
-  console.log(`👤 Usuários criados: ${joao.email}, ${maria.email}`);
+  // Buckets
+  const joaoWallet = await prisma.bucket.create({
+    data: { userId: joao.id, name: 'Carteira', type: BucketType.WALLET },
+  })
 
-  // ─── Workspace ─────────────────────────────────────────────────────
-  const workspace = await prisma.workspace.create({
-    data: { name: "Casa" },
-  });
+  const joaoCredit = await prisma.bucket.create({
+    data: { userId: joao.id, name: 'Nubank', type: BucketType.CREDIT },
+  })
 
-  console.log(`🏠 Workspace criado: ${workspace.name}`);
+  const joaoReserve = await prisma.bucket.create({
+    data: { userId: joao.id, name: 'Reserva de Emergência', type: BucketType.RESERVE },
+  })
 
-  // ─── Memberships ──────────────────────────────────────────────────
-  const memberJoao = await prisma.membership.create({
-    data: { userId: joao.id, workspaceId: workspace.id },
-  });
+  const mariaWallet = await prisma.bucket.create({
+    data: { userId: maria.id, name: 'Carteira', type: BucketType.WALLET },
+  })
 
-  const memberMaria = await prisma.membership.create({
-    data: { userId: maria.id, workspaceId: workspace.id },
-  });
+  const mariaCredit = await prisma.bucket.create({
+    data: { userId: maria.id, name: 'Inter', type: BucketType.CREDIT },
+  })
 
-  console.log(`🤝 Memberships criadas para João e Maria`);
+  // --- Transações do João ---
 
-  // ─── Buckets ──────────────────────────────────────────────────────
-  const carteiraJoao = await prisma.bucket.create({
+  // 1. Receita: salário na carteira (SETTLED)
+  const salario = await prisma.transaction.create({
     data: {
-      name: "Carteira João",
-      type: "WALLET",
-      workspaceId: workspace.id,
-      memberId: memberJoao.id,
+      description: 'Salário',
+      amount: 500000, // R$ 5.000,00 em centavos
+      date: new Date('2024-03-05'),
+      type: TransactionType.INCOME,
+      status: TransactionStatus.SETTLED,
     },
-  });
+  })
 
-  const carteiraMaria = await prisma.bucket.create({
+  await prisma.movement.create({
     data: {
-      name: "Carteira Maria",
-      type: "WALLET",
-      workspaceId: workspace.id,
-      memberId: memberMaria.id,
+      bucketId: joaoWallet.id,
+      transactionId: salario.id,
+      amount: 500000,
+      role: MovementRole.CREDIT,
     },
-  });
+  })
 
-  const creditoJoao = await prisma.bucket.create({
+  // 2. Despesa: mercado no crédito (SETTLED)
+  const mercado = await prisma.transaction.create({
     data: {
-      name: "Cartão João",
-      type: "CREDIT",
-      workspaceId: workspace.id,
-      memberId: memberJoao.id,
+      description: 'Mercado',
+      amount: 35090,
+      date: new Date('2024-03-10'),
+      type: TransactionType.EXPENSE,
+      status: TransactionStatus.SETTLED,
     },
-  });
+  })
 
-  const reservaViagem = await prisma.bucket.create({
+  await prisma.movement.create({
     data: {
-      name: "Reserva Viagem",
-      type: "RESERVE",
-      workspaceId: workspace.id,
-      memberId: null, // bucket compartilhado
+      bucketId: joaoCredit.id,
+      transactionId: mercado.id,
+      amount: 35090,
+      role: MovementRole.DEBIT,
     },
-  });
+  })
 
-  const contaConjunta = await prisma.bucket.create({
+  // 3. Transferência: carteira → reserva (SETTLED)
+  const transferencia = await prisma.transaction.create({
     data: {
-      name: "Conta Conjunta",
-      type: "WALLET",
-      workspaceId: workspace.id,
-      memberId: null,
+      description: 'Aporte reserva de emergência',
+      amount: 100000,
+      date: new Date('2024-03-06'),
+      type: TransactionType.TRANSFER,
+      status: TransactionStatus.SETTLED,
     },
-  });
+  })
 
-  console.log(
-    `💰 Buckets criados: ${[carteiraJoao, carteiraMaria, creditoJoao, reservaViagem, contaConjunta].map((b) => b.name).join(", ")}`,
-  );
-
-  // ─── Helper: criar transação com movimentações ────────────────────
-  type MovementInput = {
-    bucketId: number;
-    amount: number;
-    role: "DEBIT" | "CREDIT" | "TRANSFER_DEBIT" | "TRANSFER_CREDIT";
-  };
-
-  async function createTransaction(data: {
-    description: string;
-    amount: number;
-    date: Date;
-    type: "EXPENSE" | "INCOME" | "TRANSFER";
-    status: "PROJECTED" | "PENDING" | "SETTLED" | "CANCELED";
-    kind?: "DEFAULT" | "INVOICE" | "ORDER";
-    movements: MovementInput[];
-  }) {
-    return prisma.transaction.create({
-      data: {
-        workspaceId: workspace.id,
-        description: data.description,
-        amount: data.amount,
-        date: data.date,
-        type: data.type,
-        status: data.status,
-        kind: data.kind ?? "DEFAULT",
-        movements: {
-          create: data.movements,
-        },
+  await prisma.movement.createMany({
+    data: [
+      {
+        bucketId: joaoWallet.id,
+        transactionId: transferencia.id,
+        amount: 100000,
+        role: MovementRole.TRANSFER_DEBIT,
       },
-      include: { movements: true },
-    });
-  }
-
-  // ─── Transactions ─────────────────────────────────────────────────
-
-  // 1. Despesa simples — SETTLED
-  await createTransaction({
-    description: "Mercado — compras da semana",
-    amount: 18750, // R$ 187,50
-    date: new Date("2026-04-28"),
-    type: "EXPENSE",
-    status: "SETTLED",
-    movements: [
-      { bucketId: carteiraJoao.id, amount: 18750, role: "DEBIT" },
+      {
+        bucketId: joaoReserve.id,
+        transactionId: transferencia.id,
+        amount: 100000,
+        role: MovementRole.TRANSFER_CREDIT,
+      },
     ],
-  });
+  })
 
-  // 2. Despesa com split — SETTLED
-  await createTransaction({
-    description: "Jantar no restaurante",
-    amount: 15000, // R$ 150,00
-    date: new Date("2026-04-30"),
-    type: "EXPENSE",
-    status: "SETTLED",
-    movements: [
-      { bucketId: carteiraJoao.id, amount: 10000, role: "DEBIT" },
-      { bucketId: carteiraMaria.id, amount: 5000, role: "DEBIT" },
-    ],
-  });
+  // 4. Conta projetada: aluguel (PROJECTED)
+  const aluguel = await prisma.transaction.create({
+    data: {
+      description: 'Aluguel',
+      amount: 150000,
+      date: new Date('2024-04-05'),
+      type: TransactionType.EXPENSE,
+      status: TransactionStatus.PROJECTED,
+    },
+  })
 
-  // 3. Receita — SETTLED
-  await createTransaction({
-    description: "Salário João — maio",
-    amount: 520000, // R$ 5.200,00
-    date: new Date("2026-05-05"),
-    type: "INCOME",
-    status: "SETTLED",
-    movements: [
-      { bucketId: carteiraJoao.id, amount: 520000, role: "CREDIT" },
-    ],
-  });
+  await prisma.movement.create({
+    data: {
+      bucketId: joaoWallet.id,
+      transactionId: aluguel.id,
+      amount: 150000,
+      role: MovementRole.DEBIT,
+    },
+  })
 
-  // 4. Receita — SETTLED
-  await createTransaction({
-    description: "Salário Maria — maio",
-    amount: 480000, // R$ 4.800,00
-    date: new Date("2026-05-05"),
-    type: "INCOME",
-    status: "SETTLED",
-    movements: [
-      { bucketId: carteiraMaria.id, amount: 480000, role: "CREDIT" },
-    ],
-  });
+  // 5. Conta pendente: fatura Nubank (PENDING)
+  const fatura = await prisma.transaction.create({
+    data: {
+      description: 'Fatura Nubank Março',
+      amount: 89700,
+      date: new Date('2024-04-10'),
+      type: TransactionType.EXPENSE,
+      status: TransactionStatus.PENDING,
+    },
+  })
 
-  // 5. Transferência — SETTLED
-  await createTransaction({
-    description: "Aporte mensal para viagem",
-    amount: 50000, // R$ 500,00
-    date: new Date("2026-05-06"),
-    type: "TRANSFER",
-    status: "SETTLED",
-    movements: [
-      { bucketId: contaConjunta.id, amount: 50000, role: "TRANSFER_DEBIT" },
-      { bucketId: reservaViagem.id, amount: 50000, role: "TRANSFER_CREDIT" },
-    ],
-  });
+  await prisma.movement.create({
+    data: {
+      bucketId: joaoCredit.id,
+      transactionId: fatura.id,
+      amount: 89700,
+      role: MovementRole.DEBIT,
+    },
+  })
 
-  // 6. Despesa no crédito — PENDING
-  await createTransaction({
-    description: "Assinatura streaming",
-    amount: 5590, // R$ 55,90
-    date: new Date("2026-05-01"),
-    type: "EXPENSE",
-    status: "PENDING",
-    kind: "INVOICE",
-    movements: [
-      { bucketId: creditoJoao.id, amount: 5590, role: "DEBIT" },
-    ],
-  });
+  // --- Transações da Maria ---
 
-  // 7. Despesa futura — PROJECTED
-  await createTransaction({
-    description: "Aluguel — junho",
-    amount: 200000, // R$ 2.000,00
-    date: new Date("2026-06-01"),
-    type: "EXPENSE",
-    status: "PROJECTED",
-    movements: [
-      { bucketId: contaConjunta.id, amount: 200000, role: "DEBIT" },
-    ],
-  });
+  // 6. Receita: salário (SETTLED)
+  const salariaMaria = await prisma.transaction.create({
+    data: {
+      description: 'Salário',
+      amount: 380000,
+      date: new Date('2024-03-05'),
+      type: TransactionType.INCOME,
+      status: TransactionStatus.SETTLED,
+    },
+  })
 
-  // 8. Despesa cancelada — CANCELED
-  await createTransaction({
-    description: "Pedido cancelado — loja online",
-    amount: 8990, // R$ 89,90
-    date: new Date("2026-04-25"),
-    type: "EXPENSE",
-    status: "CANCELED",
-    movements: [
-      { bucketId: creditoJoao.id, amount: 8990, role: "DEBIT" },
-    ],
-  });
+  await prisma.movement.create({
+    data: {
+      bucketId: mariaWallet.id,
+      transactionId: salariaMaria.id,
+      amount: 380000,
+      role: MovementRole.CREDIT,
+    },
+  })
 
-  // 9. Despesa — SETTLED (conta conjunta)
-  await createTransaction({
-    description: "Conta de luz — abril",
-    amount: 23470, // R$ 234,70
-    date: new Date("2026-04-20"),
-    type: "EXPENSE",
-    status: "SETTLED",
-    movements: [
-      { bucketId: contaConjunta.id, amount: 23470, role: "DEBIT" },
-    ],
-  });
+  // 7. Despesa: farmácia no crédito (SETTLED)
+  const farmacia = await prisma.transaction.create({
+    data: {
+      description: 'Farmácia',
+      amount: 8750,
+      date: new Date('2024-03-12'),
+      type: TransactionType.EXPENSE,
+      status: TransactionStatus.SETTLED,
+    },
+  })
 
-  // 10. Despesa — SETTLED (crédito)
-  await createTransaction({
-    description: "Farmácia",
-    amount: 6730, // R$ 67,30
-    date: new Date("2026-05-03"),
-    type: "EXPENSE",
-    status: "SETTLED",
-    movements: [
-      { bucketId: creditoJoao.id, amount: 6730, role: "DEBIT" },
-    ],
-  });
+  await prisma.movement.create({
+    data: {
+      bucketId: mariaCredit.id,
+      transactionId: farmacia.id,
+      amount: 8750,
+      role: MovementRole.DEBIT,
+    },
+  })
 
-  // 11. Transferência entre wallets — SETTLED
-  await createTransaction({
-    description: "Maria repassando pra conta conjunta",
-    amount: 100000, // R$ 1.000,00
-    date: new Date("2026-05-06"),
-    type: "TRANSFER",
-    status: "SETTLED",
-    movements: [
-      { bucketId: carteiraMaria.id, amount: 100000, role: "TRANSFER_DEBIT" },
-      { bucketId: contaConjunta.id, amount: 100000, role: "TRANSFER_CREDIT" },
-    ],
-  });
-
-  // 12. Despesa futura — PROJECTED
-  await createTransaction({
-    description: "IPTU — parcela 6/10",
-    amount: 45000, // R$ 450,00
-    date: new Date("2026-06-15"),
-    type: "EXPENSE",
-    status: "PROJECTED",
-    movements: [
-      { bucketId: contaConjunta.id, amount: 45000, role: "DEBIT" },
-    ],
-  });
-
-  // ─── Resumo ───────────────────────────────────────────────────────
-  const totalTransactions = await prisma.transaction.count();
-  const totalMovements = await prisma.movement.count();
-
-  console.log(`\n✅ Seed finalizado!`);
-  console.log(`   📊 ${totalTransactions} transações`);
-  console.log(`   📋 ${totalMovements} movimentações`);
+  console.log('Seed concluído.')
+  console.log(`Usuários: João (id ${joao.id}), Maria (id ${maria.id})`)
+  console.log(`Buckets João: Carteira, Nubank, Reserva`)
+  console.log(`Buckets Maria: Carteira, Inter`)
+  console.log(`Transações: salário, mercado, transferência, aluguel projetado, fatura pendente, salário Maria, farmácia`)
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error("❌ Seed falhou:", e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+  .catch(console.error)
+  .finally(() => prisma.$disconnect())
