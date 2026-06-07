@@ -20,7 +20,7 @@ export default function BucketContainer({ buckets }: Props) {
         <DataTable data={rows} columns={mobileBucketColums} showHeader={false}
             onRowClick={(row) => {
             const idDaLinha = row.original.bucket.id; 
-            router.push(`/detalhes/${idDaLinha}`);
+            router.push(`/buckets/${idDaLinha}`);
         }}/>
 
         <DeleteBucket {...deleteBucketProps} />

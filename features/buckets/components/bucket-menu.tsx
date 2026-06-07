@@ -12,12 +12,23 @@ interface Props {
 export default function BucketMenu({ actions, bucket }: Props) {
     return <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full">
+            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={(e) => e.stopPropagation()}>
                 <MoreHorizontal size={16} className="text-muted-foreground" />
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-            {actions.map((actionProps, index) => <DropdownMenuItem key={index} {...actionProps} onClick={() => actionProps.onAction(bucket)} />)}
+            {actions.map((actionProps, index) => {
+                const { onAction, ...props } = actionProps
+
+                return <DropdownMenuItem key={index} {...props}
+                    onSelect={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onAction(bucket);
+                    }}
+                    onClick={(e) => { e.stopPropagation() }}
+                />
+            })}
         </DropdownMenuContent>
     </DropdownMenu>
 }

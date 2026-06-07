@@ -17,7 +17,18 @@ export default function TransactionMenu({ actions, transaction }: Props) {
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-            {actions.map((actionProps, index) => <DropdownMenuItem key={index} {...actionProps} onClick={() => actionProps.onAction(transaction)} />)}
+            {actions.map((actionProps, index) => {
+                const { onAction, ...props } = actionProps
+
+                return <DropdownMenuItem key={index} {...props} 
+                    onSelect={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onAction(transaction)
+                    }}
+                    onClick={(e) => { e.stopPropagation() }} 
+                />
+            })}
         </DropdownMenuContent>
     </DropdownMenu>
 }
