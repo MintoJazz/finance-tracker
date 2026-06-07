@@ -6,7 +6,7 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { SchemaBadgeType } from "../schema/schema-registry";
 import { BADGE_FIELDS } from "./badge-field-registry";
-import { BADGE_THEMES } from "../../themes/badge-labels";
+import { BADGE_THEMES } from "../../themes/badge-themes";
 
 interface Props {
     availableBadges: SchemaBadgeType[]

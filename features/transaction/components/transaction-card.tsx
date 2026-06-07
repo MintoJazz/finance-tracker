@@ -2,8 +2,8 @@ import { ItemDescription, ItemTitle } from "@/components/ui/item"
 import { Transaction } from "@/generated/prisma/client"
 import { formatarData, formatarDinheiro } from "@/lib/formatters"
 import { cn } from "@/lib/utils"
-import { ActionTheme } from "../themes/action-styles"
-import { OPERATION_THEMES } from "../themes/operation-styles"
+import { ActionTheme } from "../themes/action-themes"
+import { OPERATION_THEMES } from "../themes/operation-themes"
 
 interface Props {
     children: React.ReactNode

@@ -9,7 +9,8 @@ import {
 import { TransactionStatus } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
-import { STATUS_THEMES } from "../themes/status-styles";
+import { STATUS_THEMES } from "../themes/status-themes";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
     current: TransactionStatus;
@@ -23,7 +24,9 @@ export default function StatusBadge({ current, onClick }: Props) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button
+                {/*
+                
+                    <Button
                     variant="outline"
                     className={cn(
                         "h-fit gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
@@ -34,6 +37,13 @@ export default function StatusBadge({ current, onClick }: Props) {
                     <Icon size={11} className="-ml-0.5" />
                     {theme.label}
                 </Button>
+
+                */}
+
+                <Badge className={cn(theme.color, theme.borderColor, "cursor-pointer")} >
+                    <Icon size={11} className="-ml-0.5" />
+                    {theme.label}
+                </Badge>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
                 <DropdownMenuGroup>

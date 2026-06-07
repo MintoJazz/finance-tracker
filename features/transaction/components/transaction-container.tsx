@@ -5,8 +5,8 @@ import { Bucket } from "@/generated/prisma/client"
 import { TransactionDetails } from "../../../types/database"
 import { DataTable } from "@/components/ui/data-table"
 import { useTransactionFeatures } from "../hooks/use-transaction-features"
-import { desktopColumns } from "./columns-desktop"
-import { mobileColumns } from "./columns-mobile"
+import { desktopColumns } from "./transaction-desktop-columns"
+import { mobileColumns } from "./transactino-mobile-columns"
 import TransactionEmpty from "./transaction-empty"
 import CreateTransaction from "./create-transaction-dialog"
 import { useIsDesktop } from "@/hooks/use-breakpoint"
@@ -17,7 +17,7 @@ interface Props {
 }
 
 export default function TransactionContainer({ transactions, buckets }: Props) {
-    const { rows, onAddClick, createDialogProps } = useTransactionFeatures(transactions)
+    const { rows, onAddClick, createDialogProps, onRowSelectionChange } = useTransactionFeatures(transactions)
     const isDesktop = useIsDesktop()
 
     return (
@@ -37,6 +37,8 @@ export default function TransactionContainer({ transactions, buckets }: Props) {
                     filterColumn="description"
                     filterPlaceholder="Filtrar descrição..."
                     pageSize={10}
+                    enableRowSelection
+                    onRowSelectionChange={onRowSelectionChange}
                 />
             )}
 
