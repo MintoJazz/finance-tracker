@@ -1,28 +1,29 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { STATUS_CONFIG, StatusConfig } from "../config/status-styles";
 import { TransactionStatus } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
+import { STATUS_THEMES } from "../themes/status-styles";
 
-interface Props {current: TransactionStatus
+interface Props {
+    current: TransactionStatus
     onClick: (status: TransactionStatus) => void
-    statusConfig: StatusConfig
 }
 
-export default function StatusBadge({ statusConfig, current, onClick }: Props) {
-    const options = STATUS_CONFIG
-    const Icon = statusConfig.icon
+export default function StatusBadge({ current, onClick }: Props) {
+    const options = STATUS_THEMES
+    const theme = STATUS_THEMES[current]
+    const Icon = theme.icon
 
     return <DropdownMenu>
         <DropdownMenuTrigger asChild>
             <Button variant="outline" className={cn(
                 "h-fit px-1.5 py-0.5 gap-1 rounded-md text-[9px] uppercase font-black tracking-tight",
-                statusConfig.color,
-                statusConfig.borderColor
+                theme.color,
+                theme.borderColor
             )} >
                 <Icon size={10} />
-                {statusConfig.label}
+                {theme.label}
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
