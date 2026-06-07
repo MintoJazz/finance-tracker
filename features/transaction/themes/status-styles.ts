@@ -7,14 +7,14 @@ import {
     CalendarClock 
 } from "lucide-react";
 
-export interface StatusConfig {
+export interface StatusTheme {
     label: string
     color: string
     borderColor: string
     icon: LucideIcon
 }
 
-export const STATUS_CONFIG: Record<TransactionStatus, StatusConfig> = {
+export const STATUS_THEMES: Record<TransactionStatus, StatusTheme> = {
     CANCELED: {
         label: "Cancelada",
         color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",

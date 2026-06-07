@@ -1,12 +1,12 @@
 import { Action } from "@/types/changes";
 
-export interface ActionConfig {
+export interface ActionTheme {
     footerBg: string
     border: string
     color: string
 }
 
-export const ACTIONS_CONFIG: Record<Action | "stable", ActionConfig> = {
+export const ACTION_THEMES: Record<Action | "stable", ActionTheme> = {
     "add": {
         footerBg: "bg-emerald-50 dark:bg-emerald-500/20",
         border: "border-emerald-200 dark:border-emerald-500/40",

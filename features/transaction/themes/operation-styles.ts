@@ -1,14 +1,14 @@
 import { TransactionType } from "@/generated/prisma/enums";
 import { ArrowDownCircle, ArrowLeftRight, ArrowUpCircle, LucideIcon } from "lucide-react";
 
-export type OperationConfig = {
+export type OperationTheme = {
     label: string
     icon: LucideIcon
     color: string
     bg: string
 }
 
-export const OPERATION_CONFIG: Record<TransactionType, OperationConfig> = {
+export const OPERATION_THEMES: Record<TransactionType, OperationTheme> = {
     EXPENSE: {
         label: "Despesa",
         icon: ArrowDownCircle,
