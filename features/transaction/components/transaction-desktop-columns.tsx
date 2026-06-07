@@ -1,5 +1,4 @@
 import { ColumnDef } from "@tanstack/react-table"
-import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import { formatarData, formatarDinheiro } from "@/lib/formatters"
 import { OPERATION_THEMES } from "../themes/operation-styles"
@@ -8,13 +7,6 @@ import TransactionMenu from "./transaction-menu"
 import { TransactionRow } from "../hooks/use-transaction-features"
 
 export const desktopColumns: ColumnDef<TransactionRow>[] = [
-    {
-        id: "select",
-        header: "",
-        cell: ({ row }) => <Checkbox {...row.original.checkboxProps} aria-label="Selecionar linha" />,
-        enableSorting: false,
-        enableHiding: false,
-    },
     {
         id: "type",
         header: "Tipo",
