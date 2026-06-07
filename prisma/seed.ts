@@ -2,7 +2,7 @@ import { BucketType, TransactionType, TransactionStatus, MovementRole } from "@/
 import { prisma } from "@/lib/prisma"
 
 async function main() {
-  // Users
+  // --- Usuários ---
   const joao = await prisma.user.create({
     data: { name: 'João Silva' },
   })
@@ -11,7 +11,7 @@ async function main() {
     data: { name: 'Maria Silva' },
   })
 
-  // Buckets
+  // --- Buckets ---
   const joaoWallet = await prisma.bucket.create({
     data: { userId: joao.id, name: 'Carteira', type: BucketType.WALLET },
   })
@@ -32,13 +32,15 @@ async function main() {
     data: { userId: maria.id, name: 'Inter', type: BucketType.CREDIT },
   })
 
+  // ==========================================
   // --- Transações do João ---
+  // ==========================================
 
   // 1. Receita: salário na carteira (SETTLED)
   const salario = await prisma.transaction.create({
     data: {
       description: 'Salário',
-      amount: 500000, // R$ 5.000,00 em centavos
+      amount: 500000, // Valor de face: R$ 5.000,00
       date: new Date('2024-03-05'),
       type: TransactionType.INCOME,
       status: TransactionStatus.SETTLED,
@@ -49,7 +51,7 @@ async function main() {
     data: {
       bucketId: joaoWallet.id,
       transactionId: salario.id,
-      amount: 500000,
+      amount: 500000, // Entrou dinheiro (+ positivo)
       role: MovementRole.CREDIT,
     },
   })
@@ -58,7 +60,7 @@ async function main() {
   const mercado = await prisma.transaction.create({
     data: {
       description: 'Mercado',
-      amount: 35090,
+      amount: 35090, // Valor de face da nota fiscal
       date: new Date('2024-03-10'),
       type: TransactionType.EXPENSE,
       status: TransactionStatus.SETTLED,
@@ -69,7 +71,7 @@ async function main() {
     data: {
       bucketId: joaoCredit.id,
       transactionId: mercado.id,
-      amount: 35090,
+      amount: -35090, // Saiu dinheiro (- negativo)
       role: MovementRole.DEBIT,
     },
   })
@@ -90,13 +92,13 @@ async function main() {
       {
         bucketId: joaoWallet.id,
         transactionId: transferencia.id,
-        amount: 100000,
+        amount: -100000, // Saiu da Carteira (- negativo)
         role: MovementRole.TRANSFER_DEBIT,
       },
       {
         bucketId: joaoReserve.id,
         transactionId: transferencia.id,
-        amount: 100000,
+        amount: 100000, // Entrou na Reserva (+ positivo)
         role: MovementRole.TRANSFER_CREDIT,
       },
     ],
@@ -117,7 +119,7 @@ async function main() {
     data: {
       bucketId: joaoWallet.id,
       transactionId: aluguel.id,
-      amount: 150000,
+      amount: -150000, // Vai sair dinheiro (- negativo)
       role: MovementRole.DEBIT,
     },
   })
@@ -137,12 +139,14 @@ async function main() {
     data: {
       bucketId: joaoCredit.id,
       transactionId: fatura.id,
-      amount: 89700,
+      amount: -89700, // Vai sair dinheiro (- negativo)
       role: MovementRole.DEBIT,
     },
   })
 
+  // ==========================================
   // --- Transações da Maria ---
+  // ==========================================
 
   // 6. Receita: salário (SETTLED)
   const salariaMaria = await prisma.transaction.create({
@@ -159,7 +163,7 @@ async function main() {
     data: {
       bucketId: mariaWallet.id,
       transactionId: salariaMaria.id,
-      amount: 380000,
+      amount: 380000, // Entrou dinheiro (+ positivo)
       role: MovementRole.CREDIT,
     },
   })
@@ -179,16 +183,16 @@ async function main() {
     data: {
       bucketId: mariaCredit.id,
       transactionId: farmacia.id,
-      amount: 8750,
+      amount: -8750, // Saiu dinheiro (- negativo)
       role: MovementRole.DEBIT,
     },
   })
 
-  console.log('Seed concluído.')
+  console.log('Seed concluído com sucesso!')
   console.log(`Usuários: João (id ${joao.id}), Maria (id ${maria.id})`)
   console.log(`Buckets João: Carteira, Nubank, Reserva`)
   console.log(`Buckets Maria: Carteira, Inter`)
-  console.log(`Transações: salário, mercado, transferência, aluguel projetado, fatura pendente, salário Maria, farmácia`)
+  console.log(`Transações e Movimentações com sinais ajustados inseridas.`)
 }
 
 main()
