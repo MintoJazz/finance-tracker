@@ -2,7 +2,7 @@
 
 import { BucketList } from "@/types/database";
 import { useBucketFeatures } from "../hooks/use-bucket-features";
-import DeleteBucket from "./delete-bucket";
+import DeleteBucket from "./delete-bucket-dialog";
 import { DataTable } from "@/components/ui/data-table";
 import { mobileBucketColums } from "./bucket-mobile-columns";
 import { useRouter } from "next/navigation";

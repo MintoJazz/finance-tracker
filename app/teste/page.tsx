@@ -1,23 +1,18 @@
-import { DataTable } from "@/components/ui/data-table"
-import { columns, Payment } from "./columns"
+"use client";
 
-async function getData(): Promise<Payment[]> {
-    return [
-        {
-            id: "728ed52f",
-            amount: 100,
-            status: "pending",
-            email: "m@example.com",
-        },
-    ]
-}
+import { FieldErrors } from "react-hook-form";
+import { BucketFormType } from "@/features/buckets/form/schema/bucket-schema";
+import CreateBucket from "@/features/buckets/components/create-bucket-dialog";
 
-export default async function Page() {
-    const data = await getData()
+export default function Page() {
+  const onSubmit = (data: BucketFormType) => {
+    console.log("✅ Dados válidos submetidos:", data);
+    alert(JSON.stringify(data, null, 2));
+  };
 
-    return (
-        <div className="container mx-auto py-10">
-            <DataTable columns={columns} data={data} />
-        </div>
-    )
+  const onError = (errors: FieldErrors<BucketFormType>) => {
+    console.error("❌ Erro na validação:", errors);
+  };
+
+  return <CreateBucket isOpen onSubmit={onSubmit} onError={onError} />;
 }

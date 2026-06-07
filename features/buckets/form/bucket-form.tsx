@@ -6,7 +6,7 @@ import BucketTypeField from "./fields/type-field";
 
 interface Props {
     form: UseFormReturn<BucketFormType>
-    onError: (errors: FieldErrors<BucketFormType>) => void;
+    onError?: (errors: FieldErrors<BucketFormType>) => void;
     onSubmit: (data: BucketFormType) => void;
 }
 
