@@ -23,7 +23,7 @@ export const ACTION_THEMES: Record<Action | "stable", ActionTheme> = {
         color: "text-rose-700 dark:text-rose-400",
     },
     "stable": {
-        footerBg: "bg-muted/30 dark:bg-muted/10",
+        footerBg: "",
         border: "border-border dark:border-border/50",
         color: "text-muted-foreground",
     }
