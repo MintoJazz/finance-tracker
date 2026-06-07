@@ -1,6 +1,6 @@
 'use client'
 
-import { Control, FieldErrors, FieldValues, Resolver, useForm, useWatch } from "react-hook-form"
+import { FieldErrors, Resolver, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Bucket } from "@/generated/prisma/client"
@@ -8,17 +8,7 @@ import { useEffect } from "react"
 import { toast } from "sonner"
 import { TransactionFormType } from "../form/schema/types"
 import { transactionFormSchema } from "../form/schema/transaction-schema"
-import TransactionFormLayout from "../form/transaction-form-layout"
-
-function FormDebug<T extends FieldValues>({ control }: { control: Control<T> }) {
-    const formValues = useWatch({ control })
-
-    return (
-        <pre className="mt-8 p-4 bg-black text-green-400 text-xs rounded-md overflow-auto">
-            {JSON.stringify(formValues, null, 2)}
-        </pre>
-    )
-}
+import TransactionForm from "../form/transaction-form"
 
 interface Props {
     buckets: Bucket[]
@@ -57,8 +47,7 @@ export default function CreateTransaction({ isOpen, onClose, buckets, onSubmit, 
                 <DialogDescription>Insira aqui os dados da nova transação</DialogDescription>
             </DialogHeader>
             <div className="flex-1 min-h-0 overflow-y-auto p-1 no-scrollbar">
-                <TransactionFormLayout form={form} onError={onError} onSubmit={onSubmit} buckets={buckets} isIncome={isIncome} />
-                <FormDebug control={form.control} />
+                <TransactionForm form={form} onError={onError} onSubmit={onSubmit} buckets={buckets} isIncome={isIncome} />
             </div>
         </DialogContent>
     </Dialog>

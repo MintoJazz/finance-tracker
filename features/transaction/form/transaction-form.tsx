@@ -1,27 +1,33 @@
-'use client'
-
-import { Button } from "@/components/ui/button"
-import { TransactionFormType } from "./schema/types"
-import { FormProvider, SubmitErrorHandler, UseFormReturn } from "react-hook-form"
-import { FieldGroup } from "@/components/ui/field"
-import { ReactNode } from "react"
+import { FieldErrors, UseFormReturn } from "react-hook-form";
+import { TransactionAmountField } from "./fields/amount-field";
+import { Bucket } from "@/generated/prisma/client";
+import { TransactionFormType } from "./schema/types";
+import { TransactionDescriptionField } from "./fields/description-field";
+import { TransactionDateField } from "./fields/date-field";
+import TransactionBucketField from "./fields/bucket-field";
+import TransactionBadgeList from "./fields/badge-list-field";
+import { BucketProvider } from "@/features/buckets/contexts/bucket-context";
+import { schemaBadgeList } from "./schema/schema-registry";
+import Form from "@/components/form-component";
 
 interface Props {
     form: UseFormReturn<TransactionFormType>
-    onSubmit: (form: TransactionFormType) => void,
-    onError: SubmitErrorHandler<TransactionFormType>
-    children: ReactNode
+    buckets: Bucket[]
+    isIncome: boolean
+    onError: (errors: FieldErrors<TransactionFormType>) => void;
+    onSubmit: (data: TransactionFormType) => void;
 }
 
-export default function TransactionForm({ form, onSubmit, onError, children }: Props) {
-    return <FormProvider {...form}>
-        <form id="transaction-form" onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-6">
-            <FieldGroup className="gap-2">
-                {children}
-            </FieldGroup>
-            <Button type="submit" form="transaction-form">
-                Salvar
-            </Button>
-        </form>
-    </FormProvider>
+export default function TransactionForm({ buckets, isIncome, ...drilling }: Props) {
+    const availableBadges = schemaBadgeList.filter(s => s != ((isIncome) ? "addDestination" : "addOrigin"))
+
+    return <BucketProvider buckets={buckets} >
+        <Form {...drilling} >
+            <TransactionAmountField />
+            <TransactionDescriptionField />
+            <TransactionDateField />
+            <TransactionBucketField otherBucket={(isIncome) ? "Destino" : "Origem"} buckets={buckets} />
+            <TransactionBadgeList availableBadges={availableBadges} />
+        </Form>
+    </BucketProvider>
 }

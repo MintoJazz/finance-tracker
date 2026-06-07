@@ -17,13 +17,11 @@ interface RecordSelectProps {
     value: string
     onChange: (value: string) => void
     options: Record<string, OptionsConfig>
-    // Agora children é opcional
     children?: ReactNode | ((currentValue: string) => ReactNode)
-    // Novo prop para texto padrão
     placeholder?: string
     keys?: string[]
     renderItem?: (key: string, isSelected: boolean) => ReactNode
-    className?: string // Útil para ajustar largura do botão padrão
+    className?: string
 }
 
 export default function RecordSelect({
