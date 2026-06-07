@@ -17,8 +17,13 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
 
     const isSelected = (id: number) => selected.includes(id)
     const getAction = (id: number) => drafts[id]?.action ?? 'stable'
-    const onStatusChange = (id: number, status: TransactionStatus, transaction: TransactionDetails) => edit(id, { status }, transaction)
-    const onAddClick = (isIncome: boolean) => {
+    
+    function onStatusChange(id: number, status: TransactionStatus) {
+        const original = initialTransactions.find(t => t.id === id) ?? items.find(t => t.id === id)!
+        edit(id, { status }, original)
+    }
+    
+    function onAddClick(isIncome: boolean) {
         setIsIncome(isIncome)
         setIsCreateOpen(true)
     }
@@ -41,13 +46,22 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         },
     ]
 
+    const getStatusBadgeProps = (transaction: TransactionDetails) => ({
+        current: transaction.status,
+        onClick: (status: TransactionStatus) => onStatusChange(transaction.id, status)
+    })
+
+    const getCheckboxProps = (id: number) => ({
+        checked: isSelected(id),
+        onCheckedChange: () => select(id)
+    }) 
+
     return {
         items,
         drafts,
-        isSelected,
-        select,
         actions,
-        onStatusChange,
+        getStatusBadgeProps,
+        getCheckboxProps,
         getAction,
         setIsCreateOpen,
         onAddClick,
