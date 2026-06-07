@@ -159,15 +159,15 @@ export function DataTablePagination<TData>({
 }: DataTablePaginationProps<TData>) {
   return (
     <div className="flex flex-col items-center justify-between gap-4 px-2 py-4 sm:flex-row">
-      
+
       {/* Texto de seleção */}
       <div className="text-sm text-muted-foreground w-full text-center sm:text-left sm:w-auto">
         {table.getFilteredSelectedRowModel().rows.length} de{" "}
         {table.getFilteredRowModel().rows.length} linha(s) selecionada(s).
       </div>
-      
+
       <div className="flex items-center gap-4 sm:gap-6 lg:gap-8 w-full sm:w-auto justify-between sm:justify-end">
-        
+
         {/* Escondido no mobile (hidden sm:flex) para poupar espaço */}
         <div className="hidden sm:flex items-center space-x-2">
           <p className="text-sm font-medium">Linhas por página</p>
@@ -194,7 +194,7 @@ export function DataTablePagination<TData>({
             Pág. {table.getState().pagination.pageIndex + 1} de{" "}
             {table.getPageCount()}
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -235,7 +235,7 @@ export function DataTablePagination<TData>({
           </div>
         </div>
       </div>
-      
+
     </div>
   )
 }
@@ -426,7 +426,7 @@ export function DataTable<TData, TValue>({
       )}
 
       {/* ── Table ── */}
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           {showHeader && (
             <TableHeader>
@@ -437,9 +437,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -454,11 +454,11 @@ export function DataTable<TData, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                    <TableCell
+                      key={cell.id}
+                      className={(cell.column.columnDef.meta as any)?.className}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>

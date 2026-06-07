@@ -1,5 +1,4 @@
 "use client"
-import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus } from "lucide-react"
 import { Bucket } from "@/generated/prisma/client"
@@ -10,22 +9,11 @@ import { desktopColumns } from "./columns-desktop"
 import { mobileColumns } from "./columns-mobile"
 import TransactionEmpty from "./transaction-empty"
 import CreateTransaction from "./create-transaction-dialog"
+import { useIsDesktop } from "@/hooks/use-breakpoint"
 
 interface Props {
     transactions: TransactionDetails[]
     buckets: Bucket[]
-}
-
-function useIsDesktop(breakpoint = 768) {
-    const [isDesktop, setIsDesktop] = useState(false)
-    useEffect(() => {
-        const mql = window.matchMedia(`(min-width: ${breakpoint}px)`)
-        const update = () => setIsDesktop(mql.matches)
-        update()
-        mql.addEventListener("change", update)
-        return () => mql.removeEventListener("change", update)
-    }, [breakpoint])
-    return isDesktop
 }
 
 export default function TransactionContainer({ transactions, buckets }: Props) {

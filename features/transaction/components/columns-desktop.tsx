@@ -70,7 +70,6 @@ export const desktopColumns: ColumnDef<TransactionRow>[] = [
                     isExpense && "text-rose-600 dark:text-rose-400",
                     isIncome && "text-emerald-600 dark:text-emerald-400",
                 )}>
-                    {isExpense ? "−" : isIncome ? "+" : ""}
                     {formatarDinheiro(t.amount)}
                 </div>
             )
