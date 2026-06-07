@@ -1,9 +1,15 @@
 import { useManager } from "@/hooks/use-manager"
 import { ActionSet } from "@/types/action-set"
 import { BucketList } from "@/types/database"
+import { startTransition } from "react"
 
-export function useBucketFeatures() {
-    const { onDelete, onEdit, isCreateOpen, setIsCreateOpen } = useManager<BucketList>()
+export interface BucketRow {
+    bucket: BucketList
+    actions: ActionSet<BucketList>[]
+}
+
+export function useBucketFeatures(buckets: BucketList[]) {
+    const { target, isDeleteOpen, onCloseDelete, onDelete, onEdit, isCreateOpen, setIsCreateOpen } = useManager<BucketList>()
     const actions: ActionSet<BucketList>[] = [
         {
             children: "Editar",
@@ -16,9 +22,24 @@ export function useBucketFeatures() {
         },
     ]
 
+    const handleConfirmDelete = () => {
+        if (!target) return
+        
+        startTransition(async () => {
+            await deleteBucketAction(target.id)
+            onCloseDelete(false)
+        })
+    }
+
+    const rows: BucketRow[] = buckets.map(bucket => ({ bucket, actions }))
+
     return {
-        actions,
+        rows,
         setIsCreateOpen,
+        deleteBucketProps: {
+            open: isDeleteOpen,
+            onOpenChange: onCloseDelete
+        },
         createDialogProps: {
             isOpen: isCreateOpen,
             onClose: setIsCreateOpen

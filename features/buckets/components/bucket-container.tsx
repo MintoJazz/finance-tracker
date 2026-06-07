@@ -1,30 +1,28 @@
+"use client"
+
 import { BucketList } from "@/types/database";
-import { BUCKET_TYPE_THEMES } from "../themes/bucket-type";
-import { Item, ItemMedia, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/ui/item";
-import { formatarDinheiro } from "@/lib/formatters";
+import { useBucketFeatures } from "../hooks/use-bucket-features";
+import DeleteBucket from "./delete-bucket";
+import { DataTable } from "@/components/ui/data-table";
+import { mobileBucketColums } from "./bucket-mobile-columns";
+import { useRouter } from "next/navigation";
 
 interface Props {
     buckets: BucketList[]
 }
 
 export default function BucketContainer({ buckets }: Props) {
+    const { rows, deleteBucketProps } = useBucketFeatures(buckets)
+    const router = useRouter()
+    
     return <div className="flex flex-col gap-2">
-        {buckets.map(bucket => {
-            const Icon = BUCKET_TYPE_THEMES[bucket.type]
-            return <Item variant="outline" key={bucket.id} asChild>
-                <a href={`/buckets/${bucket.id}`}>
-                    <ItemMedia>
-                        <Icon />
-                    </ItemMedia>
-                    <ItemContent>
-                        <ItemTitle>{bucket.name}</ItemTitle>
-                        <ItemDescription>{bucket.user.name}</ItemDescription>
-                    </ItemContent>
-                    <ItemActions>
-                        <p className="text-xs font-black tracking-tight">{formatarDinheiro(bucket.balance)}</p>
-                    </ItemActions>
-                </a>
-            </Item>
-        })}
+
+        <DataTable data={rows} columns={mobileBucketColums} showHeader={false}
+            onRowClick={(row) => {
+            const idDaLinha = row.original.bucket.id; 
+            router.push(`/detalhes/${idDaLinha}`);
+        }}/>
+
+        <DeleteBucket {...deleteBucketProps} />
     </div>
 }

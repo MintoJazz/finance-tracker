@@ -99,7 +99,7 @@ export function BucketProfileCard({
     const theme = BUCKET_CARD_THEMES[bucket.type]
 
     return (
-        <details
+        <div
             aria-label={`Cartão ${bucket.name}, saldo ${revealed ? formatarDinheiro(balance) : "oculto"
                 }`}
             className={cn(
@@ -227,6 +227,6 @@ export function BucketProfileCard({
                     </div>
                 </div>
             </div>
-        </details>
+        </div>
     )
 }
