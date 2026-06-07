@@ -159,23 +159,24 @@ export function DataTablePagination<TData>({
 }: DataTablePaginationProps<TData>) {
   return (
     <div className="flex flex-col items-center justify-between gap-4 px-2 py-4 sm:flex-row">
-
-      {/* Texto de seleção */}
-      <div className="text-sm text-muted-foreground w-full text-center sm:text-left sm:w-auto">
-        {table.getFilteredSelectedRowModel().rows.length} de{" "}
-        {table.getFilteredRowModel().rows.length} linha(s) selecionada(s).
+      
+      {/* Espaço reservado caso queira adicionar o contador de linhas selecionadas no futuro.
+        Se não for usar, essa div vazia ajuda a empurrar os controles para a direita no desktop.
+      */}
+      <div className="hidden flex-1 text-sm text-muted-foreground sm:block">
+        {/* Exemplo: {table.getFilteredSelectedRowModel().rows.length} de {table.getFilteredRowModel().rows.length} linha(s) selecionada(s) */}
       </div>
 
-      <div className="flex items-center gap-4 sm:gap-6 lg:gap-8 w-full sm:w-auto justify-between sm:justify-end">
-
-        {/* Escondido no mobile (hidden sm:flex) para poupar espaço */}
+      <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
+        
+        {/* Linhas por página - Adicionado o 'flex' e ajustado o hidden para mobile conforme seu comentário original */}
         <div className="hidden sm:flex items-center space-x-2">
           <p className="text-sm font-medium">Linhas por página</p>
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => table.setPageSize(Number(value))}
           >
-            <SelectTrigger className="h-8 w-17.5">
+            <SelectTrigger className="h-8 w-[70px]">
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
@@ -188,9 +189,9 @@ export function DataTablePagination<TData>({
           </Select>
         </div>
 
-        {/* Controles de Navegação (Agrupados na mesma linha) */}
-        <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-4">
-          <div className="flex items-center justify-center text-sm font-medium">
+        {/* Controles de Navegação */}
+        <div className="flex items-center gap-4">
+          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
             Pág. {table.getState().pagination.pageIndex + 1} de{" "}
             {table.getPageCount()}
           </div>
@@ -198,7 +199,9 @@ export function DataTablePagination<TData>({
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
+              // Removido o 'hidden lg:flex' para o botão aparecer sempre. 
+              // Se quiser esconder em telas pequenas, use 'hidden sm:flex'
+              className="flex h-8 w-8 p-0" 
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
             >
@@ -207,7 +210,7 @@ export function DataTablePagination<TData>({
             </Button>
             <Button
               variant="outline"
-              className="h-8 w-8 p-0"
+              className="flex h-8 w-8 p-0"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
@@ -216,7 +219,7 @@ export function DataTablePagination<TData>({
             </Button>
             <Button
               variant="outline"
-              className="h-8 w-8 p-0"
+              className="flex h-8 w-8 p-0"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
@@ -225,7 +228,8 @@ export function DataTablePagination<TData>({
             </Button>
             <Button
               variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
+              // Removido o 'hidden lg:flex'
+              className="flex h-8 w-8 p-0" 
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
             >
@@ -235,7 +239,6 @@ export function DataTablePagination<TData>({
           </div>
         </div>
       </div>
-
     </div>
   )
 }
@@ -254,31 +257,16 @@ export interface RowAction<TData> {
 // ─────────────────────────────────────────────
 
 interface DataTableProps<TData, TValue> {
-  /** Column definitions using TanStack ColumnDef */
   columns: ColumnDef<TData, TValue>[]
-  /** Data array to render */
   data: TData[]
-  /**
-   * Whether to show the header toolbar (filter input, column toggle).
-   * Defaults to true.
-   */
   showHeader?: boolean
-  /** Key of the column to use for the filter input. Defaults to the first string accessor. */
   filterColumn?: string
-  /** Placeholder text for the filter input */
   filterPlaceholder?: string
-  /** Enable row selection checkboxes. Defaults to false. */
   enableRowSelection?: boolean
-  /**
-   * Row action items rendered in a DropdownMenu per row.
-   * Supply an array of { label, onClick, separator? } objects.
-   * When provided, an "actions" column is automatically appended.
-   */
   rowActions?: RowAction<TData>[]
-  /** Initial page size. Defaults to 10. */
   pageSize?: number
-  /** Called with the selected rows whenever selection changes */
   onRowSelectionChange?: (rows: Row<TData>[]) => void
+  onRowClick?: (row: Row<TData>) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -291,6 +279,7 @@ export function DataTable<TData, TValue>({
   rowActions,
   pageSize = 10,
   onRowSelectionChange,
+  onRowClick
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -452,6 +441,8 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() => onRowClick?.(row)}
+                  className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell

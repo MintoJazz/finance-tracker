@@ -7,23 +7,21 @@ import { TransactionStatus } from "@/generated/prisma/browser"
 import { toDomain } from "../mappers/domain-builder"
 import { TransactionFormType } from "../form/schema/types"
 import { useState } from "react"
-import { ACTION_THEMES, ActionTheme } from "../themes/action-styles"
+import { ACTION_THEMES, ActionTheme } from "../themes/action-themes"
+import { Row } from "@tanstack/react-table"
 
 export interface TransactionRow {
     transaction: TransactionDetails
     actionTheme: ActionTheme
     statusBadgeProps: { current: TransactionStatus; onClick: (status: TransactionStatus) => void }
-    checkboxProps: { checked: boolean; onCheckedChange: () => void }
     actions: ActionSet<TransactionDetails>[]
 }
 
 export function useTransactionFeatures(initialTransactions: TransactionDetails[]) {
     const [isIncome, setIsIncome] = useState<boolean>(false)
     const { onDelete, onEdit, isCreateOpen, setIsCreateOpen } = useManager<TransactionDetails>()
-    const { select, selected } = useSelection()
+    const { selectAll } = useSelection()
     const { edit, items, drafts, add } = useDraftList<TransactionDetails>(initialTransactions)
-
-    const isSelected = (id: number) => selected.includes(id)
 
     function onStatusChange(id: number, status: TransactionStatus) {
         const original = initialTransactions.find(t => t.id === id) ?? items.find(t => t.id === id)!
@@ -52,16 +50,15 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
             current: transaction.status,
             onClick: (status: TransactionStatus) => onStatusChange(transaction.id, status),
         },
-        checkboxProps: {
-            checked: isSelected(transaction.id),
-            onCheckedChange: () => select(transaction.id),
-        },
         actions,
     }))
+
+    const onRowSelectionChange = (rowsSelected: Row<TransactionRow>[]) => selectAll(rowsSelected.map(row => row.original.transaction.id))
 
     return {
         rows,
         onAddClick,
+        onRowSelectionChange,
         createDialogProps: {
             isIncome,
             isOpen: isCreateOpen,
