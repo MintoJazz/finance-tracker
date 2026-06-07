@@ -1,49 +1,58 @@
 "use client"
-
-import StatusBadge from "./status-badge"
-import TransactionMenu from "./transaction-menu"
-import TransactionCard, { TransactionCardInfo, TransactionCardFooter, TransactionCardFooterLeft, TransactionCardFooterRight } from "./transaction-card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { TransactionDetails } from "../../../types/database"
-import TransactionEmpty from "./transaction-empty"
-import { useTransactionFeatures } from "../hooks/use-transaction-features"
-import { Bucket } from "@/generated/prisma/client"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus } from "lucide-react"
+import { Bucket } from "@/generated/prisma/client"
+import { TransactionDetails } from "../../../types/database"
+import { DataTable } from "@/components/ui/data-table"
+import { useTransactionFeatures } from "../hooks/use-transaction-features"
+import { desktopColumns } from "./columns-desktop"
+import { mobileColumns } from "./columns-mobile"
+import TransactionEmpty from "./transaction-empty"
 import CreateTransaction from "./create-transaction-dialog"
-import { ACTION_THEMES } from "../themes/action-styles"
 
 interface Props {
     transactions: TransactionDetails[]
     buckets: Bucket[]
 }
 
+function useIsDesktop(breakpoint = 768) {
+    const [isDesktop, setIsDesktop] = useState(false)
+    useEffect(() => {
+        const mql = window.matchMedia(`(min-width: ${breakpoint}px)`)
+        const update = () => setIsDesktop(mql.matches)
+        update()
+        mql.addEventListener("change", update)
+        return () => mql.removeEventListener("change", update)
+    }, [breakpoint])
+    return isDesktop
+}
+
 export default function TransactionContainer({ transactions, buckets }: Props) {
-    const { items, actions, getStatusBadgeProps, getCheckboxProps, getAction, createDialogProps, onAddClick } = useTransactionFeatures(transactions)
+    const { rows, onAddClick, createDialogProps } = useTransactionFeatures(transactions)
+    const isDesktop = useIsDesktop()
 
-    return <div className="flex flex-col gap-2">
-        <div className="flex flex-row gap-2">
-            <Button className="flex-1" onClick={() => onAddClick(false)} ><Minus /> Pagar</Button>
-            <Button className="flex-1" onClick={() => onAddClick(true)} ><Plus /> Receber</Button>
+    return (
+        <div className="flex flex-col gap-3">
+            <div className="flex flex-row gap-2">
+                <Button className="flex-1" onClick={() => onAddClick(false)}><Minus /> Pagar</Button>
+                <Button className="flex-1" onClick={() => onAddClick(true)}><Plus /> Receber</Button>
+            </div>
+
+            {rows.length === 0 ? (
+                <TransactionEmpty />
+            ) : (
+                <DataTable
+                    columns={isDesktop ? desktopColumns : mobileColumns}
+                    data={rows}
+                    showHeader={isDesktop}
+                    filterColumn="description"
+                    filterPlaceholder="Filtrar descrição..."
+                    pageSize={10}
+                />
+            )}
+
+            <CreateTransaction buckets={buckets} {...createDialogProps} />
         </div>
-
-        {(items) ? items.map(transaction => {
-            const actionConfig = ACTION_THEMES[getAction(transaction.id)]
-
-            return <TransactionCard key={transaction.id} actionTheme={actionConfig}>
-                <TransactionCardInfo transaction={transaction} />
-                <TransactionCardFooter actionTheme={actionConfig}>
-                    <TransactionCardFooterLeft>
-                        <Checkbox {...getCheckboxProps(transaction.id)} />
-                    </TransactionCardFooterLeft>
-                    <TransactionCardFooterRight>
-                        <StatusBadge {...getStatusBadgeProps(transaction)} />
-                        <TransactionMenu actions={actions} transaction={transaction} />
-                    </TransactionCardFooterRight>
-                </TransactionCardFooter>
-            </TransactionCard>
-        }) : <TransactionEmpty />}
-
-        <CreateTransaction buckets={buckets} {...createDialogProps} />
-    </div>
+    )
 }

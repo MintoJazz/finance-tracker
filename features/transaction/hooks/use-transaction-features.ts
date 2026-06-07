@@ -7,69 +7,66 @@ import { TransactionStatus } from "@/generated/prisma/browser"
 import { toDomain } from "../mappers/domain-builder"
 import { TransactionFormType } from "../form/schema/types"
 import { useState } from "react"
+import { ACTION_THEMES, ActionTheme } from "../themes/action-styles"
+
+export interface TransactionRow {
+    transaction: TransactionDetails
+    actionTheme: ActionTheme
+    statusBadgeProps: { current: TransactionStatus; onClick: (status: TransactionStatus) => void }
+    checkboxProps: { checked: boolean; onCheckedChange: () => void }
+    actions: ActionSet<TransactionDetails>[]
+}
 
 export function useTransactionFeatures(initialTransactions: TransactionDetails[]) {
     const [isIncome, setIsIncome] = useState<boolean>(false)
-
     const { onDelete, onEdit, isCreateOpen, setIsCreateOpen } = useManager<TransactionDetails>()
     const { select, selected } = useSelection()
     const { edit, items, drafts, add } = useDraftList<TransactionDetails>(initialTransactions)
 
     const isSelected = (id: number) => selected.includes(id)
-    const getAction = (id: number) => drafts[id]?.action ?? 'stable'
-    
+
     function onStatusChange(id: number, status: TransactionStatus) {
         const original = initialTransactions.find(t => t.id === id) ?? items.find(t => t.id === id)!
         edit(id, { status }, original)
     }
-    
+
     function onAddClick(isIncome: boolean) {
         setIsIncome(isIncome)
         setIsCreateOpen(true)
     }
 
     function onSubmitCreate(data: TransactionFormType) {
-        const transaction = toDomain(data)
-        add(transaction)
+        add(toDomain(data))
         setIsCreateOpen(false)
     }
 
     const actions: ActionSet<TransactionDetails>[] = [
-        {
-            children: "Editar",
-            onAction: onEdit,
-        },
-        {
-            children: "Excluir",
-            onAction: onDelete,
-            variant: "destructive",
-        },
+        { children: "Editar",  onAction: onEdit },
+        { children: "Excluir", onAction: onDelete, variant: "destructive" },
     ]
 
-    const getStatusBadgeProps = (transaction: TransactionDetails) => ({
-        current: transaction.status,
-        onClick: (status: TransactionStatus) => onStatusChange(transaction.id, status)
-    })
-
-    const getCheckboxProps = (id: number) => ({
-        checked: isSelected(id),
-        onCheckedChange: () => select(id)
-    }) 
+    const rows: TransactionRow[] = items.map(transaction => ({
+        transaction,
+        actionTheme: ACTION_THEMES[drafts[transaction.id]?.action ?? 'stable'],
+        statusBadgeProps: {
+            current: transaction.status,
+            onClick: (status: TransactionStatus) => onStatusChange(transaction.id, status),
+        },
+        checkboxProps: {
+            checked: isSelected(transaction.id),
+            onCheckedChange: () => select(transaction.id),
+        },
+        actions,
+    }))
 
     return {
-        items,
-        drafts,
-        actions,
-        getStatusBadgeProps,
-        getCheckboxProps,
-        getAction,
-        setIsCreateOpen,
+        rows,
         onAddClick,
         createDialogProps: {
             isIncome,
             isOpen: isCreateOpen,
             onClose: setIsCreateOpen,
             onSubmit: onSubmitCreate,
-        }
+        },
     }
 }
