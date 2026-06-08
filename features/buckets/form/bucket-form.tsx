@@ -3,6 +3,8 @@ import { BucketFormType } from "./schema/bucket-schema";
 import Form from "@/components/form-component";
 import BucketNameField from "./fields/name-field";
 import BucketTypeField from "./fields/type-field";
+import BucketUserField from "./fields/user-field";
+import { useUsersContext } from "@/features/user/context/user-options-provider";
 
 interface Props {
     form: UseFormReturn<BucketFormType>
@@ -11,8 +13,11 @@ interface Props {
 }
 
 export default function BucketForm({ ...drilling }: Props) {
-    return <Form {...drilling} >
-        <BucketTypeField />
+    const { users } = useUsersContext()
+
+    return <Form {...drilling} id="bucket-form" >
         <BucketNameField />
+        <BucketUserField users={users} />
+        <BucketTypeField />
     </Form>
 }

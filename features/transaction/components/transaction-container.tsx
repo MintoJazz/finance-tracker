@@ -1,7 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus } from "lucide-react"
-import { Bucket } from "@/generated/prisma/client"
 import { TransactionDetails } from "../../../types/database"
 import { DataTable } from "@/components/ui/data-table"
 import { useTransactionFeatures } from "../hooks/use-transaction-features"
@@ -13,10 +12,9 @@ import { useIsDesktop } from "@/hooks/use-breakpoint"
 
 interface Props {
     transactions: TransactionDetails[]
-    buckets: Bucket[]
 }
 
-export default function TransactionContainer({ transactions, buckets }: Props) {
+export default function TransactionContainer({ transactions }: Props) {
     const { rows, onAddClick, createDialogProps, onRowSelectionChange } = useTransactionFeatures(transactions)
     const isDesktop = useIsDesktop()
 
@@ -42,7 +40,7 @@ export default function TransactionContainer({ transactions, buckets }: Props) {
                 />
             )}
 
-            <CreateTransaction buckets={buckets} {...createDialogProps} />
+            <CreateTransaction {...createDialogProps} />
         </div>
     )
 }

@@ -2,7 +2,10 @@
 
 import { prisma } from "@/lib/prisma"
 
-export const findBucketOptions = async () => prisma.bucket.findMany()
+export const findAllBucketOptions = async () => prisma.bucket.findMany({ select: {
+    id: true,
+    name: true
+} })
 
 export async function findAllBuckets() {
     const saldos = await prisma.movement.groupBy({

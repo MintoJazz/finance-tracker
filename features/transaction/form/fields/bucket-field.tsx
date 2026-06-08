@@ -1,13 +1,13 @@
 import { ControlledField } from "@/components/controlled-field";
 import ListSelect from "@/components/list-select";
 import { Field, FieldLabel } from "@/components/ui/field";
-import { Bucket } from "@/generated/prisma/client";
+import { BucketOption } from "@/types/database";
 
 export type OtherBucket = "Destino" | "Origem"
 
 interface Props {
     otherBucket: OtherBucket
-    buckets: Bucket[]
+    buckets: BucketOption[]
 }
 
 export default function TransactionBucketField({ otherBucket, buckets }: Props) {

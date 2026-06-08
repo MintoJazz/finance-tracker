@@ -3,22 +3,25 @@
 import { FieldErrors, Resolver, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Bucket } from "@/generated/prisma/client"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { TransactionFormType } from "../form/schema/types"
 import { transactionFormSchema } from "../form/schema/transaction-schema"
 import TransactionForm from "../form/transaction-form"
+import { BucketProvider } from "@/features/buckets/contexts/bucket-context"
+import { findAllBucketOptions } from "@/features/buckets/actions"
+import { BucketOption } from "@/types/database"
 
 interface Props {
-    buckets: Bucket[]
     isOpen: boolean
     isIncome: boolean
     onClose?: (open: boolean) => void
     onSubmit: (data: TransactionFormType) => void
 }
 
-export default function CreateTransaction({ isOpen, onClose, buckets, onSubmit, isIncome }: Props) {
+export default function CreateTransaction({ isOpen, onClose, onSubmit, isIncome }: Props) {
+    const [buckets ,setBuckets] = useState<BucketOption[]>()
+
     const resolver = zodResolver(transactionFormSchema) as Resolver<TransactionFormType>
     const form = useForm<TransactionFormType>({
         resolver,
@@ -37,18 +40,21 @@ export default function CreateTransaction({ isOpen, onClose, buckets, onSubmit, 
     }
 
     form.setValue("type", (isIncome) ? "INCOME" : "EXPENSE")
-    useEffect(() => {if (!isOpen) form.reset()}, [isOpen, form])
+    useEffect(() => { if (!isOpen) form.reset() }, [isOpen, form])
+    useEffect(() => { findAllBucketOptions().then(setBuckets) }, [])
 
 
-    return <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-h-[90vh] flex flex-col">
-            <DialogHeader>
-                <DialogTitle>Nova Transação</DialogTitle>
-                <DialogDescription>Insira aqui os dados da nova transação</DialogDescription>
-            </DialogHeader>
-            <div className="flex-1 min-h-0 overflow-y-auto p-1 no-scrollbar">
-                <TransactionForm form={form} onError={onError} onSubmit={onSubmit} buckets={buckets} isIncome={isIncome} />
-            </div>
-        </DialogContent>
-    </Dialog>
+    return <BucketProvider buckets={buckets ?? []} >
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="max-h-[90vh] flex flex-col">
+                <DialogHeader>
+                    <DialogTitle>Nova Transação</DialogTitle>
+                    <DialogDescription>Insira aqui os dados da nova transação</DialogDescription>
+                </DialogHeader>
+                <div className="flex-1 min-h-0 overflow-y-auto p-1 no-scrollbar">
+                    <TransactionForm form={form} onError={onError} onSubmit={onSubmit} isIncome={isIncome} />
+                </div>
+            </DialogContent>
+        </Dialog>
+    </BucketProvider>
 }

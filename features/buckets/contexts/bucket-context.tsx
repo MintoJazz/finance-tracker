@@ -1,10 +1,10 @@
 'use client'
 
 import { createContext, useContext, ReactNode, useMemo } from "react";
-import { Bucket } from "@/generated/prisma/client";
+import { BucketOption } from "@/types/database";
 
 interface Props {
-    buckets: Bucket[];
+    buckets: BucketOption[];
 }
 
 const BucketContext = createContext<Props | undefined>(undefined);
@@ -17,7 +17,7 @@ export function useBucketsContext() {
     return context;
 }
 
-export function BucketProvider({ children, buckets }: { children: ReactNode; buckets: Bucket[] }) {
+export function BucketProvider({ children, buckets }: { children: ReactNode; buckets: BucketOption[] }) {
     const contextValue = useMemo(() => ({ buckets }), [buckets]);
     return (
         <BucketContext.Provider value={contextValue}>
