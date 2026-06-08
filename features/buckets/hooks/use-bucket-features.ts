@@ -2,7 +2,9 @@ import { useManager } from "@/hooks/use-manager"
 import { ActionSet } from "@/types/action-set"
 import { BucketList } from "@/types/database"
 import { startTransition, useState } from "react"
-import { deleteBucketById } from "../actions"
+import { createBucket, deleteBucketById } from "../actions"
+import { toast } from "sonner"
+import { BucketFormType } from "../form/schema/bucket-schema"
 
 export interface BucketRow {
     bucket: BucketList
@@ -41,6 +43,18 @@ export function useBucketFeatures(buckets: BucketList[]) {
         })
     }
 
+    const onSubmitCreate = (data: BucketFormType) => {
+        startTransition(async() => {
+            try {
+                const newBucket = await createBucket(data)
+                setRows(prev => [...prev, { bucket: newBucket, actions }] as BucketRow[])
+                setIsCreateOpen(false)
+            } catch (error) {
+                toast.error("Não foi possivel adicionar o novo bucket")
+                console.log("[ERRO NA INSERÇÃO DE BUCKET]",error);
+            }
+        })
+    }
 
     return {
         rows,
@@ -52,7 +66,8 @@ export function useBucketFeatures(buckets: BucketList[]) {
         },
         createDialogProps: {
             isOpen: isCreateOpen,
-            onClose: setIsCreateOpen
+            onClose: setIsCreateOpen,
+            onSubmit: onSubmitCreate
         }
     }
 }

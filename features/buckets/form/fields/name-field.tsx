@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 export default function BucketNameField() {
     return <Field className="flex flex-col gap-2">
         <FieldLabel>Nome</FieldLabel>
-        <ControlledField name="description">
+        <ControlledField name="name">
             <Input />
         </ControlledField>
     </Field>

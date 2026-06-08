@@ -10,6 +10,7 @@ import { UserOption } from "@/types/database";
 import { UserProvider } from "@/features/user/context/user-options-provider";
 import { useEffect, useState } from "react";
 import { findAllUserOptions } from "@/features/user/actions";
+import { toast } from "sonner";
 
 interface Props {
     isOpen: boolean
@@ -28,11 +29,17 @@ export default function CreateBucket({ onSubmit, onError, isOpen, onClose }: Pro
     const form = useForm<BucketFormType>({
         resolver,
         defaultValues: {
-            description: "",
+            name: "",
             type: BucketType.WALLET
         },
         mode: "onChange"
     })
+
+    const handleOnError = (errors: FieldErrors<BucketFormType>) => {
+        toast.error("Erro ao criar Transação!")
+        console.log("❌ FALHA NA VALIDAÇÃO:", errors)
+        if (onError) onError(errors)
+    }
 
     return <UserProvider users={users ?? []}>
         <Dialog open={isOpen} onOpenChange={onClose} >
@@ -42,7 +49,7 @@ export default function CreateBucket({ onSubmit, onError, isOpen, onClose }: Pro
                     <DialogDescription>Insira aqui os dados para criar um novo Bucket</DialogDescription>
                 </DialogHeader>
                 <div className="flex-1 min-h-0 overflow-y-auto p-1 no-scrollbar">
-                    <BucketForm form={form} onSubmit={onSubmit} onError={onError} />
+                    <BucketForm form={form} onSubmit={onSubmit} onError={handleOnError} />
                 </div>
             </DialogContent>
         </Dialog>
