@@ -1,4 +1,4 @@
-import { Field } from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { BucketFormType } from "../schema/bucket-schema";
 import { useFormContext } from "react-hook-form";
 import { BucketType } from "@/generated/prisma/enums";
@@ -12,6 +12,7 @@ export default function BucketTypeField() {
     const onValueChange = (newValue: BucketType) => setValue("type", newValue)
 
     return <Field>
+        <FieldLabel>Tipo de Bucket</FieldLabel>
         <ToggleGroup type="single" spacing={2} variant="outline" value={type} onValueChange={onValueChange}>
             {Object.entries(BucketType).map(([key, val]) => {
                 const Icon = BUCKET_TYPE_THEMES[val]

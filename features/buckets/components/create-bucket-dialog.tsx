@@ -7,10 +7,11 @@ import { FieldErrors, Resolver, useForm } from "react-hook-form";
 import { BucketType } from "@/generated/prisma/enums";
 import BucketForm from "../form/bucket-form";
 import { UserOption } from "@/types/database";
-import { UserProvider } from "@/features/user/context/user-options-provider";
 import { useEffect, useState } from "react";
 import { findAllUserOptions } from "@/features/user/server/queries";
 import { toast } from "sonner";
+import BucketUserField from "../form/fields/user-field";
+import BucketTypeField from "../form/fields/type-field";
 
 interface Props {
     isOpen: boolean
@@ -41,17 +42,18 @@ export default function CreateBucket({ onSubmit, onError, isOpen, onClose }: Pro
         if (onError) onError(errors)
     }
 
-    return <UserProvider users={users ?? []}>
-        <Dialog open={isOpen} onOpenChange={onClose} >
-            <DialogContent className="max-h-[90vh] flex flex-col">
-                <DialogHeader>
-                    <DialogTitle>Novo Bucket</DialogTitle>
-                    <DialogDescription>Insira aqui os dados para criar um novo Bucket</DialogDescription>
-                </DialogHeader>
-                <div className="flex-1 min-h-0 overflow-y-auto p-1 no-scrollbar">
-                    <BucketForm form={form} onSubmit={onSubmit} onError={handleOnError} />
-                </div>
-            </DialogContent>
-        </Dialog>
-    </UserProvider>
+    return <Dialog open={isOpen} onOpenChange={onClose} >
+        <DialogContent className="max-h-[90vh] flex flex-col">
+            <DialogHeader>
+                <DialogTitle>Novo Bucket</DialogTitle>
+                <DialogDescription>Insira aqui os dados para criar um novo Bucket</DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 min-h-0 overflow-y-auto p-1 no-scrollbar">
+                <BucketForm form={form} onSubmit={onSubmit} onError={handleOnError} >
+                    <BucketUserField users={users ?? []} />
+                    <BucketTypeField />
+                </BucketForm>
+            </div>
+        </DialogContent>
+    </Dialog>
 }
