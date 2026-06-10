@@ -5,8 +5,22 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { SiteHeader } from "@/components/site-header"
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { Metadata, Viewport } from "next";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
+
+export const metadata: Metadata = {
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Meu App",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
+}
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
