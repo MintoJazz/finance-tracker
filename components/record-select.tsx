@@ -1,6 +1,5 @@
 "use client"
 
-import { OptionsConfig } from "@/lib/types";
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Check, ChevronDown } from "lucide-react";
@@ -16,7 +15,9 @@ import {
 interface RecordSelectProps {
     value: string
     onChange: (value: string) => void
-    options: Record<string, OptionsConfig>
+    options: Record<string, {
+        label: string
+    }>
     children?: ReactNode | ((currentValue: string) => ReactNode)
     placeholder?: string
     keys?: string[]
