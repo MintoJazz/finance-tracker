@@ -3,7 +3,7 @@ import { ActionSet } from "@/types/action-set"
 import { BucketList } from "@/types/database"
 import { toast } from "sonner"
 import { BucketFormType } from "../form/schema/bucket-schema"
-import { createBucket, killBucketsByKey } from "../server/actions"
+import { createBucket, killBucketsByKey, updateBucketsByKey } from "../server/actions"
 
 export interface BucketRow {
     bucket: BucketList
@@ -11,7 +11,12 @@ export interface BucketRow {
 }
 
 export function useBucketFeatures(buckets: BucketList[]) {
-    const { target, isDeleteOpen, onCloseDelete, onDelete, onEdit, isCreateOpen, setIsCreateOpen } = useManager<BucketList>()
+    const { 
+        target, isCreateOpen, setIsCreateOpen,
+        isDeleteOpen, onCloseDelete, onDelete, 
+        onEdit, isUpdateOpen, onCloseUpdate
+    } = useManager<BucketList>()
+
     const actions: ActionSet<BucketList>[] = [
         {
             children: "Editar",
@@ -28,8 +33,9 @@ export function useBucketFeatures(buckets: BucketList[]) {
 
     const handleConfirmDelete = async () => {
         if (!target) return
+        const { id } = target
+
         try {
-            const { id } = target
             await killBucketsByKey({ id })
             onCloseDelete(false)
         } catch (error) {
@@ -48,6 +54,19 @@ export function useBucketFeatures(buckets: BucketList[]) {
         }
     }
 
+    const onSubmitUpdate = async(data: BucketFormType) => {
+        if (!target) return
+        const { id } = target
+
+        try {
+            await updateBucketsByKey(data ,{ id })
+            onCloseUpdate(false)
+        } catch (error) {
+            toast.error("Não foi possivel editar o bucket")
+            console.log("[ERRO NA INSERÇÃO DO BUCKET]", error);
+        }
+    }
+
     return {
         rows,
         setIsCreateOpen,
@@ -60,6 +79,12 @@ export function useBucketFeatures(buckets: BucketList[]) {
             open: isCreateOpen,
             onOpenChange: setIsCreateOpen,
             onSubmit: onSubmitCreate
+        }, 
+        updateDialogProps: {
+            target,
+            open: isUpdateOpen,
+            onOpenChange: onCloseUpdate,
+            onSubmit: onSubmitUpdate
         }
     }
 }

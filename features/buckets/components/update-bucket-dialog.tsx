@@ -1,40 +1,32 @@
-import { findAllUserOptions } from "@/features/user/server/queries"
-import { UserOption } from "@/types/database"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState, useEffect } from "react"
 import { useForm, FieldErrors, Resolver } from "react-hook-form"
 import { toast } from "sonner"
 import { bucketSchema, BucketFormType } from "../form/schema/bucket-schema"
 import { Dialog, DialogDescription, DialogTitle, DialogContent, DialogHeader } from "@/components/ui/dialog"
 import BucketForm from "../form/bucket-form"
-import BucketTypeField from "../form/fields/type-field"
-import BucketUserField from "../form/fields/user-field"
+import { BucketList } from "@/types/database"
+import { toSchema } from "../mappers/toSchema"
 
 interface Props {
-    defaultValues: BucketFormType
+    target: BucketList | null
     open: boolean
     onOpenChange?: (open: boolean) => void
-    onError?: (errors: FieldErrors<BucketFormType>) => void;
     onSubmit: (data: BucketFormType) => void;
 }
 
-export default function UpdateBucketDialgo({ defaultValues, onSubmit, onError, ...dialogDrilling }: Props) {
-    const [users, setUsers] = useState<UserOption[]>()
-    useEffect(() => {
-        findAllUserOptions().then(setUsers)
-    }, [])
+export default function UpdateBucket({ target, onSubmit, ...dialogDrilling }: Props) {
+    const values = toSchema(target!)
 
     const resolver = zodResolver(bucketSchema) as Resolver<BucketFormType>
     const form = useForm<BucketFormType>({
         resolver,
-        defaultValues,
+        values,
         mode: "onChange"
     })
 
     const handleOnError = (errors: FieldErrors<BucketFormType>) => {
         toast.error("Erro ao criar Transação!")
         console.log("❌ FALHA NA VALIDAÇÃO:", errors)
-        if (onError) onError(errors)
     }
 
     return <Dialog {...dialogDrilling} >
@@ -44,10 +36,7 @@ export default function UpdateBucketDialgo({ defaultValues, onSubmit, onError, .
                 <DialogDescription>Insira aqui os dados para criar um novo Bucket</DialogDescription>
             </DialogHeader>
             <div className="flex-1 min-h-0 overflow-y-auto p-1 no-scrollbar">
-                <BucketForm form={form} onSubmit={onSubmit} onError={handleOnError} >
-                    <BucketUserField users={users ?? []} />
-                    <BucketTypeField />
-                </BucketForm>
+                <BucketForm form={form} onSubmit={onSubmit} onError={handleOnError} />
             </div>
         </DialogContent>
     </Dialog>

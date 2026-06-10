@@ -35,7 +35,33 @@ export async function createBucket(payload: BucketFormType) {
     }
 }
 
-export const killBucketsByKey = async (where: Partial<Bucket>) => {
+export async function updateBucketsByKey(payload: BucketFormType, where: Partial<Bucket>) {
+    const parsedData = bucketSchema.safeParse(payload)
+    
+    if (!parsedData.success) return { 
+        success: false, 
+        error: "Dados inválidos", 
+        issues: parsedData.error.flatten().fieldErrors 
+    }
+
+    const { name, userId } = parsedData.data
+
+    try {
+        const bucketExists = await prisma.bucket.findFirst({ where: { userId, name } })
+        if (bucketExists) return { success: false, error: "Você já possui um Bucket com este nome." }
+
+        const updatedBuckets = await prisma.bucket.updateMany({ data: { name }, where })
+
+        revalidatePath('/buckets', 'layout')
+        return { success: true, data: updatedBuckets }
+
+    } catch (error) {
+        console.error("Erro ao criar bucket:", error)
+        return { success: false, error: "Ocorreu um erro interno ao tentar criar o Bucket." }
+    }
+}
+
+export async function killBucketsByKey(where: Partial<Bucket>) {
     await prisma.bucket.deleteMany({ where })
     revalidatePath('/buckets', 'layout')
 }
