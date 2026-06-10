@@ -9,7 +9,7 @@ import BucketForm from "../form/bucket-form";
 import { UserOption } from "@/types/database";
 import { UserProvider } from "@/features/user/context/user-options-provider";
 import { useEffect, useState } from "react";
-import { findAllUserOptions } from "@/features/user/actions";
+import { findAllUserOptions } from "@/features/user/server/queries";
 import { toast } from "sonner";
 
 interface Props {
