@@ -9,7 +9,7 @@ import { TransactionFormType } from "../form/schema/types"
 import { transactionFormSchema } from "../form/schema/transaction-schema"
 import TransactionForm from "../form/transaction-form"
 import { BucketProvider } from "@/features/buckets/contexts/bucket-context"
-import { findAllBucketOptions } from "@/features/buckets/actions"
+import { findAllBucketOptions } from "@/features/buckets/server/queries"
 import { BucketOption } from "@/types/database"
 
 interface Props {
