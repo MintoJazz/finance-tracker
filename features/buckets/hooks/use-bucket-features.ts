@@ -1,10 +1,9 @@
 import { useManager } from "@/hooks/use-manager"
 import { ActionSet } from "@/types/action-set"
 import { BucketList } from "@/types/database"
-import { startTransition, useState } from "react"
-import { createBucket, deleteBucketById } from "../actions"
 import { toast } from "sonner"
 import { BucketFormType } from "../form/schema/bucket-schema"
+import { createBucket, killBucketsByKey } from "../server/actions"
 
 export interface BucketRow {
     bucket: BucketList
@@ -12,7 +11,6 @@ export interface BucketRow {
 }
 
 export function useBucketFeatures(buckets: BucketList[]) {
-    
     const { target, isDeleteOpen, onCloseDelete, onDelete, onEdit, isCreateOpen, setIsCreateOpen } = useManager<BucketList>()
     const actions: ActionSet<BucketList>[] = [
         {
@@ -25,35 +23,29 @@ export function useBucketFeatures(buckets: BucketList[]) {
             variant: "destructive",
         },
     ]
-    const [rows, setRows] = useState<BucketRow[]> (buckets.map(bucket => ({ bucket, actions })))
-    
-    const handleConfirmDelete = () => {
-        if (!target) return
 
-        const prevBucketRows =  rows
-        setRows(prev => prev.filter(row => row.bucket.id !== target.id))
-        
-        startTransition(async () => {
-            try {
-                await deleteBucketById(target.id)
-                onCloseDelete(false)
-            } catch (error) {
-                setRows(prevBucketRows)
-            }
-        })
+    const rows = buckets.map(bucket => ({ bucket, actions }))
+
+    const handleConfirmDelete = async () => {
+        if (!target) return
+        try {
+            const { id } = target
+            await killBucketsByKey({ id })
+            onCloseDelete(false)
+        } catch (error) {
+            toast.error("Erro ao excluir Bucket")
+            console.log("[ERRO NA EXCLUSÃO DO BUCKET]", error)
+        }
     }
 
-    const onSubmitCreate = (data: BucketFormType) => {
-        startTransition(async() => {
-            try {
-                const newBucket = await createBucket(data)
-                setRows(prev => [...prev, { bucket: newBucket, actions }] as BucketRow[])
-                setIsCreateOpen(false)
-            } catch (error) {
-                toast.error("Não foi possivel adicionar o novo bucket")
-                console.log("[ERRO NA INSERÇÃO DE BUCKET]",error);
-            }
-        })
+    const onSubmitCreate = async (data: BucketFormType) => {
+        try {
+            await createBucket(data)
+            setIsCreateOpen(false)
+        } catch (error) {
+            toast.error("Não foi possivel adicionar o novo bucket")
+            console.log("[ERRO NA INSERÇÃO DO BUCKET]", error);
+        }
     }
 
     return {
@@ -65,8 +57,8 @@ export function useBucketFeatures(buckets: BucketList[]) {
             onSubmit: handleConfirmDelete
         },
         createDialogProps: {
-            isOpen: isCreateOpen,
-            onClose: setIsCreateOpen,
+            open: isCreateOpen,
+            onOpenChange: setIsCreateOpen,
             onSubmit: onSubmitCreate
         }
     }

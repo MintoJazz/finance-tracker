@@ -1,25 +1,24 @@
-"use client"
-
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { BucketFormType, bucketSchema } from "../form/schema/bucket-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { FieldErrors, Resolver, useForm } from "react-hook-form";
-import { BucketType } from "@/generated/prisma/enums";
-import BucketForm from "../form/bucket-form";
-import { UserOption } from "@/types/database";
-import { useEffect, useState } from "react";
-import { findAllUserOptions } from "@/features/user/server/queries";
-import { toast } from "sonner";
-import BucketUserField from "../form/fields/user-field";
-import BucketTypeField from "../form/fields/type-field";
+import { findAllUserOptions } from "@/features/user/server/queries"
+import { UserOption } from "@/types/database"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useState, useEffect } from "react"
+import { useForm, FieldErrors, Resolver } from "react-hook-form"
+import { toast } from "sonner"
+import { bucketSchema, BucketFormType } from "../form/schema/bucket-schema"
+import { Dialog, DialogDescription, DialogTitle, DialogContent, DialogHeader } from "@/components/ui/dialog"
+import BucketForm from "../form/bucket-form"
+import BucketTypeField from "../form/fields/type-field"
+import BucketUserField from "../form/fields/user-field"
 
 interface Props {
+    defaultValues: BucketFormType
     open: boolean
     onOpenChange?: (open: boolean) => void
+    onError?: (errors: FieldErrors<BucketFormType>) => void;
     onSubmit: (data: BucketFormType) => void;
 }
 
-export default function CreateBucket({ onSubmit, ...dialogDrilling }: Props) {
+export default function UpdateBucketDialgo({ defaultValues, onSubmit, onError, ...dialogDrilling }: Props) {
     const [users, setUsers] = useState<UserOption[]>()
     useEffect(() => {
         findAllUserOptions().then(setUsers)
@@ -28,16 +27,14 @@ export default function CreateBucket({ onSubmit, ...dialogDrilling }: Props) {
     const resolver = zodResolver(bucketSchema) as Resolver<BucketFormType>
     const form = useForm<BucketFormType>({
         resolver,
-        defaultValues: {
-            name: "",
-            type: BucketType.WALLET
-        },
+        defaultValues,
         mode: "onChange"
     })
 
     const handleOnError = (errors: FieldErrors<BucketFormType>) => {
         toast.error("Erro ao criar Transação!")
         console.log("❌ FALHA NA VALIDAÇÃO:", errors)
+        if (onError) onError(errors)
     }
 
     return <Dialog {...dialogDrilling} >

@@ -6,8 +6,8 @@ interface Props {
     onSubmit: () => void
 }
 
-export default function DeleteBucket({ open, onOpenChange, onSubmit }: Props) {
-    return <AlertDialog open={open} onOpenChange={onOpenChange} >
+export default function DeleteBucket({ onSubmit, ...dialogDrilling }: Props) {
+    return <AlertDialog {...dialogDrilling}>
         <AlertDialogContent>
             <AlertDialogHeader>
                 <AlertDialogTitle>Excluir o Bucket?</AlertDialogTitle>
