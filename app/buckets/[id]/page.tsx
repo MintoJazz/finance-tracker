@@ -1,11 +1,11 @@
-import { findBucketById } from "@/features/buckets/actions"
+import { findBucketById } from "@/features/buckets/server/queries"
 import { BucketProfileCard } from "@/features/buckets/components/bucket-profile-card"
 import { formatarDinheiro } from "@/lib/formatters"
 
 interface Props {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
 export default async function Page({ params }: Props) {

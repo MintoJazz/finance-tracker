@@ -1,4 +1,4 @@
-import { findAllTransactions } from "@/features/transaction/actions";
+import { findAllTransactions } from "@/features/transaction/server/queries";
 import TransactionContainer from "@/features/transaction/components/transaction-container";
 
 export default async function Page() {
