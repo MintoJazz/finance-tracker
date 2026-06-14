@@ -9,6 +9,7 @@ import { TransactionFormType } from "../form/schema/types"
 import { useState } from "react"
 import { ACTION_THEMES, ActionTheme } from "../themes/action-themes"
 import { Row } from "@tanstack/react-table"
+import { DateRange } from "react-day-picker"
 
 export interface TransactionRow {
     transaction: TransactionDetails
@@ -19,6 +20,11 @@ export interface TransactionRow {
 
 export function useTransactionFeatures(initialTransactions: TransactionDetails[]) {
     const [isIncome, setIsIncome] = useState<boolean>(false)
+    const [date, setDate] = useState<DateRange | undefined>({
+        from: new Date(),
+        to: new Date()
+    })
+
     const { onDelete, onEdit, isCreateOpen, setIsCreateOpen } = useManager<TransactionDetails>()
     const { selectAll } = useSelection()
     const { edit, items, drafts, add } = useDraftList<TransactionDetails>(initialTransactions)
@@ -39,11 +45,16 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
     }
 
     const actions: ActionSet<TransactionDetails>[] = [
-        { children: "Editar",  onAction: onEdit },
+        { children: "Editar", onAction: onEdit },
         { children: "Excluir", onAction: onDelete, variant: "destructive" },
     ]
 
-    const rows: TransactionRow[] = items.map(transaction => ({
+    const rows: TransactionRow[] = items.filter(i => {
+        const matchesFrom = !date?.from || i.date.getTime() >= date.from.getTime();
+        const matchesTo = !date?.to || i.date.getTime() <= date.to.getTime();
+
+        return matchesFrom && matchesTo;
+    }).map(transaction => ({
         transaction,
         actionTheme: ACTION_THEMES[drafts[transaction.id]?.action ?? 'stable'],
         statusBadgeProps: {
@@ -57,6 +68,8 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
 
     return {
         rows,
+        date,
+        setDate,
         onAddClick,
         onRowSelectionChange,
         createDialogProps: {

@@ -1,6 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import { Minus, Plus } from "lucide-react"
+import { CalendarIcon, Minus, Plus } from "lucide-react"
 import { TransactionDetails } from "../../../types/database"
 import { DataTable } from "@/components/ui/data-table"
 import { useTransactionFeatures } from "../hooks/use-transaction-features"
@@ -9,17 +9,54 @@ import { mobileColumns } from "./transaction-mobile-columns"
 import TransactionEmpty from "./transaction-empty"
 import CreateTransaction from "./create-transaction-dialog"
 import { useIsDesktop } from "@/hooks/use-breakpoint"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { formatarData } from "@/lib/formatters"
 
 interface Props {
     transactions: TransactionDetails[]
 }
 
 export default function TransactionContainer({ transactions }: Props) {
-    const { rows, onAddClick, createDialogProps, onRowSelectionChange } = useTransactionFeatures(transactions)
+    const { rows, date, setDate, onAddClick, createDialogProps, onRowSelectionChange } = useTransactionFeatures(transactions)
     const isDesktop = useIsDesktop()
 
     return (
         <div className="flex flex-col gap-3">
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        id="date-picker-range"
+                        className="justify-start px-2.5 font-normal"
+                    >
+                        <CalendarIcon />
+                        {date?.from ? (
+                            date.to ? (
+                                <>
+                                    {formatarData(date.from)} -{" "}
+                                    {formatarData(date.to)}
+                                </>
+                            ) : (
+                                formatarData(date.from)
+                            )
+                        ) : (
+                            <span>Pick a date</span>
+                        )}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                        required={false}
+                        mode="range"
+                        defaultMonth={date?.from}
+                        selected={date}
+                        onSelect={setDate}
+                        numberOfMonths={2}
+                        captionLayout="dropdown"
+                    />
+                </PopoverContent>
+            </Popover>
             <div className="flex flex-row gap-2">
                 <Button className="flex-1" onClick={() => onAddClick(false)}><Minus /> Pagar</Button>
                 <Button className="flex-1" onClick={() => onAddClick(true)}><Plus /> Receber</Button>

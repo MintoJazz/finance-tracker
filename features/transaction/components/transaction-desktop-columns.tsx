@@ -58,7 +58,7 @@ export const desktopColumns: ColumnDef<TransactionRow>[] = [
             const isIncome = t.type === "INCOME"
             return (
                 <div className={cn(
-                    "text-right text-sm font-semibold tabular-nums",
+                    "text-right text-sm font-semibold font-mono tabular-nums",
                     isExpense && "text-rose-600 dark:text-rose-400",
                     isIncome && "text-emerald-600 dark:text-emerald-400",
                 )}>

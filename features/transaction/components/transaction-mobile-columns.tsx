@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils"
 import { formatarData, formatarDinheiro } from "@/lib/formatters"
 import { OPERATION_THEMES } from "../themes/operation-themes"
 import StatusBadge from "./status-badge"
-import { Badge } from "@/components/ui/badge"
 import TransactionMenu from "./transaction-menu"
 
 export const mobileColumns: ColumnDef<TransactionRow>[] = [
@@ -17,12 +16,12 @@ export const mobileColumns: ColumnDef<TransactionRow>[] = [
             const Icon = opTheme.icon
 
             return (
-                <div className="group relative overflow-hidden transition-all flex flex-col pl-4 p-2 gap-2" >
+                <div className="group relative overflow-hidden transition-all flex flex-col pl-4 p-2 gap-1" >
                     {/* ── BODY ─────────────────────────────────────────────── */}
-                    <div className="flex w-full items-start gap-3">
+                    <div className="flex w-full items-end gap-3">
 
                         <div className="w-0 min-w-0 flex-1 pt-0.5">
-                            <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
+                            <p className="truncate text-sm font-medium text-foreground">
                                 {transaction.description}
                             </p>
                         </div>
@@ -31,7 +30,7 @@ export const mobileColumns: ColumnDef<TransactionRow>[] = [
                         <div className="shrink-0 pl-1 pt-0.5 text-right">
                             <p
                                 className={cn(
-                                    "whitespace-nowrap tabular-nums text-base font-bold leading-tight",
+                                    "whitespace-nowrap tabular-nums font-mono leading-tight",
                                     opTheme.color
                                 )}
                             >
@@ -43,14 +42,12 @@ export const mobileColumns: ColumnDef<TransactionRow>[] = [
                     {/* ── FOOTER ───────────────────────────────────────────── */}
                     <div
                         className={cn(
-                            "flex w-full items-center justify-between transition-colors",
+                            "flex w-full items-start justify-between transition-colors",
                             actionTheme.footerBg
                         )}
                     >
-                        <div className="flex gap-2">
-                            <Badge className={cn(opTheme.bg, opTheme.color)}>
-                                <Icon />
-                            </Badge>
+                        <div className="flex gap-2 items-center">
+                            <Icon size={16} className={opTheme.color}/>
                             <StatusBadge {...statusBadgeProps} />
                         </div>
 
@@ -68,7 +65,7 @@ export const mobileColumns: ColumnDef<TransactionRow>[] = [
     },
     {
         id: "actions",
-        cell: ({ row }) => <TransactionMenu actions={row.original.actions} transaction={row.original.transaction}/>,
-        meta: {className: "pl-0"}
+        cell: ({ row }) => <TransactionMenu actions={row.original.actions} transaction={row.original.transaction} />,
+        meta: { className: "pl-0" }
     }
 ]
