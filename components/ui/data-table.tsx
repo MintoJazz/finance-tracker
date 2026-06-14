@@ -117,9 +117,8 @@ export function DataTableViewOptions<TData>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="ml-auto h-8 lg:flex">
-          <SlidersHorizontal className="mr-2 h-4 w-4" />
-          View
+        <Button variant="outline" size="icon-sm" className="ml-auto h-8 lg:flex">
+          <SlidersHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-37.5">
@@ -393,7 +392,7 @@ export function DataTable<TData, TValue>({
     <div className="w-full space-y-2">
       {/* ── Toolbar ── */}
       {showHeader && (
-        <div className="flex items-center gap-2 py-2">
+        <div className="text-sm h-8 flex items-center gap-2 py-2">
           {activeFilterColumn && (
             <Input
               placeholder={filterPlaceholder}

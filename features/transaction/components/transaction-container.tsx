@@ -18,48 +18,52 @@ interface Props {
 }
 
 export default function TransactionContainer({ transactions }: Props) {
-    const { rows, date, setDate, onAddClick, createDialogProps, onRowSelectionChange } = useTransactionFeatures(transactions)
+    const { rows, date, setDate, onAddClick, createDialogProps, onRowSelectionChange, actions } = useTransactionFeatures(transactions)
     const isDesktop = useIsDesktop()
 
     return (
         <div className="flex flex-col gap-3">
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
-                        id="date-picker-range"
-                        className="justify-start px-2.5 font-normal"
-                    >
-                        <CalendarIcon />
-                        {date?.from ? (
-                            date.to ? (
-                                <>
-                                    {formatarData(date.from)} -{" "}
-                                    {formatarData(date.to)}
-                                </>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            id="date-picker-range"
+                            className="justify-start px-2.5 font-normal"
+                        >
+                            <CalendarIcon />
+                            {date?.from ? (
+                                date.to ? (
+                                    <>
+                                        {formatarData(date.from)} -{" "}
+                                        {formatarData(date.to)}
+                                    </>
+                                ) : (
+                                    formatarData(date.from)
+                                )
                             ) : (
-                                formatarData(date.from)
-                            )
-                        ) : (
-                            <span>Pick a date</span>
-                        )}
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                        required={false}
-                        mode="range"
-                        defaultMonth={date?.from}
-                        selected={date}
-                        onSelect={setDate}
-                        numberOfMonths={2}
-                        captionLayout="dropdown"
-                    />
-                </PopoverContent>
-            </Popover>
-            <div className="flex flex-row gap-2">
-                <Button className="flex-1" onClick={() => onAddClick(false)}><Minus /> Pagar</Button>
-                <Button className="flex-1" onClick={() => onAddClick(true)}><Plus /> Receber</Button>
+                                <span>Pick a date</span>
+                            )}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            required={false}
+                            mode="range"
+                            defaultMonth={date?.from}
+                            selected={date}
+                            onSelect={setDate}
+                            numberOfMonths={2}
+                            captionLayout="dropdown"
+                        />
+                    </PopoverContent>
+                </Popover>
+
+                {/* Action buttons */}
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:w-auto">
+                    <Button variant="outline" size="sm" onClick={() => onAddClick(false)}><Minus className="h-4 w-4" />Pagar</Button>
+                    <Button variant="outline" size="sm" onClick={() => onAddClick(true)}><Plus className="h-4 w-4" />Receber</Button>
+                </div>
             </div>
 
             {rows.length === 0 ? (
@@ -68,7 +72,7 @@ export default function TransactionContainer({ transactions }: Props) {
                 <DataTable
                     columns={isDesktop ? desktopColumns : mobileColumns}
                     data={rows}
-                    showHeader={isDesktop}
+                    rowActions={actions}
                     filterColumn="description"
                     filterPlaceholder="Filtrar descrição..."
                     pageSize={10}

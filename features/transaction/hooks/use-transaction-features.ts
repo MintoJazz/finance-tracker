@@ -2,7 +2,6 @@ import { useManager } from "@/hooks/use-manager"
 import { useDraftList } from "@/hooks/use-draft-list"
 import { useSelection } from "@/hooks/use-selection"
 import { TransactionDetails } from "@/types/database"
-import { ActionSet } from "@/types/action-set"
 import { TransactionStatus } from "@/generated/prisma/browser"
 import { toDomain } from "../mappers/domain-builder"
 import { TransactionFormType } from "../form/schema/types"
@@ -10,12 +9,12 @@ import { useState } from "react"
 import { ACTION_THEMES, ActionTheme } from "../themes/action-themes"
 import { Row } from "@tanstack/react-table"
 import { DateRange } from "react-day-picker"
+import { RowAction } from "@/components/ui/data-table"
 
 export interface TransactionRow {
     transaction: TransactionDetails
     actionTheme: ActionTheme
     statusBadgeProps: { current: TransactionStatus; onClick: (status: TransactionStatus) => void }
-    actions: ActionSet<TransactionDetails>[]
 }
 
 export function useTransactionFeatures(initialTransactions: TransactionDetails[]) {
@@ -44,9 +43,9 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         setIsCreateOpen(false)
     }
 
-    const actions: ActionSet<TransactionDetails>[] = [
-        { children: "Editar", onAction: onEdit },
-        { children: "Excluir", onAction: onDelete, variant: "destructive" },
+    const actions: RowAction<TransactionRow>[] = [
+        { label: "Editar", onClick: (row) => onEdit(row.original.transaction) },
+        { label: "Excluir", onClick: (row) => onDelete(row.original.transaction) },
     ]
 
     const rows: TransactionRow[] = items.filter(i => {
@@ -60,14 +59,14 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         statusBadgeProps: {
             current: transaction.status,
             onClick: (status: TransactionStatus) => onStatusChange(transaction.id, status),
-        },
-        actions,
+        }
     }))
 
     const onRowSelectionChange = (rowsSelected: Row<TransactionRow>[]) => selectAll(rowsSelected.map(row => row.original.transaction.id))
 
     return {
         rows,
+        actions,
         date,
         setDate,
         onAddClick,
