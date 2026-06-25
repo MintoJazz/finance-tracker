@@ -1,7 +1,7 @@
 import { useManager } from "@/hooks/use-manager"
 import { useDraftList } from "@/hooks/use-draft-list"
 import { useSelection } from "@/hooks/use-selection"
-import { TransactionDetails } from "@/types/database"
+import { BucketOption, TransactionDetails } from "@/types/database"
 import { TransactionStatus } from "@/generated/prisma/browser"
 import { toDomain } from "../mappers/domain-builder"
 import { TransactionFormType } from "../form/schema/types"
@@ -17,7 +17,7 @@ export interface TransactionRow {
     statusBadgeProps: { current: TransactionStatus; onClick: (status: TransactionStatus) => void }
 }
 
-export function useTransactionFeatures(initialTransactions: TransactionDetails[]) {
+export function useTransactionFeatures(initialTransactions: TransactionDetails[], buckets: BucketOption[]) {
     const [isIncome, setIsIncome] = useState<boolean>(false)
     const [date, setDate] = useState<DateRange | undefined>({
         from: new Date(),
@@ -39,7 +39,7 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
     }
 
     function onSubmitCreate(data: TransactionFormType) {
-        add(toDomain(data))
+        add(toDomain(data, buckets))
         setIsCreateOpen(false)
     }
 
@@ -72,6 +72,7 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         onAddClick,
         onRowSelectionChange,
         createDialogProps: {
+            buckets,
             isIncome,
             isOpen: isCreateOpen,
             onClose: setIsCreateOpen,

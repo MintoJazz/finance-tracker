@@ -1,18 +1,20 @@
-import { TransactionDetails } from "@/types/database";
+import { BucketOption, TransactionDetails, TransactionListMovement } from "@/types/database";
 import { transactionFormSchema } from "../form/schema/transaction-schema";
 import { TransactionFormType } from "../form/schema/types";
 import { MOVEMENT_BUILDERS } from "./movement-builder-registry";
-import { Movement } from "@/generated/prisma/client";
 import { SchemaBadgeType } from "../form/schema/schema-registry";
 import { BADGE_MODIFYERS } from "./badge-modifyers";
 
-export function toDomain(data: TransactionFormType): TransactionDetails {
+export function toDomain(data: TransactionFormType, buckets: BucketOption[]): TransactionDetails {
     const schema = transactionFormSchema.parse(data)
-    const movements: Movement[] = MOVEMENT_BUILDERS[schema.type](schema).map((m) => ({
+    console.log(MOVEMENT_BUILDERS[schema.type](schema));
+    
+    const movements: TransactionListMovement[] = MOVEMENT_BUILDERS[schema.type](schema).map((m) => ({
         ...m,
+        bucket: buckets.find(b => b.id === m.bucketId),
         id: 0,
         transactionId: 0
-    } as Movement))
+    } as TransactionListMovement))
 
     return applyModifyers({
         id: 0,

@@ -1,9 +1,19 @@
-import { Movement } from "@/generated/prisma/browser";
+import { MovementRole } from "@/generated/prisma/browser";
 import { Bucket, Transaction, User } from "@/generated/prisma/client";
 
-export interface TransactionDetails extends Transaction {
-    movements: Movement[]
+export interface TransactionListMovement {
+    bucket: BucketOption | null
+    id: number;
+    amount: number;
+    bucketId: number | null;
+    transactionId: number;
+    role: MovementRole;
 }
+
+export interface TransactionDetails extends Transaction {
+    movements: TransactionListMovement[];
+}
+
 
 export interface BucketList extends Bucket {
     user: User

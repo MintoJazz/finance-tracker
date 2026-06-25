@@ -3,24 +3,23 @@
 import { FieldErrors, Resolver, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { toast } from "sonner"
 import { TransactionFormType } from "../form/schema/types"
 import { transactionFormSchema } from "../form/schema/transaction-schema"
 import TransactionForm from "../form/transaction-form"
 import { BucketProvider } from "@/features/buckets/contexts/bucket-context"
-import { findAllBucketOptions } from "@/features/buckets/server/queries"
 import { BucketOption } from "@/types/database"
 
 interface Props {
     isOpen: boolean
     isIncome: boolean
+    buckets: BucketOption[]
     onClose?: (open: boolean) => void
     onSubmit: (data: TransactionFormType) => void
 }
 
-export default function CreateTransaction({ isOpen, onClose, onSubmit, isIncome }: Props) {
-    const [buckets ,setBuckets] = useState<BucketOption[]>()
+export default function CreateTransaction({ isOpen, onClose, buckets, onSubmit, isIncome }: Props) {
 
     const resolver = zodResolver(transactionFormSchema) as Resolver<TransactionFormType>
     const form = useForm<TransactionFormType>({
@@ -41,7 +40,6 @@ export default function CreateTransaction({ isOpen, onClose, onSubmit, isIncome 
 
     form.setValue("type", (isIncome) ? "INCOME" : "EXPENSE")
     useEffect(() => { if (!isOpen) form.reset() }, [isOpen, form])
-    useEffect(() => { findAllBucketOptions().then(setBuckets) }, [])
 
 
     return <BucketProvider buckets={buckets ?? []} >

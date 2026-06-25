@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { CalendarIcon, Minus, Plus } from "lucide-react"
-import { TransactionDetails } from "../../../types/database"
+import { BucketOption, TransactionDetails } from "../../../types/database"
 import { DataTable } from "@/components/ui/data-table"
 import { useTransactionFeatures } from "../hooks/use-transaction-features"
 import { desktopColumns } from "./transaction-desktop-columns"
@@ -15,10 +15,11 @@ import { formatarData } from "@/lib/formatters"
 
 interface Props {
     transactions: TransactionDetails[]
+    buckets: BucketOption[]
 }
 
-export default function TransactionContainer({ transactions }: Props) {
-    const { rows, date, setDate, onAddClick, createDialogProps, onRowSelectionChange, actions } = useTransactionFeatures(transactions)
+export default function TransactionContainer({ transactions, buckets }: Props) {
+    const { rows, date, setDate, onAddClick, createDialogProps, onRowSelectionChange, actions } = useTransactionFeatures(transactions, buckets)
     const isDesktop = useIsDesktop()
 
     return (
