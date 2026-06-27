@@ -23,7 +23,8 @@ export function useDraftList<Domain extends WithId>(originals: Domain[] = []) {
         const accumulated = { ...prev[id]?.domain, ...data } as Partial<Domain>
         
         if (id < 0) return ({ ...prev, [id]: { ...prev[id], domain: accumulated } })
-        else if (Object.keys(accumulated).some(key => accumulated[key as keyof Domain] !== original?.[key as keyof Domain])) return ({ ...prev, [id]: { action: "edit", domain: accumulated } })
+        else if (Object.keys(accumulated).some(key => accumulated[key as keyof Domain] !== original?.[key as keyof Domain])) 
+            return ({ ...prev, [id]: { action: "edit", domain: accumulated, original } })
         else return omitKey(prev, id)
     }), [])
 

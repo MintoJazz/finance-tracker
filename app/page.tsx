@@ -8,9 +8,6 @@ export default async function Page() {
         findAllBucketOptions(),
     ])
     
-    console.log(buckets);
-    
-
     return <div>
         <TransactionContainer buckets={buckets} transactions={transactions}/>
     </div>

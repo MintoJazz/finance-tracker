@@ -7,8 +7,6 @@ import { BADGE_MODIFYERS } from "./badge-modifyers";
 
 export function toDomain(data: TransactionFormType, buckets: BucketOption[]): TransactionDetails {
     const schema = transactionFormSchema.parse(data)
-    console.log(MOVEMENT_BUILDERS[schema.type](schema));
-    
     const movements: TransactionListMovement[] = MOVEMENT_BUILDERS[schema.type](schema).map((m) => ({
         ...m,
         bucket: buckets.find(b => b.id === m.bucketId),

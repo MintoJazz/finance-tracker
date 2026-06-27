@@ -5,11 +5,13 @@ import { BucketOption, TransactionDetails } from "@/types/database"
 import { TransactionStatus } from "@/generated/prisma/browser"
 import { toDomain } from "../mappers/domain-builder"
 import { TransactionFormType } from "../form/schema/types"
-import { useState } from "react"
+import { startTransition, useState } from "react"
 import { ACTION_THEMES, ActionTheme } from "../themes/action-themes"
 import { Row } from "@tanstack/react-table"
 import { DateRange } from "react-day-picker"
 import { RowAction } from "@/components/ui/data-table"
+import { DraftPayload, persistDrafts } from "../server/mutations"
+import { toast } from "sonner"
 
 export interface TransactionRow {
     transaction: TransactionDetails
@@ -62,15 +64,34 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         }
     }))
 
+    const onSubmit = async () => {
+        try {
+            const response = await persistDrafts(Object.values(drafts))
+
+            if (response.failed.length > 0) {
+                toast.error(`Não foi possível persistir`)
+                console.log("[FALHA NO BANCO DE DADOS]", response.failed)
+                return
+            }
+            toast.success("Dados salvos com sucesso!")
+        } catch (error) {
+            toast.error("Erro de conexão. Não foi possível comunicar com o servidor.")
+            console.log("[ERRO DE REDE OU SERVER ACTION]", error)
+        }
+    }
+
     const onRowSelectionChange = (rowsSelected: Row<TransactionRow>[]) => selectAll(rowsSelected.map(row => row.original.transaction.id))
+    const hasDraft = Object.keys(drafts).length !== 0
 
     return {
+        hasDraft,
         rows,
         actions,
         date,
         setDate,
         onAddClick,
         onRowSelectionChange,
+        onSubmit,
         createDialogProps: {
             buckets,
             isIncome,

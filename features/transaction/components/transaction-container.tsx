@@ -19,7 +19,7 @@ interface Props {
 }
 
 export default function TransactionContainer({ transactions, buckets }: Props) {
-    const { rows, date, setDate, onAddClick, createDialogProps, onRowSelectionChange, actions } = useTransactionFeatures(transactions, buckets)
+    const { hasDraft, rows, date, setDate, onAddClick, onSubmit, createDialogProps, onRowSelectionChange, actions } = useTransactionFeatures(transactions, buckets)
     const isDesktop = useIsDesktop()
 
     return (
@@ -62,6 +62,7 @@ export default function TransactionContainer({ transactions, buckets }: Props) {
 
                 {/* Action buttons */}
                 <div className="grid grid-cols-2 gap-2 sm:flex sm:w-auto">
+                    {hasDraft && <Button variant="outline" size="sm" onClick={onSubmit}>Submit</Button>}
                     <Button variant="outline" size="sm" onClick={() => onAddClick(false)}><Minus className="h-4 w-4" />Pagar</Button>
                     <Button variant="outline" size="sm" onClick={() => onAddClick(true)}><Plus className="h-4 w-4" />Receber</Button>
                 </div>
