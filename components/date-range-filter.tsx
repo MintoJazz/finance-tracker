@@ -22,7 +22,7 @@ export default function DateRangeFilter({ date, onSelect }: Props) {
                             ? <>{formatarData(date.from)} - {formatarData(date.to)}</>
                             : formatarData(date.from)
                     ) : (
-                        <span className="text-muted-foreground">Selecionar período</span>
+                        <span className="text-muted-foreground">Período</span>
                     )}
                 </Button>
             </PopoverTrigger>

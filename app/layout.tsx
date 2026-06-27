@@ -41,7 +41,7 @@ export default function RootLayout({
       <body className="min-h-screen">
         <ThemeProvider>
           <SiteHeader />
-          <div className="max-w-6xl mx-auto p-6 md:py-12 flex flex-col gap-4">
+          <div>
             {children}
           </div>
         </ThemeProvider>
