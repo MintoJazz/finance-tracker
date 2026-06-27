@@ -22,48 +22,33 @@ export default function TransactionContainer({ transactions, buckets }: Props) {
     const { hasDraft, rows, date, setDate, onAddClick, onSubmit, createDialogProps, onRowSelectionChange, actions, balanceListProps } = useTransactionFeatures(transactions, buckets)
     const isDesktop = useIsDesktop()
 
-    return (
-        <div className="flex flex-col gap-3">
+    return <div className="flex flex-col-reverse gap-2 sm:flex-row sm:gap-4 sm:items-stretch">
 
-            {/* ── Toolbar + saldos mobile ── */}
-            {!isDesktop && (
-                <div className="flex flex-col gap-2">
-                    <DateRangeFilter date={date} onSelect={setDate} />
-                    <ActionButtons hasDraft={hasDraft} onSubmit={onSubmit} onAddClick={onAddClick} />
-                    <BucketBalanceList {...balanceListProps} />
-                </div>
-            )}
-
-            {/* ── Grid principal ── */}
-            <div className={cn(isDesktop && "flex gap-4 items-stretch")}>
-
-                {/* Sidebar desktop */}
-                <div className={cn(isDesktop ? "order-last w-75 shrink-0 flex flex-col gap-3" : "hidden")}>
-                    <DateRangeFilter date={date} onSelect={setDate} />
-                    <ActionButtons hasDraft={hasDraft} onSubmit={onSubmit} onAddClick={onAddClick} />
-                    <BucketBalanceList {...balanceListProps} />
-                </div>
-
-                {/* Tabela */}
-                {rows.length === 0 ? (
-                    <TransactionEmpty />
-                ) : (
-                    <DataTable
-                        columns={isDesktop ? desktopColumns : mobileColumns}
-                        data={rows}
-                        rowActions={actions}
-                        filterColumn="description"
-                        filterPlaceholder="Filtrar descrição..."
-                        pageSize={10}
-                        enableRowSelection
-                        onRowSelectionChange={onRowSelectionChange}
-                    />
-                )}
-            </div>
-
-            <CreateTransaction {...createDialogProps} />
+        {/* Sidebar */}
+        <div className="order-last sm:w-75 shrink-0 flex flex-col gap-2">
+            <DateRangeFilter date={date} onSelect={setDate} />
+            <ActionButtons hasDraft={hasDraft} onSubmit={onSubmit} onAddClick={onAddClick} />
+            {balanceListProps.buckets.length > 0 && <BucketBalanceList {...balanceListProps} />}
         </div>
-    )
+
+        {/* Tabela */}
+        {rows.length === 0 ? (
+            <TransactionEmpty />
+        ) : (
+            <DataTable
+                columns={isDesktop ? desktopColumns : mobileColumns}
+                data={rows}
+                rowActions={actions}
+                filterColumn="description"
+                filterPlaceholder="Filtrar descrição..."
+                pageSize={10}
+                enableRowSelection
+                onRowSelectionChange={onRowSelectionChange}
+            />
+        )}
+        <CreateTransaction {...createDialogProps} />
+    </div>
+
 }
 
 interface ActionButtonsProps {

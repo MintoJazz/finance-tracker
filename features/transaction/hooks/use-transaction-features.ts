@@ -6,7 +6,7 @@ import { TransactionStatus } from "@/generated/prisma/browser"
 import { toDomain } from "../mappers/domain-builder"
 import { TransactionFormType } from "../form/schema/types"
 import { useState } from "react"
-import { ACTION_THEMES, ActionTheme } from "../themes/action-themes"
+import { ACTION_THEMES } from "../themes/action-themes"
 import { Row } from "@tanstack/react-table"
 import { DateRange } from "react-day-picker"
 import { RowAction } from "@/components/ui/data-table"
@@ -16,7 +16,6 @@ import { useBalanceList } from "@/features/buckets/hooks/use-balance-list"
 
 export interface TransactionRow {
     transaction: TransactionDetails
-    actionTheme: ActionTheme
     statusBadgeProps: { current: TransactionStatus; onClick: (status: TransactionStatus) => void }
 }
 

@@ -77,23 +77,26 @@ function BalanceVerticalList({ buckets, onSelect }: ListProps) {
 
 function BalanceChipList({ buckets, onSelect }: ListProps) {
     return (
-        <div className="flex gap-2 flex-wrap">
-            {buckets.map((bucket) => (
-                <Badge
-                    key={bucket.id}
-                    variant="outline"
-                    onClick={() => onSelect(bucket)}
-                    className={cn(
-                        "cursor-pointer gap-1.5 h-auto py-1 px-2.5",
-                        bucket.balance > 0 && "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30",
-                        bucket.balance < 0 && "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/30",
-                        bucket.balance === 0 && "text-muted-foreground"
-                    )}
-                >
-                    <span>{bucket.name}</span>
-                    <span className="font-mono tabular-nums">{formatMoney(bucket.balance)}</span>
-                </Badge>
-            ))}
+        <div className="relative">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
+                {buckets.map((bucket) => (
+                    <Badge
+                        key={bucket.id}
+                        variant="outline"
+                        onClick={() => onSelect(bucket)}
+                        className={cn(
+                            "cursor-pointer gap-1.5 h-auto py-1 px-2.5 shrink-0",
+                            bucket.balance > 0 && "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30",
+                            bucket.balance < 0 && "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/30",
+                            bucket.balance === 0 && "text-muted-foreground"
+                        )}
+                    >
+                        <span>{bucket.name}</span>
+                        <span className="font-mono tabular-nums">{formatMoney(bucket.balance)}</span>
+                    </Badge>
+                ))}
+            </div>
+            <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent pointer-events-none" />
         </div>
     )
 }
