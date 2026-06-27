@@ -1,6 +1,6 @@
 import { findBucketById } from "@/features/buckets/server/queries"
 import { BucketProfileCard } from "@/features/buckets/components/bucket-profile-card"
-import { formatarDinheiro } from "@/lib/formatters"
+import { formatMoney } from "@/lib/formatters"
 
 interface Props {
     params: Promise<{
@@ -14,6 +14,6 @@ export default async function Page({ params }: Props) {
 
     return <div className="flex flex-col gap-4">
         <BucketProfileCard balance={0} user={bucket.user} bucket={bucket} />
-        {bucket.movements.map(m => <div key={m.id}>{m.transaction.description} - {formatarDinheiro(m.amount)}</div>)}
+        {bucket.movements.map(m => <div key={m.id}>{m.transaction.description} - {formatMoney(m.amount)}</div>)}
     </div>
 }

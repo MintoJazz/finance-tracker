@@ -1,6 +1,6 @@
 "use client"
 
-import { formatarDinheiro } from "@/lib/formatters"
+import { formatMoney } from "@/lib/formatters"
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
 
@@ -33,7 +33,7 @@ export const columns: ColumnDef<Payment>[] = [
     {
         accessorKey: "amount",
         header: () => <div className="text-right">Amount</div>,
-        cell: ({ row }) => <div className="text-right font-medium">{formatarDinheiro(row.getValue("amount"))}</div>,
+        cell: ({ row }) => <div className="text-right font-medium">{formatMoney(row.getValue("amount"))}</div>,
     },
     {
         id: "actions",

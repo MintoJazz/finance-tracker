@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { Bucket, User } from "@/generated/prisma/client"
 import { BUCKET_CARD_THEMES } from "@/features/buckets/themes/bucket-type"
-import { formatarDinheiro } from "@/lib/formatters"
+import { formatMoney } from "@/lib/formatters"
 import { cn } from "@/lib/utils"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ export function BucketProfileCard({
 
     return (
         <div
-            aria-label={`Cartão ${bucket.name}, saldo ${revealed ? formatarDinheiro(balance) : "oculto"
+            aria-label={`Cartão ${bucket.name}, saldo ${revealed ? formatMoney(balance) : "oculto"
                 }`}
             className={cn(
                 "group relative isolate w-full max-w-[320px] overflow-hidden",
@@ -184,7 +184,7 @@ export function BucketProfileCard({
                                     revealed ? "blur-0 opacity-100" : "blur-[5px] opacity-70",
                                 )}
                             >
-                                {revealed ? formatarDinheiro(balance) : "R$ ••••••"}
+                                {revealed ? formatMoney(balance) : "R$ ••••••"}
                             </span>
                             {revealed ? (
                                 <EyeOff className="h-3 w-3 opacity-60" />

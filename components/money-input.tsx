@@ -1,5 +1,5 @@
 import { useMoneyInput } from "@/hooks/use-money-input";
-import { formatarDinheiro } from "@/lib/formatters"; // assumindo que essa função aceita string ou number
+import { formatMoney } from "@/lib/formatters"; // assumindo que essa função aceita string ou number
 import { cn } from "@/lib/utils";
 import { ComponentProps } from "react";
 
@@ -25,7 +25,7 @@ export function MoneyInput({ value, onChange, className, ...props }: MoneyInputP
             {...props}
             type="text"
             onChange={handleChange}
-            value={formatarDinheiro(value ?? 0)} // Garante um fallback caso value seja undefined
+            value={formatMoney(value ?? 0)} // Garante um fallback caso value seja undefined
             className={cn("outline-none focus:ring-0", className)}
         />
     );

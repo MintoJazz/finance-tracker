@@ -1,6 +1,6 @@
 import { ItemDescription, ItemTitle } from "@/components/ui/item"
 import { Transaction } from "@/generated/prisma/client"
-import { formatarData, formatarDinheiro } from "@/lib/formatters"
+import { formatarData, formatMoney } from "@/lib/formatters"
 import { cn } from "@/lib/utils"
 import { ActionTheme } from "../themes/action-themes"
 import { OPERATION_THEMES } from "../themes/operation-themes"
@@ -37,7 +37,7 @@ export function TransactionCardInfo({ transaction }: CardInfoProps) {
             </div>
             <div className="text-right shrink-0">
                 <p className={cn("text-xs font-black tracking-tight")}>
-                    {formatarDinheiro(transaction.amount)}
+                    {formatMoney(transaction.amount)}
                 </p>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase mt-1">
                     {formatarData(transaction.date)}

@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { BucketRow } from "../hooks/use-bucket-features";
 import { ItemActions, ItemContent, ItemDescription, ItemMedia } from "@/components/ui/item";
-import { formatarDinheiro } from "@/lib/formatters";
+import { formatMoney } from "@/lib/formatters";
 import { BUCKET_TYPE_THEMES } from "../themes/bucket-type";
 import BucketMenu from "./bucket-menu";
 
@@ -21,7 +21,7 @@ export const mobileBucketColums: ColumnDef<BucketRow>[] = [
                     <ItemDescription>{row.original.bucket.user.name}</ItemDescription>
                 </ItemContent>
                 <ItemActions>
-                    <p className="text-xs font-black tracking-tight">{formatarDinheiro(row.original.bucket.balance)}</p>
+                    <p className="text-xs font-black tracking-tight">{formatMoney(row.original.bucket.balance)}</p>
                 </ItemActions>
             </div>
         },

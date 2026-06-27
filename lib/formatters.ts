@@ -2,7 +2,7 @@ import { format,isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
 
-export const formatarDinheiro = (valorCentavos: number | bigint): string =>  new Intl.NumberFormat("pt-BR", {
+export const formatMoney = (valorCentavos: number | bigint): string =>  new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
 }).format(Number(valorCentavos) / 100);

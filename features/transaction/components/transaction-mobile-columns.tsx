@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { TransactionRow } from "../hooks/use-transaction-features"
 import { cn } from "@/lib/utils"
-import { formatarData, formatarDinheiro } from "@/lib/formatters"
+import { formatarData, formatMoney } from "@/lib/formatters"
 import { OPERATION_THEMES } from "../themes/operation-themes"
 import StatusBadge from "./status-badge"
 
@@ -30,7 +30,7 @@ export const mobileColumns: ColumnDef<TransactionRow>[] = [
                                     opTheme.color
                                 )}
                             >
-                                {formatarDinheiro(transaction.amount)}
+                                {formatMoney(transaction.amount)}
                             </p>
                         </div>
                     </div>
