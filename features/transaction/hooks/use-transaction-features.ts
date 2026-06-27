@@ -5,13 +5,14 @@ import { BucketOption, TransactionDetails } from "@/types/database"
 import { TransactionStatus } from "@/generated/prisma/browser"
 import { toDomain } from "../mappers/domain-builder"
 import { TransactionFormType } from "../form/schema/types"
-import { startTransition, useState } from "react"
+import { useState } from "react"
 import { ACTION_THEMES, ActionTheme } from "../themes/action-themes"
 import { Row } from "@tanstack/react-table"
 import { DateRange } from "react-day-picker"
 import { RowAction } from "@/components/ui/data-table"
-import { DraftPayload, persistDrafts } from "../server/mutations"
+import { persistDrafts } from "../server/mutations"
 import { toast } from "sonner"
+import { useBalanceList } from "@/features/buckets/hooks/use-balance-list"
 
 export interface TransactionRow {
     transaction: TransactionDetails
@@ -21,14 +22,12 @@ export interface TransactionRow {
 
 export function useTransactionFeatures(initialTransactions: TransactionDetails[], buckets: BucketOption[]) {
     const [isIncome, setIsIncome] = useState<boolean>(false)
-    const [date, setDate] = useState<DateRange | undefined>({
-        from: new Date(),
-        to: new Date()
-    })
+    const [date, setDate] = useState<DateRange | undefined>(undefined)
 
     const { onDelete, onEdit, isCreateOpen, setIsCreateOpen } = useManager<TransactionDetails>()
-    const { selectAll } = useSelection()
+    const { selectAll, selected } = useSelection()
     const { edit, items, drafts, add } = useDraftList<TransactionDetails>(initialTransactions)
+    const balanceListProps = useBalanceList(items.filter(i => selected.includes(i.id)))
 
     function onStatusChange(id: number, status: TransactionStatus) {
         const original = initialTransactions.find(t => t.id === id) ?? items.find(t => t.id === id)!
@@ -92,6 +91,7 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         onAddClick,
         onRowSelectionChange,
         onSubmit,
+        balanceListProps,
         createDialogProps: {
             buckets,
             isIncome,

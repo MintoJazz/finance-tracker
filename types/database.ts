@@ -1,4 +1,4 @@
-import { MovementRole } from "@/generated/prisma/browser";
+import { Movement, MovementRole } from "@/generated/prisma/browser";
 import { Bucket, Transaction, User } from "@/generated/prisma/client";
 
 export interface TransactionListMovement {
@@ -18,6 +18,14 @@ export interface TransactionDetails extends Transaction {
 export interface BucketList extends Bucket {
     user: User
     balance: number
+}
+
+// types/database.ts
+export interface BucketBalance {
+    id: number
+    name: string
+    balance: number
+    movements: Movement[]
 }
 
 export interface UserOption {
