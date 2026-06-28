@@ -96,7 +96,7 @@ function BalanceChipList({ buckets, onSelect }: ListProps) {
                     </Badge>
                 ))}
             </div>
-            <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-6 bg-linear-to-l from-background to-transparent pointer-events-none" />
         </div>
     )
 }
@@ -118,28 +118,27 @@ function BucketStatementModal({ bucket, onClose }: ModalProps) {
                     <DialogTitle>{bucket?.name}</DialogTitle>
                 </DialogHeader>
 
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 min-w-0">
                     {bucket?.movements.map((movement) => (
-                        <Item key={movement.id} variant="muted" size="sm">
-                            <ItemContent>
-                                <ItemTitle>{movement.role}</ItemTitle>
-                                <ItemDescription>Movimentação #{movement.id}</ItemDescription>
-                            </ItemContent>
+                        <div className="flex justify-between items-center gap-3 min-w-0" key={movement.id}>
+                            <p className="font-mono text-sm tabular-nums truncate flex-1 min-w-0">
+                                {movement.description}
+                            </p>
                             <span className={cn("font-mono text-sm tabular-nums shrink-0", balanceColor(movement.amount))}>
                                 {formatMoney(movement.amount)}
                             </span>
-                        </Item>
+                        </div>
                     ))}
+                    <Separator />
+
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground font-mono">Impacto total</span>
+                        <span className={cn("font-mono font-medium tabular-nums", balanceColor(total))}>
+                            {formatMoney(total)}
+                        </span>
+                    </div>
                 </div>
 
-                <Separator />
-
-                <div className="flex justify-between items-center text-sm px-1">
-                    <span className="text-muted-foreground">Impacto total</span>
-                    <span className={cn("font-mono font-medium tabular-nums", balanceColor(total))}>
-                        {formatMoney(total)}
-                    </span>
-                </div>
             </DialogContent>
         </Dialog>
     )

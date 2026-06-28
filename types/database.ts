@@ -25,7 +25,9 @@ export interface BucketBalance {
     id: number
     name: string
     balance: number
-    movements: Movement[]
+    movements: (Movement & {
+        description: string
+    })[]
 }
 
 export interface UserOption {

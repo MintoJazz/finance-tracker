@@ -6,7 +6,11 @@ export function useBalanceList(transactions: TransactionDetails[]) {
         const map = new Map<number, BucketBalance>()
 
         for (const transaction of transactions) {
-            for (const movement of transaction.movements) {
+            for (const m of transaction.movements) {
+                const movement = {
+                    ...m, description: transaction.description
+                }
+
                 if (!movement.bucketId || !movement.bucket) continue
 
                 const existing = map.get(movement.bucketId)
