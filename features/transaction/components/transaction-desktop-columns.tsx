@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { cn } from "@/lib/utils"
-import { formatarData, formatMoney } from "@/lib/formatters"
+import { formatDate, formatMoney } from "@/lib/formatters"
 import { OPERATION_THEMES } from "../themes/operation-themes"
 import StatusBadge from "./status-badge"
 import { TransactionRow } from "../hooks/use-transaction-features"
@@ -43,7 +43,7 @@ export const desktopColumns: ColumnDef<TransactionRow>[] = [
         header: "Data",
         cell: ({ row }) => (
             <span className="text-xs text-muted-foreground tabular-nums">
-                {formatarData(row.original.transaction.date)}
+                {formatDate(row.original.transaction.date)}
             </span>
         ),
     },

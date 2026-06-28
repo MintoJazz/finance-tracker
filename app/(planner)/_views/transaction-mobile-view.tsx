@@ -1,10 +1,7 @@
 "use client"
-import { useState } from "react"
 import { TransactionViewProps } from "./transaction-container"
-import { TransactionMobileItem } from "./transaction-mobile-item"
 import BucketBalanceList from "@/features/buckets/components/bucket-balance-list"
 import DateRangeFilter from "@/components/date-range-filter"
-import TransactionEmpty from "./transaction-empty"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
@@ -16,45 +13,20 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Row } from "@tanstack/react-table"
-import { TransactionRow } from "../hooks/use-transaction-features"
+import TransactionList from "@/features/transaction/components/list/transaction-list"
+import { useTransactionList } from "@/features/transaction/hooks/use-transaction-list"
 
 export default function TransactionMobileView(props: TransactionViewProps) {
     const {
-        rows, date, setDate,
-        onAddClick, onSubmit,
-        actions, balanceListProps,
-        hasDraft, onRowSelectionChange,
+        date, setDate,
+        onAddClick, onSubmit, 
+        balanceListProps, hasDraft,
+        actions, onStatusChange, transactions,
+        onSelect, selected, selectAll
     } = props
+    const { clearSelection, filter, selectionMode, setFilter } = useTransactionList(selected, selectAll)
 
-    const [filter, setFilter] = useState("")
-    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
-
-    const hasDateFilter = !!(date?.from || date?.to)
-    const selectionMode = selectedIds.size > 0
-
-    const filtered = filter.trim()
-        ? rows.filter(r =>
-            r.transaction.description.toLowerCase().includes(filter.toLowerCase())
-        )
-        : rows
-
-    function handleToggle(id: number) {
-        setSelectedIds(prev => {
-            const next = new Set(prev)
-            next.has(id) ? next.delete(id) : next.add(id)
-            const selectedRows = rows
-                .filter(r => next.has(r.transaction.id))
-                .map(r => ({ original: r }) as Row<TransactionRow>)
-            onRowSelectionChange(selectedRows)
-            return next
-        })
-    }
-
-    function clearSelection() {
-        setSelectedIds(new Set())
-        onRowSelectionChange([])
-    }
+    const listProps = { actions, selected, onStatusChange, transactions, onSelect }
 
     return (
         <div className="flex flex-col min-h-0">
@@ -101,25 +73,7 @@ export default function TransactionMobileView(props: TransactionViewProps) {
             </div>
 
             {/* ── Lista ── */}
-            <div className="flex-1 divide-y divide-border">
-                {filtered.length === 0 ? (
-                    <div className="py-16">
-                        <TransactionEmpty />
-                    </div>
-                ) : (
-                    filtered.map(row => (
-                        <TransactionMobileItem
-                            key={row.transaction.id}
-                            row={row}
-                            actions={actions}
-                            isSelected={selectedIds.has(row.transaction.id)}
-                            selectionMode={selectionMode}
-                            onToggle={handleToggle}
-                            shortDate={hasDateFilter}
-                        />
-                    ))
-                )}
-            </div>
+                <TransactionList {...listProps } />
 
             {/* ── FAB: Pagar / Receber ── */}
             {!selectionMode && (
@@ -151,7 +105,7 @@ export default function TransactionMobileView(props: TransactionViewProps) {
                     <Card className="flex flex-row items-center justify-between gap-3 px-4 py-3 rounded-xl shadow-lg">
                         <span className="text-sm text-muted-foreground">
                             {selectionMode
-                                ? `${selectedIds.size} selecionada${selectedIds.size > 1 ? "s" : ""}`
+                                ? `${selected.length} selecionada${selected.length > 1 ? "s" : ""}`
                                 : "Alterações pendentes"
                             }
                         </span>

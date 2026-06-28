@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { TransactionRow } from "../hooks/use-transaction-features"
 import { cn } from "@/lib/utils"
-import { formatarData, formatMoney } from "@/lib/formatters"
+import { formatDate, formatMoney } from "@/lib/formatters"
 import { OPERATION_THEMES } from "../themes/operation-themes"
 import StatusBadge from "./status-badge"
 
@@ -41,7 +41,7 @@ export const mobileColumns: ColumnDef<TransactionRow>[] = [
                         </div>
                         <div className="flex shrink-0 items-center gap-1.5">
                             <span className="tabular-nums text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                                {formatarData(transaction.date)}
+                                {formatDate(transaction.date)}
                             </span>
                         </div>
                     </div>

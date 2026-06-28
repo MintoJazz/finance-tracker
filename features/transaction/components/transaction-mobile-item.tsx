@@ -1,9 +1,8 @@
 "use client"
 import { cn } from "@/lib/utils"
-import { formatarData, formatMoney } from "@/lib/formatters"
+import { formatDate, formatMoney } from "@/lib/formatters"
 import { OPERATION_THEMES } from "../themes/operation-themes"
 import StatusBadge from "./status-badge"
-import { TransactionRow } from "../hooks/use-transaction-features"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -13,51 +12,51 @@ import {
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import { RowAction } from "@/components/ui/data-table"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Row } from "@tanstack/react-table"
+import { TransactionDetails } from "@/types/database"
+import { MouseEvent } from "react"
+import { TransactionStatus } from "@/generated/prisma/enums"
 
 interface Props {
-    row: TransactionRow
-    actions?: RowAction<TransactionRow>[]
+    transaction: TransactionDetails
+    actions?: RowAction<TransactionDetails>[]
     isSelected?: boolean
-    selectionMode?: boolean   // ≥1 item selecionado: mostra checkbox em todos
-    onToggle?: (id: number) => void
-    shortDate?: boolean
+    onSelect?: (id: number) => void
+    onStatusChange: (id: number, status: TransactionStatus) => void
 }
 
-export function TransactionMobileItem({
-    row, actions, isSelected, selectionMode, onToggle, shortDate = false
-}: Props) {
-    const { transaction, statusBadgeProps } = row
+export function TransactionMobileItem({ transaction, actions, isSelected, onSelect, onStatusChange }: Props) {
     const theme = OPERATION_THEMES[transaction.type]
     const Icon = theme.icon
 
-    const dateStr = shortDate
-        ? formatarData(transaction.date).slice(0, 5)
-        : formatarData(transaction.date)
+    const statusBadgeProps = {
+        onClick: (status: TransactionStatus) => onStatusChange(transaction.id, status),
+        current: transaction.status
+    }
+
+    const dateStr = formatDate(transaction.date)
+    const onClick = (e: MouseEvent) => {
+        e.stopPropagation();
+        onSelect?.(transaction.id)
+    }
 
     return (
         <div
             className={cn(
                 "flex items-center gap-3 px-4 py-3.5 transition-colors active:bg-muted/60",
                 isSelected ? "bg-muted/50" : "hover:bg-muted/40",
-                onToggle && "cursor-pointer"
+                onSelect && "cursor-pointer"
             )}
-            onClick={() => onToggle?.(transaction.id)}
+            onClick={() => onSelect?.(transaction.id)}
         >
             {/* Ícone / Checkbox */}
             <div
                 className={cn(
-                    "shrink-0 flex items-center justify-center w-9 h-9 rounded-xl transition-colors",
-                    // Em modo seleção o fundo some e vira apenas checkbox
-                    selectionMode ? "bg-transparent" : theme.bg
+                    "shrink-0 flex items-center justify-center w-9 h-9 rounded-xl transition-colors"
                 )}
-                onClick={e => { e.stopPropagation(); onToggle?.(transaction.id) }}
+                onClick={onClick}
             >
-                {selectionMode
-                    ? <Checkbox checked={isSelected} className="pointer-events-none" />
-                    : <Icon size={16} className={theme.color} />
-                }
+                <Icon size={16} className={theme.color} />
             </div>
 
             {/* Conteúdo */}
@@ -89,30 +88,32 @@ export function TransactionMobileItem({
             </div>
 
             {/* Menu de ações */}
-            {actions && actions.length > 0 && (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="shrink-0 text-muted-foreground -mr-1"
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <MoreHorizontal size={16} />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {actions.map((action, i) => (
-                            <DropdownMenuItem
-                                key={i}
-                                onSelect={() => action.onClick({ original: row } as Row<TransactionRow>)}
+            {
+                actions && actions.length > 0 && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                className="shrink-0 text-muted-foreground -mr-1"
+                                onClick={e => e.stopPropagation()}
                             >
-                                {action.label}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )}
-        </div>
+                                <MoreHorizontal size={16} />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {actions.map((action, i) => (
+                                <DropdownMenuItem
+                                    key={i}
+                                    onSelect={() => action.onClick({ original: transaction } as Row<TransactionDetails>)}
+                                >
+                                    {action.label}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )
+            }
+        </div >
     )
 }

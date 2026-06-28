@@ -1,5 +1,5 @@
 import { findAllTransactions } from "@/features/transaction/server/queries";
-import TransactionContainer from "@/features/transaction/components/transaction-container";
+import TransactionContainer from "@/app/(planner)/_views/transaction-container";
 import { findAllBucketOptions } from "@/features/buckets/server/queries";
 
 export default async function Page() {

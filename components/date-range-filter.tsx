@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { formatarData } from "@/lib/formatters"
+import { formatDate } from "@/lib/formatters"
 import { CalendarIcon } from "lucide-react"
 import { DateRange } from "react-day-picker"
 
@@ -19,8 +19,8 @@ export default function DateRangeFilter({ date, onSelect }: Props) {
                     <CalendarIcon />
                     {date?.from ? (
                         date.to
-                            ? <>{formatarData(date.from)} - {formatarData(date.to)}</>
-                            : formatarData(date.from)
+                            ? <>{formatDate(date.from)} - {formatDate(date.to)}</>
+                            : formatDate(date.from)
                     ) : (
                         <span className="text-muted-foreground">Período</span>
                     )}

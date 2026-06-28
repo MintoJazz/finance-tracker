@@ -7,7 +7,7 @@ export const formatMoney = (valorCentavos: number | bigint): string =>  new Intl
     currency: "BRL",
 }).format(Number(valorCentavos) / 100);
 
-export const formatarData = (data: Date): string => (data) && format(data, "dd'/'MM'/'yyyy", { locale: ptBR });
+export const formatDate = (data: Date): string => (data) && format(data, "dd'/'MM'/'yyyy", { locale: ptBR });
 
 export function checkDate(targetDate: Date, dateRange: DateRange): boolean {
    if (!dateRange?.from || !dateRange?.to) return false;

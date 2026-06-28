@@ -1,8 +1,8 @@
 "use client"
 import { BucketOption, TransactionDetails } from "@/types/database"
-import { useTransactionFeatures } from "../hooks/use-transaction-features"
+import { useTransactionFeatures } from "../../../features/transaction/hooks/use-transaction-features"
 import { useIsDesktop } from "@/hooks/use-breakpoint"
-import CreateTransaction from "./create-transaction-dialog"
+import CreateTransaction from "../../../features/transaction/components/create-transaction-dialog"
 
 import TransactionMobileView from "./transaction-mobile-view"
 import TransactionDesktopView from "./transaction-desktop-view"

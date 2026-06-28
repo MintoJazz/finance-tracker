@@ -6,8 +6,6 @@ import { TransactionStatus } from "@/generated/prisma/browser"
 import { toDomain } from "../mappers/domain-builder"
 import { TransactionFormType } from "../form/schema/types"
 import { useState } from "react"
-import { ACTION_THEMES } from "../themes/action-themes"
-import { Row } from "@tanstack/react-table"
 import { DateRange } from "react-day-picker"
 import { RowAction } from "@/components/ui/data-table"
 import { persistDrafts } from "../server/mutations"
@@ -24,7 +22,7 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
     const [date, setDate] = useState<DateRange | undefined>(undefined)
 
     const { onDelete, onEdit, isCreateOpen, setIsCreateOpen } = useManager<TransactionDetails>()
-    const { selectAll, selected } = useSelection()
+    const { select, selectAll, selected } = useSelection()
     const { edit, items, drafts, add } = useDraftList<TransactionDetails>(initialTransactions)
     const balanceListProps = useBalanceList(items.filter(i => selected.includes(i.id)))
 
@@ -43,24 +41,17 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         setIsCreateOpen(false)
     }
 
-    const actions: RowAction<TransactionRow>[] = [
-        { label: "Editar", onClick: (row) => onEdit(row.original.transaction) },
-        { label: "Excluir", onClick: (row) => onDelete(row.original.transaction) },
+    const actions: RowAction<TransactionDetails>[] = [
+        { label: "Editar", onClick: (row) => onEdit(row.original) },
+        { label: "Excluir", onClick: (row) => onDelete(row.original) },
     ]
 
-    const rows: TransactionRow[] = items.filter(i => {
+    const transactions: TransactionDetails[] = items.filter(i => {
         const matchesFrom = !date?.from || i.date.getTime() >= date.from.getTime();
         const matchesTo = !date?.to || i.date.getTime() <= date.to.getTime();
 
         return matchesFrom && matchesTo;
-    }).map(transaction => ({
-        transaction,
-        actionTheme: ACTION_THEMES[drafts[transaction.id]?.action ?? 'stable'],
-        statusBadgeProps: {
-            current: transaction.status,
-            onClick: (status: TransactionStatus) => onStatusChange(transaction.id, status),
-        }
-    }))
+    })
 
     const onSubmit = async () => {
         try {
@@ -78,25 +69,30 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
         }
     }
 
-    const onRowSelectionChange = (rowsSelected: Row<TransactionRow>[]) => selectAll(rowsSelected.map(row => row.original.transaction.id))
+    const createDialogProps = {
+        buckets,
+        isIncome,
+        isOpen: isCreateOpen,
+        onClose: setIsCreateOpen,
+        onSubmit: onSubmitCreate,
+    }
+
+    const viewProps = {
+        actions, selected, onStatusChange, transactions,
+        onSelect: select,
+    }
+
     const hasDraft = Object.keys(drafts).length !== 0
 
     return {
+        selectAll,
         hasDraft,
-        rows,
-        actions,
         date,
         setDate,
         onAddClick,
-        onRowSelectionChange,
         onSubmit,
         balanceListProps,
-        createDialogProps: {
-            buckets,
-            isIncome,
-            isOpen: isCreateOpen,
-            onClose: setIsCreateOpen,
-            onSubmit: onSubmitCreate,
-        },
+        createDialogProps,
+        ...viewProps,
     }
 }
