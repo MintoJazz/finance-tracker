@@ -1,7 +1,7 @@
 import { TransactionDetails } from "@/types/database"
 import TransactionEmpty from "../transaction-empty"
 import { RowAction } from "@/components/ui/data-table"
-import { TransactionMobileItem } from "../transaction-mobile-item"
+import { TransactionListItem } from "../transaction-mobile-item"
 import { TransactionStatus } from "@/generated/prisma/enums"
 
 interface Props {
@@ -25,7 +25,7 @@ export default function TransactionList({ transactions, actions, selected, onSel
                     isSelected: selected.includes(transaction.id),
                 }
 
-                return <TransactionMobileItem key={transaction.id} {...itemProps} />
+                return <TransactionListItem key={transaction.id} {...itemProps} />
             })
         )}
     </div>

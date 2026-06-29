@@ -3,19 +3,11 @@ import { cn } from "@/lib/utils"
 import { formatDate, formatMoney } from "@/lib/formatters"
 import { OPERATION_THEMES } from "../themes/operation-themes"
 import StatusBadge from "./status-badge"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
 import { RowAction } from "@/components/ui/data-table"
-import { Row } from "@tanstack/react-table"
 import { TransactionDetails } from "@/types/database"
 import { MouseEvent } from "react"
 import { TransactionStatus } from "@/generated/prisma/enums"
+import { ActionsMenu } from "@/components/actions-menu"
 
 interface Props {
     transaction: TransactionDetails
@@ -25,7 +17,7 @@ interface Props {
     onStatusChange: (id: number, status: TransactionStatus) => void
 }
 
-export function TransactionMobileItem({ transaction, actions, isSelected, onSelect, onStatusChange }: Props) {
+export function TransactionListItem({ transaction, actions, isSelected, onSelect, onStatusChange }: Props) {
     const theme = OPERATION_THEMES[transaction.type]
     const Icon = theme.icon
 
@@ -87,33 +79,12 @@ export function TransactionMobileItem({ transaction, actions, isSelected, onSele
                 </div>
             </div>
 
-            {/* Menu de ações */}
-            {
-                actions && actions.length > 0 && (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                className="shrink-0 text-muted-foreground -mr-1"
-                                onClick={e => e.stopPropagation()}
-                            >
-                                <MoreHorizontal size={16} />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {actions.map((action, i) => (
-                                <DropdownMenuItem
-                                    key={i}
-                                    onSelect={() => action.onClick({ original: transaction } as Row<TransactionDetails>)}
-                                >
-                                    {action.label}
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )
-            }
-        </div >
+            {/* Menu de ações genérico */}
+            <ActionsMenu 
+                actions={actions} 
+                data={transaction} 
+                className="-mr-1" 
+            />
+        </div>
     )
 }

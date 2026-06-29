@@ -20,7 +20,6 @@ interface Props {
 }
 
 export default function CreateTransaction({ isOpen, onClose, buckets, onSubmit, isIncome }: Props) {
-
     const resolver = zodResolver(transactionFormSchema) as Resolver<TransactionFormType>
     const form = useForm<TransactionFormType>({
         resolver,
