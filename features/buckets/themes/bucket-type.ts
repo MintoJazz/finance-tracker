@@ -16,6 +16,8 @@ export interface BucketCardTheme {
     accentColor: string  // para os SVGs
     chipColor: string    // para os SVGs
     label: string
+    plural: string
+    icon: LucideIcon
 }
 
 export const BUCKET_CARD_THEMES: Record<BucketType, BucketCardTheme> = {
@@ -28,6 +30,8 @@ export const BUCKET_CARD_THEMES: Record<BucketType, BucketCardTheme> = {
         accentColor: "#c4b5fd",
         chipColor: "#fde68a",
         label: "Crédito",
+        plural: "Cartões",
+        icon: CreditCard
     },
     WALLET: {
         gradient: "from-emerald-900 via-emerald-950 to-zinc-950",
@@ -38,6 +42,8 @@ export const BUCKET_CARD_THEMES: Record<BucketType, BucketCardTheme> = {
         accentColor: "#6ee7b7",
         chipColor: "#fde68a",
         label: "Débito",
+        plural: "Carteiras",
+        icon: Wallet
     },
     RESERVE: {
         gradient: "from-blue-900 via-blue-950 to-zinc-950",
@@ -48,5 +54,7 @@ export const BUCKET_CARD_THEMES: Record<BucketType, BucketCardTheme> = {
         accentColor: "#93c5fd",
         chipColor: "#fde68a",
         label: "Reserva",
+        plural: "Reservas",
+        icon: PiggyBank
     },
 }

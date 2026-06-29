@@ -7,24 +7,18 @@ import { FieldErrors, Resolver, useForm } from "react-hook-form";
 import { BucketType } from "@/generated/prisma/enums";
 import BucketForm from "../form/bucket-form";
 import { UserOption } from "@/types/database";
-import { useEffect, useState } from "react";
-import { findAllUserOptions } from "@/features/user/server/queries";
 import { toast } from "sonner";
 import BucketUserField from "../form/fields/user-field";
 import BucketTypeField from "../form/fields/type-field";
 
 interface Props {
     open: boolean
+    users: UserOption[]
     onOpenChange?: (open: boolean) => void
     onSubmit: (data: BucketFormType) => void;
 }
 
-export default function CreateBucket({ onSubmit, ...dialogDrilling }: Props) {
-    const [users, setUsers] = useState<UserOption[]>()
-    useEffect(() => {
-        findAllUserOptions().then(setUsers)
-    }, [])
-
+export default function CreateBucket({ users, onSubmit, ...dialogDrilling }: Props) {
     const resolver = zodResolver(bucketSchema) as Resolver<BucketFormType>
     const form = useForm<BucketFormType>({
         resolver,

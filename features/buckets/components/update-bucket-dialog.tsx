@@ -4,11 +4,11 @@ import { toast } from "sonner"
 import { bucketSchema, BucketFormType } from "../form/schema/bucket-schema"
 import { Dialog, DialogDescription, DialogTitle, DialogContent, DialogHeader } from "@/components/ui/dialog"
 import BucketForm from "../form/bucket-form"
-import { BucketList } from "@/types/database"
 import { toSchema } from "../mappers/toSchema"
+import { Bucket } from "@/generated/prisma/client"
 
 interface Props {
-    target: BucketList | null
+    target: Bucket | null
     open: boolean
     onOpenChange?: (open: boolean) => void
     onSubmit: (data: BucketFormType) => void;
@@ -25,7 +25,7 @@ export default function UpdateBucket({ target, onSubmit, ...dialogDrilling }: Pr
     })
 
     const handleOnError = (errors: FieldErrors<BucketFormType>) => {
-        toast.error("Erro ao criar Transação!")
+        toast.error("Erro ao criar Bucket!")
         console.log("❌ FALHA NA VALIDAÇÃO:", errors)
     }
 
