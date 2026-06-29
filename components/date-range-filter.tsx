@@ -8,10 +8,10 @@ import { DateRange } from "react-day-picker"
 
 interface Props {
     date: DateRange | undefined
-    onSelect: (date: DateRange | undefined) => void
+    setDate: (date: DateRange | undefined) => void
 }
 
-export default function DateRangeFilter({ date, onSelect }: Props) {
+export default function DateRangeFilter({ date, setDate }: Props) {
     return (
         <Popover>
             <PopoverTrigger asChild>
@@ -32,7 +32,7 @@ export default function DateRangeFilter({ date, onSelect }: Props) {
                     mode="range"
                     defaultMonth={date?.from}
                     selected={date}
-                    onSelect={onSelect}
+                    onSelect={setDate}
                     numberOfMonths={2}
                     captionLayout="dropdown"
                 />

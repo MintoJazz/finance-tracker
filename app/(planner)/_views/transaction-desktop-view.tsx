@@ -5,8 +5,8 @@ import TransactionEmpty from "../../../features/transaction/components/transacti
 import BucketBalanceList from "@/features/buckets/components/bucket-balance-list"
 import DateRangeFilter from "@/components/date-range-filter"
 import { TransactionActionButtons } from "../../../features/transaction/components/transaction-action-buttons"
-import { TransactionViewProps } from "./transaction-container"
 import { useTransactionTable } from "@/features/transaction/hooks/use-transaction-table"
+import { TransactionViewProps } from "./transaction-view-container"
 
 export default function TransactionDesktopView(props: TransactionViewProps) {
     const { date, setDate, onAddClick, selectAll, onSubmit, balanceListProps, hasDraft, transactions, actions, onStatusChange } = props
@@ -21,7 +21,7 @@ export default function TransactionDesktopView(props: TransactionViewProps) {
 
             {/* Sidebar Direita */}
             <div className="w-75 shrink-0 flex flex-col gap-2">
-                <DateRangeFilter date={date} onSelect={setDate} />
+                <DateRangeFilter date={date} setDate={setDate} />
                 <TransactionActionButtons hasDraft={hasDraft} onSubmit={onSubmit} onAddClick={onAddClick} />
                 <BucketBalanceList {...balanceListProps} />
             </div>

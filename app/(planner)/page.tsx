@@ -1,5 +1,5 @@
 import { findAllTransactions } from "@/features/transaction/server/queries";
-import TransactionContainer from "@/app/(planner)/_views/transaction-container";
+import TransactionViewContainer from "@/app/(planner)/_views/transaction-view-container";
 import { findAllBucketOptions } from "@/features/buckets/server/queries";
 
 export default async function Page() {
@@ -9,6 +9,6 @@ export default async function Page() {
     ])
     
     return <div>
-        <TransactionContainer buckets={buckets} transactions={transactions}/>
+        <TransactionViewContainer buckets={buckets} transactions={transactions}/>
     </div>
 }

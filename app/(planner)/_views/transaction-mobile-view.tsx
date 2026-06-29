@@ -1,5 +1,5 @@
 "use client"
-import { TransactionViewProps } from "./transaction-container"
+import { TransactionViewProps } from "./transaction-view-container"
 import BucketBalanceList from "@/features/buckets/components/bucket-balance-list"
 import DateRangeFilter from "@/components/date-range-filter"
 import { Button } from "@/components/ui/button"
@@ -37,7 +37,7 @@ export default function TransactionMobileView(props: TransactionViewProps) {
                 {/* Linha 1: período + busca */}
                 <div className="flex items-center gap-2">
                     <div className="w-32 shrink-0">
-                        <DateRangeFilter date={date} onSelect={setDate} />
+                        <DateRangeFilter date={date} setDate={setDate} />
                     </div>
                     <InputGroup className="flex-1">
                         <InputGroupAddon align="inline-start">

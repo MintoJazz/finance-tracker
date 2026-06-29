@@ -6,26 +6,29 @@ import CreateTransaction from "../../../features/transaction/components/create-t
 
 import TransactionMobileView from "./transaction-mobile-view"
 import TransactionDesktopView from "./transaction-desktop-view"
+import { useMounted } from "@/hooks/use-mounted"
 
 interface Props {
     transactions: TransactionDetails[]
     buckets: BucketOption[]
 }
 
-// Mágica do TypeScript: Inferimos as props direto do retorno do Hook pra não duplicar tipagem
 export type TransactionViewProps = Omit<ReturnType<typeof useTransactionFeatures>, "createDialogProps">
 
-export default function TransactionContainer({ transactions, buckets }: Props) {
-    // Separa as props do Dialog das props que vão para as Views
+export default function TransactionViewContainer({ transactions, buckets }: Props) {
     const { createDialogProps, ...viewProps } = useTransactionFeatures(transactions, buckets)
     const isDesktop = useIsDesktop()
+    const isMounted = useMounted()
 
     return <div>
-        {isDesktop ? (
-            <TransactionDesktopView {...viewProps} />
-        ) : (
-            <TransactionMobileView {...viewProps} />
-        )}
+        {isMounted ? (
+            isDesktop ? (
+                <TransactionDesktopView {...viewProps} />
+            ) : (
+                <TransactionMobileView {...viewProps} />
+            )
+        ) : null}
+        
         <CreateTransaction {...createDialogProps} />
     </div>
 
