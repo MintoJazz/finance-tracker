@@ -6,15 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
 import { Minus, Plus, SlidersHorizontal, Search, X } from "lucide-react"
-import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
-import TransactionList from "@/features/transaction/components/list/transaction-list"
-import { useTransactionList } from "@/features/transaction/hooks/use-transaction-list"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { useTransactionList } from "@/features/transaction/list/use-transaction-list"
+import TransactionList from "@/features/transaction/list/transaction-list"
 
 export default function TransactionMobileView(props: TransactionViewProps) {
     const {

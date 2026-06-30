@@ -1,8 +1,8 @@
 "use client"
 
 import { BucketList } from "@/types/database"
-import { bucketColumns } from "./bucket-columns"
 import { DataTable, RowAction } from "@/components/ui/data-table"
+import { bucketColumns } from "./bucket-columns"
 
 interface Props {
     buckets: BucketList[]

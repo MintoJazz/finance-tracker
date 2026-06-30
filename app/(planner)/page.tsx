@@ -1,6 +1,6 @@
-import { findAllTransactions } from "@/features/transaction/server/queries";
 import TransactionViewContainer from "@/app/(planner)/_views/transaction-view-container";
-import { findAllBucketOptions } from "@/features/buckets/server/queries";
+import { findAllBucketOptions } from "@/server/bucket/find-bucket-options";
+import { findAllTransactions } from "@/server/transaction/find-all-details";
 
 export default async function Page() {
     const [ transactions, buckets ] = await Promise.all([

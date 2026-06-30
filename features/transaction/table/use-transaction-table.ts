@@ -1,9 +1,9 @@
 import { Row } from "@tanstack/react-table";
-import { TransactionRow } from "./use-transaction-features";
 import { TransactionDetails } from "@/types/database";
 import { TransactionStatus } from "@/generated/prisma/enums";
 import { RowAction } from "@/components/ui/data-table";
-import { desktopColumns } from "../components/transaction-desktop-columns";
+import { TransactionRow } from "@/app/(planner)/hook";
+import { desktopColumns } from "./transaction-columns";
 
 export function useTransactionTable(
     transactions: TransactionDetails[], 

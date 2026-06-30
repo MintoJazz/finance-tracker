@@ -3,14 +3,14 @@ import { useDraftList } from "@/hooks/use-draft-list"
 import { useSelection } from "@/hooks/use-selection"
 import { BucketOption, TransactionDetails } from "@/types/database"
 import { TransactionStatus } from "@/generated/prisma/browser"
-import { toDomain } from "../mappers/domain-builder"
-import { TransactionFormType } from "../form/schema/types"
+import { toDomain } from "../../features/transaction/mappers/domain-builder"
+import { TransactionFormType } from "../../features/transaction/form/schema/types"
 import { useState } from "react"
 import { DateRange } from "react-day-picker"
 import { RowAction } from "@/components/ui/data-table"
-import { persistDrafts } from "../server/mutations"
+import { persistDraftsAction } from "../../features/transaction/actions"
 import { toast } from "sonner"
-import { useBalanceList } from "@/features/buckets/hooks/use-balance-list"
+import { useBalanceList } from "@/features/buckets/use-balance-list"
 
 export interface TransactionRow {
     transaction: TransactionDetails
@@ -55,7 +55,7 @@ export function useTransactionFeatures(initialTransactions: TransactionDetails[]
 
     const onSubmit = async () => {
         try {
-            const response = await persistDrafts(Object.values(drafts))
+            const response = await persistDraftsAction(Object.values(drafts))
 
             if (response.failed.length > 0) {
                 toast.error(`Não foi possível persistir`)

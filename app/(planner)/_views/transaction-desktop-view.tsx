@@ -5,8 +5,8 @@ import TransactionEmpty from "../../../features/transaction/components/transacti
 import BucketBalanceList from "@/features/buckets/components/bucket-balance-list"
 import DateRangeFilter from "@/components/date-range-filter"
 import { TransactionActionButtons } from "../../../features/transaction/components/transaction-action-buttons"
-import { useTransactionTable } from "@/features/transaction/hooks/use-transaction-table"
 import { TransactionViewProps } from "./transaction-view-container"
+import { useTransactionTable } from "@/features/transaction/table/use-transaction-table"
 
 export default function TransactionDesktopView(props: TransactionViewProps) {
     const { date, setDate, onAddClick, selectAll, onSubmit, balanceListProps, hasDraft, transactions, actions, onStatusChange } = props

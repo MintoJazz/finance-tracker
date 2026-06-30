@@ -3,7 +3,6 @@
 import { prisma } from "@/lib/prisma"
 import { TransactionDetails } from "@/types/database"
 import { Action, PendingChange } from "@/types/changes"
-import { Movement } from "@/generated/prisma/client"
 import { PrismaPromise } from "@/generated/prisma/internal/prismaNamespace"
 
 export type DraftPayload = {
@@ -40,7 +39,7 @@ const updateTransactions = (transactions: TransactionDetails[]) => {
         deleteMovements(validTransactions.map(t => t.id)),
         ...validTransactions.map(t => {
             const { id, description, amount, date, status, type } = t
-            const safeMovements = t.movements || [] 
+            const safeMovements = t.movements || []
             const movements = { create: safeMovements.map(({ amount, role, bucketId }) => ({ amount, role, bucketId })) }
             const data = { id, description, amount, date, status, type, movements }
             const where = { id }
@@ -73,19 +72,7 @@ export async function persistDrafts(changes: PendingChange<TransactionDetails>[]
         }
     }) as DraftPayload)
 
-    try {
-        await prisma.$transaction([...Object.entries(SERIES_ACTIONS).flatMap(([key, val]) => val(drafts.filter(d => d.action === key).map(d => d.transaction)))])
-    } catch (err) {
-        console.error("Erro no Prisma:", err)
-
-        let error = "Erro desconhecido ao salvar no banco de dados."
-        if (err instanceof Error) error = err.message
-
-        drafts.forEach(d => {
-            failed.push({ error, id: d.transaction.id, })
-        })
-    }
-
-
+    await prisma.$transaction([...Object.entries(SERIES_ACTIONS).flatMap(([key, val]) => val(drafts.filter(d => d.action === key).map(d => d.transaction)))])
+    
     return { succeeded, failed }
 }

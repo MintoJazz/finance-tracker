@@ -1,8 +1,8 @@
 import { TransactionDetails } from "@/types/database"
-import TransactionEmpty from "../transaction-empty"
 import { RowAction } from "@/components/ui/data-table"
-import { TransactionListItem } from "../transaction-mobile-item"
 import { TransactionStatus } from "@/generated/prisma/enums"
+import TransactionEmpty from "../components/transaction-empty"
+import { TransactionListItem } from "./transaction-list-item"
 
 interface Props {
     transactions: TransactionDetails[]

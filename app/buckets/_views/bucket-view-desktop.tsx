@@ -9,7 +9,7 @@ import { useState, useMemo } from "react"
 import { TypeFilter } from "./bucket-view-mobile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { BucketsTable } from "@/features/buckets/components/bucket-table"
+import { BucketsTable } from "@/features/buckets/table/bucket-table"
 import { RowAction } from "@/components/ui/data-table"
 import { BucketList } from "@/types/database"
 

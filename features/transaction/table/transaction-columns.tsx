@@ -1,9 +1,9 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { cn } from "@/lib/utils"
 import { formatDate, formatMoney } from "@/lib/formatters"
+import { TransactionRow } from "@/app/(planner)/hook"
+import StatusBadge from "../components/status-badge"
 import { OPERATION_THEMES } from "../themes/operation-themes"
-import StatusBadge from "./status-badge"
-import { TransactionRow } from "../hooks/use-transaction-features"
 
 export const desktopColumns: ColumnDef<TransactionRow>[] = [
     {

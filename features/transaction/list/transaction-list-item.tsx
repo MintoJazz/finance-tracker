@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils"
 import { formatDate, formatMoney } from "@/lib/formatters"
 import { OPERATION_THEMES } from "../themes/operation-themes"
-import StatusBadge from "./status-badge"
+import StatusBadge from "../components/status-badge"
 import { RowAction } from "@/components/ui/data-table"
 import { TransactionDetails } from "@/types/database"
 import { MouseEvent } from "react"

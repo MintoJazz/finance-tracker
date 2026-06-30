@@ -2,7 +2,7 @@
 
 import { RowAction } from "@/components/ui/data-table";
 import { BucketFormType } from "@/features/buckets/form/schema/bucket-schema";
-import { createBucket, killBucketsByKey, updateBucketsByKey } from "@/features/buckets/server/actions";
+import { createBucketAction, killBucketAction, updateBucketAction } from "@/features/buckets/actions";
 import { Bucket } from "@/generated/prisma/browser";
 import { useManager } from "@/hooks/use-manager";
 import { BucketList } from "@/types/database";
@@ -31,7 +31,7 @@ export function useBucketContainer() {
         onOpenChange: setIsCreateOpen,
         onSubmit: async (data: BucketFormType) => {
             try {
-                await createBucket(data)
+                await createBucketAction(data)
                 setIsCreateOpen(false)
             } catch (error) {
                 toast.error("Não foi possivel adicionar o novo bucket")
@@ -49,7 +49,7 @@ export function useBucketContainer() {
             const { id } = target
 
             try {
-                await updateBucketsByKey(data, { id })
+                await updateBucketAction(data, { id })
                 onCloseUpdate(false)
             } catch (error) {
                 toast.error("Não foi possivel editar o bucket")
@@ -66,7 +66,7 @@ export function useBucketContainer() {
             const { id } = target
 
             try {
-                await killBucketsByKey({ id })
+                await killBucketAction({ id })
                 onCloseDelete(false)
             } catch (error) {
                 toast.error("Erro ao excluir Bucket")
