@@ -9,6 +9,7 @@ interface Props {
     form: UseFormReturn<BucketFormType>
     onError?: (errors: FieldErrors<BucketFormType>) => void;
     onSubmit: (data: BucketFormType) => void;
+    submitText?: string
 }
 
 export default function BucketForm({ children, ...drilling }: Props) {

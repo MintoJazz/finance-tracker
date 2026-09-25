@@ -1,0 +1,35 @@
+enum EntryType {
+    DIRECT
+    SETTLEMENT
+    ACCRUAL
+    TRANSFER
+}
+
+model Entry {
+    id Int @id @default(autoincrement())
+
+    description String
+    amount      Int
+    date        DateTime
+
+    type EntryType
+
+    movements Movement[]
+}
+
+enum MovementDirection {
+    CREDIT
+    DEBIT
+}
+
+model Movement {
+    id        Int  @id @default(autoincrement())
+    bucketId  Int?
+    entryId Int
+
+    amount    Int
+    direction MovementDirection
+
+    balance Balance? @relation(fields: [bucketId], references: [id], onDelete: SetNull)
+    entry   Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+}

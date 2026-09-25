@@ -11,23 +11,25 @@ import { RowAction } from "@/components/ui/data-table"
 import { Row } from "@tanstack/react-table"
 import { cn } from "@/lib/utils"
 
-interface RowActionsMenuProps<T> {
-    actions?: RowAction<T>[]
+interface RowActionsMenuProps<T, TContext = any> {
+    actions?: RowAction<T, TContext>[]
     data: T
+    context?: TContext
     align?: "start" | "center" | "end"
     className?: string
 }
 
-export function ActionsMenu<T>({ 
+export function ActionsMenu<T, TContext = any>({ 
     actions, 
     data, 
+    context,
     align = "end",
     className 
-}: RowActionsMenuProps<T>) {
+}: RowActionsMenuProps<T, TContext>) {
     if (!actions || actions.length === 0) return null
 
     return (
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="ghost"
@@ -39,14 +41,17 @@ export function ActionsMenu<T>({
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align={align} onClick={(e) => e.stopPropagation()}>
-                {actions.map((action, i) => (
-                    <DropdownMenuItem
-                        key={i}
-                        onSelect={() => action.onClick({ original: data } as Row<T>)}
-                    >
-                        {action.label}
-                    </DropdownMenuItem>
-                ))}
+                {actions.map((action, i) => {
+                    if (action.hidden && action.hidden({ original: data } as Row<T>, context as TContext)) return null;
+                    return (
+                        <DropdownMenuItem
+                            key={i}
+                            onSelect={() => action.onClick({ original: data } as Row<T>, context as TContext)}
+                        >
+                            {action.label}
+                        </DropdownMenuItem>
+                    )
+                })}
             </DropdownMenuContent>
         </DropdownMenu>
     )

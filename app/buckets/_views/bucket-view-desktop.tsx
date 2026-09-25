@@ -13,13 +13,14 @@ import { BucketsTable } from "@/features/buckets/table/bucket-table"
 import { RowAction } from "@/components/ui/data-table"
 import { BucketList } from "@/types/database"
 
+import Link from "next/link"
+
 interface Props {
     buckets: BucketList[]
     actions: RowAction<BucketList>[]
-    setIsCreateOpen: (open: boolean) => void
 }
 
-export default function BucketViewDesktop({ buckets, actions, setIsCreateOpen }: Props) {
+export default function BucketViewDesktop({ buckets, actions }: Props) {
     const [search, setSearch] = useState("")
     const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL")
 
@@ -43,9 +44,11 @@ export default function BucketViewDesktop({ buckets, actions, setIsCreateOpen }:
                     {buckets.length}
                 </Badge>
             </div>
-            <Button size="sm" onClick={() => setIsCreateOpen(true)}>
-                <Plus data-icon="inline-start" />
-                Novo bucket
+            <Button size="sm" asChild>
+                <Link href="/buckets/new">
+                    <Plus data-icon="inline-start" />
+                    Novo bucket
+                </Link>
             </Button>
         </header>
 

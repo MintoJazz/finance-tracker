@@ -13,15 +13,16 @@ import { BucketList } from "@/types/database"
 import { Plus, Search, Wallet } from "lucide-react"
 import { useState, useMemo } from "react"
 
+import Link from "next/link"
+
 export type TypeFilter = "ALL" | BucketType
 
 interface Props {
     buckets: BucketList[]
     actions: RowAction<BucketList>[]
-    setIsCreateOpen: (open: boolean) => void
 }
 
-export default function BucketViewMoblie({ buckets, actions, setIsCreateOpen }: Props) {
+export default function BucketViewMoblie({ buckets, actions }: Props) {
     const [search, setSearch] = useState("")
     const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL")
 
@@ -45,9 +46,11 @@ export default function BucketViewMoblie({ buckets, actions, setIsCreateOpen }: 
                     {buckets.length}
                 </Badge>
             </div>
-            <Button size="sm" onClick={() => setIsCreateOpen(true)}>
-                <Plus data-icon="inline-start" />
-                Novo bucket
+            <Button size="sm" asChild>
+                <Link href="/buckets/new">
+                    <Plus data-icon="inline-start" />
+                    Novo bucket
+                </Link>
             </Button>
         </header>
 

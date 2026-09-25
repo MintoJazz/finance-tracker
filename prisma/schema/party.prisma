@@ -1,0 +1,49 @@
+enum PartyType {
+    PERSON
+    GROUP
+}
+
+model Party {
+    id Int @id @unique @default(autoincrement())
+
+    name String
+    type PartyType
+    avatarUrl   String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    auth                  Auth?
+    group                 Group?
+    person                Person?
+    contexts              ContextMember[]
+    invitedContextMembers ContextMember[] @relation("ContextMemberInvitedBy")
+
+    groups Group[] @relation("GroupCreatedBy")
+}
+
+model Group {
+    partyId     Int       @id @unique
+    createdByPartyId Int?
+
+    description String?
+
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    party      Party @relation(fields: [partyId], references: [id], onDelete: Cascade)
+    createdBy  Party? @relation("GroupCreatedBy", fields: [createdByPartyId], references: [id])
+}
+
+model Person {
+    partyId     Int       @id @unique
+
+    birthDate   DateTime?
+    documentNumber String?
+    phone       String?
+    
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+    
+    party Party @relation(fields: [partyId], references: [id], onDelete: Cascade)
+}

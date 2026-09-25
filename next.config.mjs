@@ -2,7 +2,7 @@ import withSerwistInit from "@serwist/next";
 
 const withSerwist = withSerwistInit({
     // Aponta para o arquivo que criamos no passo anterior
-    swSrc: "app/sw.ts",
+    swSrc: "public/sw.ts",
     // Onde o Next.js vai gerar o arquivo final do Service Worker
     swDest: "public/sw.js",
     disable: process.env.NODE_ENV !== "production",

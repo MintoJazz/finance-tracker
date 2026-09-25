@@ -1,0 +1,25 @@
+model Balance {
+    id        Int @id @default(autoincrement())
+    contextId Int
+
+    name String
+
+    financialContext FinancialContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
+
+    movements Movement[]
+    positions MemberPosition[]
+}
+
+model MemberPosition {
+    balanceId Int @id @unique
+    contextId Int
+    partyId   Int
+
+    amount    Int
+    direction MovementDirection
+
+    balance       Balance       @relation(fields: [balanceId], references: [id], onDelete: Cascade)
+    contextMember ContextMember @relation(fields: [contextId, partyId], references: [contextId, partyId], onDelete: Cascade)
+
+    @@unique([contextId, partyId])
+}

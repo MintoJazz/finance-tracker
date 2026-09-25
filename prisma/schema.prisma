@@ -7,12 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum BucketType {
-  WALLET
-  CREDIT
-  RESERVE
-}
-
 enum TransactionStatus {
   PROJECTED
   PENDING
@@ -36,43 +30,4 @@ enum TransactionType {
 model User {
   id   Int    @id @default(autoincrement())
   name String
-
-  buckets Bucket[]
-}
-
-model Bucket {
-  id     Int @id @default(autoincrement())
-  userId Int
-
-  name String
-  type BucketType
-
-  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
-
-  movements Movement[]
-}
-
-model Transaction {
-  id Int @id @default(autoincrement())
-
-  description String
-  amount      Int
-  date        DateTime
-
-  status TransactionStatus @default(PROJECTED)
-  type   TransactionType
-
-  movements Movement[]
-}
-
-model Movement {
-  id            Int @id @default(autoincrement())
-  bucketId      Int?
-  transactionId Int
-
-  amount Int
-  role   MovementRole
-
-  bucket      Bucket?     @relation(fields: [bucketId], references: [id], onDelete: SetNull)
-  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 }

@@ -1,15 +1,9 @@
-import { UserProvider } from "@/features/user/context/user-options-provider";
-import BucketViewContainer from "./_views/bucket-view-container";
-import { findAllUserOptions } from "@/server/user/find-all-user-options";
 import { findAllBuckets } from "@/server/bucket/find-all-buckets";
+import { ViewContainer } from "@/components/adaptive";
+import { views } from "./config";
 
 export default async function Page() {
-    const [ users, buckets ] = await Promise.all([
-        findAllUserOptions(),
-        findAllBuckets()
-    ])
+    const buckets = await findAllBuckets()
 
-    return <UserProvider users={users} >
-        <BucketViewContainer users={users} buckets={buckets} />
-    </UserProvider>
+    return <ViewContainer data={buckets} views={views} />
 }

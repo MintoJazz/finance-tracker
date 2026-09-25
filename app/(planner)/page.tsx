@@ -1,14 +1,11 @@
-import TransactionViewContainer from "@/app/(planner)/_views/transaction-view-container";
-import { findAllBucketOptions } from "@/server/bucket/find-bucket-options";
+"use server"
+
+import { ViewContainer } from "@/components/adaptive";
 import { findAllTransactions } from "@/server/transaction/find-all-details";
+import { views } from "./config";
 
 export default async function Page() {
-    const [ transactions, buckets ] = await Promise.all([
-        findAllTransactions(),
-        findAllBucketOptions(),
-    ])
+    const transactions = await findAllTransactions()
     
-    return <div>
-        <TransactionViewContainer buckets={buckets} transactions={transactions}/>
-    </div>
+    return <ViewContainer data={transactions} views={views} />
 }
