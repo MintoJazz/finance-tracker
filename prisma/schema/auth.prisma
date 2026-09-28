@@ -1,12 +1,16 @@
 model Auth {
     partyId  Int    @unique
+
     email    String @unique
     password String
+    
     emailVerifiedAt DateTime?
     lastLoginAt     DateTime?
     createdAt       DateTime  @default(now())
     updatedAt       DateTime  @updatedAt
+    
     party               Party        @relation(fields: [partyId], references: [id], onDelete: Cascade)
+    
     sentFriendships     Friendship[] @relation("FriendshipRequester")
     receivedFriendships Friendship[] @relation("FriendshipReceiver")
 }
@@ -19,10 +23,14 @@ enum FriendshipStatus {
 model Friendship {
     requesterId Int
     receiverId  Int
+    
     status FriendshipStatus @default(PENDING)
+    
     requestedAt DateTime  @default(now())
     respondedAt DateTime?
+    
     requester Auth @relation("FriendshipRequester", fields: [requesterId], references: [partyId], onDelete: Cascade)
     receiver  Auth @relation("FriendshipReceiver", fields: [receiverId], references: [partyId], onDelete: Cascade)
+    
     @@id([requesterId, receiverId])
 }
