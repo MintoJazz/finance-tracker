@@ -31,6 +31,7 @@ export function FormRoot<T extends FieldValues>({
     <FormProvider {...form}>
       <form
         id={id}
+        method="post"
         onSubmit={form.handleSubmit(onSubmit, onError)}
         className={cn("flex flex-col", className)}
       >
