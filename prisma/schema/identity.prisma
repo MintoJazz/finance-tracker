@@ -1,0 +1,34 @@
+model Party {
+  id               Int       @id @default(autoincrement())
+  name             String
+  avatarUrl        String?
+  birthDate        DateTime?
+  documentNumber   String?
+  phone            String?
+  managedByPartyId Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  managedBy Party?  @relation("PartyManagedBy", fields: [managedByPartyId], references: [id])
+  dependents Party[] @relation("PartyManagedBy")
+
+  auth Auth?
+
+  contexts              ContextMember[]
+  invitedContextMembers ContextMember[] @relation("ContextMemberInvitedBy")
+}
+
+model Auth {
+  partyId         Int       @id @unique
+  email           String    @unique
+  password        String
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  party Party @relation(fields: [partyId], references: [id], onDelete: Cascade)
+
+  sentFriendships     Friendship[] @relation("FriendshipRequester")
+  receivedFriendships Friendship[] @relation("FriendshipReceiver")
+}

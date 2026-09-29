@@ -1,0 +1,62 @@
+enum EntryType {
+  DIRECT
+  SETTLEMENT
+  ACCRUAL
+  TRANSFER
+}
+
+enum MovementDirection {
+  CREDIT
+  DEBIT
+}
+
+enum BalanceType {
+  WALLET
+  CREDIT
+  RESERVE
+  CATEGORY
+  COMMITMENT
+}
+
+model Balance {
+  id        Int @id @default(autoincrement())
+  contextId Int
+
+  name        String
+  balanceType BalanceType
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  removedAt DateTime?
+
+  financialContext FinancialContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  movements        Movement[]
+}
+
+model Entry {
+  id               Int       @id @default(autoincrement())
+  
+  description      String
+  date             DateTime
+  type             EntryType
+  reversesEntryId  Int?      @unique
+  createdAt        DateTime  @default(now())
+
+  reverses   Entry?           @relation("EntryReversal", fields: [reversesEntryId], references: [id])
+  reversedBy Entry?           @relation("EntryReversal")
+
+  movements   Movement[]
+}
+
+model Movement {
+  id        Int               @id @default(autoincrement())
+  entryId   Int
+  balanceId Int
+  amount    Int
+  direction MovementDirection
+
+  entry   Entry   @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  balance Balance @relation(fields: [balanceId], references: [id], onDelete: Restrict)
+
+  @@index([balanceId])
+}
