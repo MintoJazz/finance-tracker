@@ -10,7 +10,8 @@ export async function onLogin(input: LoginFormType) {
     const result = await useCase.execute(input);
 
     if (!result.success) return result;
-
-    await SessionHandler.create(result.data.partyId);
+    
+    const { partyId, contextId } = result.data;
+    await SessionHandler.create(partyId, contextId as number);
     redirect("/");
 }
