@@ -1,6 +1,6 @@
 export type Result<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string }
+  | { success: true; data: T; error?: never }
+  | { success: false; data?: never; error: string }
 
 export const success = <T>(data: T): Result<T> => ({ success: true, data })
 
