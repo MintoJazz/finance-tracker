@@ -1,3 +1,5 @@
+"use client"
+
 import type { ViewportConfig } from "./types"
 
 export interface ViewRendererProps<TInput, TProps> extends ViewportConfig<TInput, TProps> {
