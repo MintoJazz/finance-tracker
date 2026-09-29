@@ -20,8 +20,9 @@ export async function encryptToken(payload: SessionPayload): Promise<string> {
 export async function decryptToken(token: string): Promise<SessionPayload | null> {
     try {
         const { payload } = await jwtVerify(token, SECRET_KEY);
-        return payload as SessionPayload;
-    } catch (error) {
+        if (typeof payload.partyId !== "number" || typeof payload.contextId !== "number") return null;
+        return { partyId: payload.partyId, contextId: payload.contextId };
+    } catch {
         return null;
     }
 }
