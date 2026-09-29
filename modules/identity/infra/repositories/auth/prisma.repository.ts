@@ -9,7 +9,12 @@ export class PrismaAuthRepository implements IAuthRepository {
     findPartyById(id: number): Promise<Party | null> {
         throw new Error("Method not implemented.");
     }
-    
+
+    findDefaultContext = async (partyId: number) => await prisma.contextMember.findFirst({
+        where: { partyId, role: "OWNER" },
+        select: { contextId: true }
+    }) ?? null;
+
     async findAuthByEmail(email: string) {
         const raw = await prisma.auth.findUnique({
             where: { email },
