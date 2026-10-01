@@ -1,0 +1,70 @@
+enum CycleFrequency {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum BalanceType {
+  WALLET
+  CREDIT
+  RESERVE
+  CATEGORY
+  COMMITMENT
+}
+
+model Balance {
+  id          Int         @id @default(autoincrement())
+  contextId   Int
+  name        String
+  balanceType BalanceType
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  removedAt   DateTime?
+
+  financialContext FinancialContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  recurrence       Recurrence?
+  movements        Movement[]
+  limitEntries     LimitEntry[]
+}
+
+model Recurrence {
+  id                  Int       @id @default(autoincrement())
+  balanceId           Int       @unique
+  includeInProjection Boolean   @default(true)
+  startsAt            DateTime  @db.Date
+  endsAt              DateTime? @db.Date
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  balance Balance     @relation(fields: [balanceId], references: [id], onDelete: Restrict)
+  rules   CycleRule[]
+}
+
+model CycleRule {
+  id            Int            @id @default(autoincrement())
+  recurrenceId  Int
+  effectiveFrom DateTime       @db.Date
+  frequency     CycleFrequency @default(MONTHLY)
+  interval      Int            @default(1)
+  closingDay    Int?
+  dueDay        Int
+  createdAt     DateTime       @default(now())
+
+  recurrence Recurrence @relation(fields: [recurrenceId], references: [id], onDelete: Restrict)
+
+  @@unique([recurrenceId, effectiveFrom])
+  @@index([recurrenceId])
+}
+
+model LimitEntry {
+  id          Int      @id @default(autoincrement())
+  balanceId   Int
+  amount      Int
+  effectiveAt DateTime
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  balance Balance @relation(fields: [balanceId], references: [id], onDelete: Restrict)
+
+  @@index([balanceId])
+}

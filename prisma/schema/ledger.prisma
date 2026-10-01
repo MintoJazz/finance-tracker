@@ -10,29 +10,6 @@ enum MovementDirection {
   DEBIT
 }
 
-enum BalanceType {
-  WALLET
-  CREDIT
-  RESERVE
-  CATEGORY
-  COMMITMENT
-}
-
-model Balance {
-  id        Int @id @default(autoincrement())
-  contextId Int
-
-  name        String
-  balanceType BalanceType
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  removedAt DateTime?
-
-  financialContext FinancialContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
-  movements        Movement[]
-}
-
 model Entry {
   id               Int       @id @default(autoincrement())
   
