@@ -1,11 +1,17 @@
-import type { ColumnDef, Row } from "@tanstack/react-table"
+import type { ColumnDef, Row, RowData } from "@tanstack/react-table"
+import type { RowAction } from "@/types/actions.types"
 
-export interface RowAction<TData, TContext = any> {
-  label: string
-  onClick: (row: Row<TData>, context: TContext) => void
-  separator?: boolean
-  hidden?: (row: Row<TData>, context: TContext) => boolean
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    className?: string
+    headerClassName?: string
+    cellClassName?: string
+    width?: string | number
+  }
 }
+
+export type { RowAction } from "@/types/actions.types"
 
 export interface DataTableProps<TData, TValue, TContext = any> {
   columns: ColumnDef<TData, TValue>[]

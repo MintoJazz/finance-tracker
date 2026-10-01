@@ -49,19 +49,31 @@ export function DataTableRowActions<TData, TContext>({
         <DropdownMenuGroup>
           <DropdownMenuLabel>Ações</DropdownMenuLabel>
         </DropdownMenuGroup>
-        {visibleActions.map((action) => (
-          <div key={action.label}>
-            {action.separator && <DropdownMenuSeparator />}
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation()
-                action.onClick(row, context)
-              }}
-            >
-              {action.label}
-            </DropdownMenuItem>
-          </div>
-        ))}
+        {visibleActions.map((action, index) => {
+          const itemKey = typeof action.label === "string" ? action.label : `action-${index}`
+          return (
+            <div key={itemKey}>
+              {action.separator && <DropdownMenuSeparator />}
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation()
+                  void action.onClick?.(row, context)
+                }}
+                className={action.variant === "destructive" ? "text-destructive focus:text-destructive" : ""}
+              >
+                {typeof action.icon === "function" ? (
+                  (() => {
+                    const IconComponent = action.icon
+                    return <IconComponent className="mr-2 h-4 w-4" />
+                  })()
+                ) : action.icon ? (
+                  <span className="mr-2">{action.icon as React.ReactNode}</span>
+                ) : null}
+                {action.label}
+              </DropdownMenuItem>
+            </div>
+          )
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   )

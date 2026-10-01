@@ -16,6 +16,7 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table"
 
+import { cn } from "cn"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -144,13 +145,28 @@ export function DataTable<TData, TValue, TContext = any>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  const meta = header.column.columnDef.meta
+                  const size = meta?.width ?? header.column.columnDef.size
+                  const minSize = header.column.columnDef.minSize
+                  const maxSize = header.column.columnDef.maxSize
+
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={cn(meta?.className, meta?.headerClassName)}
+                      style={{
+                        width: size !== undefined ? (typeof size === "number" ? `${size}px` : size) : undefined,
+                        minWidth: minSize !== undefined ? (typeof minSize === "number" ? `${minSize}px` : minSize) : undefined,
+                        maxWidth: maxSize !== undefined ? (typeof maxSize === "number" ? `${maxSize}px` : maxSize) : undefined,
+                      }}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  )
+                })}
               </TableRow>
             ))}
           </TableHeader>
@@ -163,14 +179,26 @@ export function DataTable<TData, TValue, TContext = any>({
                   onClick={() => onRowClick?.(row)}
                   className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={(cell.column.columnDef.meta as { className?: string } | undefined)?.className}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta
+                    const size = meta?.width ?? cell.column.columnDef.size
+                    const minSize = cell.column.columnDef.minSize
+                    const maxSize = cell.column.columnDef.maxSize
+
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        className={cn(meta?.className, meta?.cellClassName)}
+                        style={{
+                          width: size !== undefined ? (typeof size === "number" ? `${size}px` : size) : undefined,
+                          minWidth: minSize !== undefined ? (typeof minSize === "number" ? `${minSize}px` : minSize) : undefined,
+                          maxWidth: maxSize !== undefined ? (typeof maxSize === "number" ? `${maxSize}px` : maxSize) : undefined,
+                        }}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    )
+                  })}
                 </TableRow>
               ))
             ) : (
