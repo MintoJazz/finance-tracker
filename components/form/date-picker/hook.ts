@@ -9,9 +9,27 @@ interface UseDatePickerOptions {
   onChange?: (date: Date | undefined) => void
 }
 
+function parseDateValue(value?: Date | string): Date | undefined {
+  if (!value) return undefined
+  if (value instanceof Date) {
+    return isNaN(value.getTime()) ? undefined : value
+  }
+  if (typeof value === "string") {
+    const parsed = new Date(value)
+    if (!isNaN(parsed.getTime())) {
+      return parsed
+    }
+    const ptBrParsed = parseDateFromPTBR(value)
+    if (ptBrParsed && !isNaN(ptBrParsed.getTime())) {
+      return ptBrParsed
+    }
+  }
+  return undefined
+}
+
 /** Estado e handlers do DatePicker (input com máscara + calendário) */
 export function useDatePicker({ value, onChange }: UseDatePickerOptions) {
-  const initialDate = value instanceof Date ? value : undefined
+  const initialDate = parseDateValue(value)
 
   const [open, setOpen] = React.useState(false)
   const [month, setMonth] = React.useState<Date | undefined>(initialDate)
@@ -19,9 +37,10 @@ export function useDatePicker({ value, onChange }: UseDatePickerOptions) {
 
   // Sincroniza quando o valor muda por fora (ex.: form.reset)
   React.useEffect(() => {
-    if (value instanceof Date) {
-      setInputValue(formatDateToPTBR(value))
-      setMonth(value)
+    const parsed = parseDateValue(value)
+    if (parsed) {
+      setInputValue(formatDateToPTBR(parsed))
+      setMonth(parsed)
     } else if (!value) {
       setInputValue("")
     }

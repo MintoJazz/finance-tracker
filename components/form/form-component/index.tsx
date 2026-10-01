@@ -10,6 +10,11 @@ import { FormRoot } from "./root"
 export interface FormProps<T extends FieldValues> {
   id: string
   submitText?: string
+  /**
+   * Substitui o botão de submit padrão por um footer customizado.
+   * Ao utilizar, inclua um botão com `type="submit"` e `form={id}`.
+   */
+  footer?: ReactNode
   children: ReactNode
   form: UseFormReturn<T>
   className?: string
@@ -28,6 +33,7 @@ export function Form<T extends FieldValues>({
   className,
   contentClassName,
   submitText = "Salvar",
+  footer,
 }: FormProps<T>) {
   return (
     <FormRoot
@@ -38,9 +44,13 @@ export function Form<T extends FieldValues>({
       className={cn("gap-4", className)}
     >
       <FormContent className={contentClassName}>{children}</FormContent>
-      <Button type="submit" form={id}>
-        {submitText}
-      </Button>
+      {footer !== undefined ? (
+        footer
+      ) : (
+        <Button type="submit" form={id}>
+          {submitText}
+        </Button>
+      )}
     </FormRoot>
   )
 }

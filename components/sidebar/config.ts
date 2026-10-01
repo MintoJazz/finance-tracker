@@ -3,10 +3,11 @@ import {
   AudioLinesIcon,
   BadgeCheckIcon,
   BellIcon,
+  CalendarClock,
   CreditCardIcon,
   FolderIcon,
   GalleryVerticalEndIcon,
-  LandmarkIcon,
+  Landmark,
   LogOutIcon,
   PlusIcon,
   SparklesIcon,
@@ -54,9 +55,9 @@ export const sidebarConfig = {
     label: "Navegação",
     items: [
       {
-        title: "Meios de Pagamento",
+        title: "Contas",
         url: "#",
-        icon: LandmarkIcon,
+        icon: Landmark,
         isActive: true,
         items: [
           { title: "Carteiras", url: "/" },
@@ -64,38 +65,17 @@ export const sidebarConfig = {
           { title: "Reservas", url: "#" },
         ],
       },
-      // {
-      //   title: "Models",
-      //   url: "#",
-      //   icon: BotIcon,
-      //   items: [
-      //     { title: "Genesis", url: "#" },
-      //     { title: "Explorer", url: "#" },
-      //     { title: "Quantum", url: "#" },
-      //   ],
-      // },
-      // {
-      //   title: "Documentation",
-      //   url: "#",
-      //   icon: BookOpenIcon,
-      //   items: [
-      //     { title: "Introduction", url: "#" },
-      //     { title: "Get Started", url: "#" },
-      //     { title: "Tutorials", url: "#" },
-      //     { title: "Changelog", url: "#" },
-      //   ],
-      // },
-      // {
-      //   title: "Settings",
-      //   url: "#",
-      //   icon: Settings2Icon,
-      //   items: [
-      //     { title: "General", url: "#" },
-      //     { title: "Team", url: "#" },
-      //     { title: "Billing", url: "#" },
-      //     { title: "Limits", url: "#" },
-      //   ],
-      // },
+      {
+        title: "Planejamento",
+        url: "#",
+        icon: CalendarClock,
+        isActive: true,
+        items: [
+          { title: "Compromissos", url: "#" },
+          { title: "Recorrências", url: "#" },
+          { title: "Categorias", url: "#" }
+        ],
+      },
     ] satisfies NavCollapsibleItem[],
   },
 

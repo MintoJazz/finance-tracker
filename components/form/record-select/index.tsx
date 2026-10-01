@@ -14,6 +14,11 @@ import type { RecordSelectProps } from "./types"
 import { getRecordEntries } from "./utils"
 
 export function RecordSelect({
+  id,
+  "aria-invalid": ariaInvalid,
+  name,
+  onBlur,
+  ref,
   value,
   onChange,
   children,
@@ -33,7 +38,15 @@ export function RecordSelect({
           {typeof children === "function" ? children(value ?? "") : children}
         </DropdownMenuTrigger>
       ) : (
-        <RecordSelectTrigger label={displayLabel} className={className} />
+        <RecordSelectTrigger
+          id={id}
+          aria-invalid={ariaInvalid}
+          name={name}
+          onBlur={onBlur}
+          ref={ref}
+          label={displayLabel}
+          className={className}
+        />
       )}
 
       <DropdownMenuContent align="start" className="min-w-50">

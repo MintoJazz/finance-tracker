@@ -3,6 +3,11 @@ import type { ReactNode } from "react"
 export type RecordOptions = Record<string, { label: string }>
 
 export interface RecordSelectProps {
+  id?: string
+  "aria-invalid"?: boolean | "true" | "false" | "grammar" | "spelling"
+  name?: string
+  onBlur?: () => void
+  ref?: React.Ref<HTMLButtonElement>
   value?: string
   onChange?: (value: string) => void
   options: RecordOptions

@@ -14,6 +14,8 @@ export function DataForm<
   fields,
   context,
   submitText,
+  footer,
+  layout,
   className,
   contentClassName,
   children,
@@ -27,6 +29,7 @@ export function DataForm<
       onSubmit={onSubmit}
       onError={onError}
       submitText={submitText}
+      footer={footer}
       className={className}
       contentClassName={contentClassName}
     >
@@ -34,6 +37,7 @@ export function DataForm<
         <ControlledField
           key={fieldDef.name}
           {...fieldDef}
+          layout={fieldDef.layout ?? layout}
           context={context}
         />
       ))}

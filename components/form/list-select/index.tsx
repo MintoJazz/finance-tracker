@@ -10,13 +10,17 @@ import {
 import type { ListItem, ListSelectProps } from "./types"
 
 export function ListSelect({
+  id,
+  "aria-invalid": ariaInvalid,
   value,
   onChange,
   onBlur,
   name,
   placeholder,
   options,
+  className,
   ref,
+  ...props
 }: ListSelectProps) {
   const selectedOption = options.find((item) => item.id === value) ?? null
 
@@ -29,10 +33,14 @@ export function ListSelect({
     >
       <ComboboxInput
         ref={ref}
+        id={id}
+        aria-invalid={ariaInvalid}
         name={name}
         onBlur={onBlur}
         placeholder={placeholder || "Selecionar..."}
         showClear
+        className={className}
+        {...props}
       />
       <ComboboxContent className="z-1001 min-w-(--anchor-width)">
         <ComboboxList>

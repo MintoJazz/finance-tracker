@@ -40,6 +40,16 @@ export function DatePicker({
     handleSelectCalendar,
   } = useDatePicker({ value, onChange })
 
+  const parsedSelected = React.useMemo(() => {
+    if (!value) return undefined
+    if (value instanceof Date) return isNaN(value.getTime()) ? undefined : value
+    if (typeof value === "string") {
+      const d = new Date(value)
+      if (!isNaN(d.getTime())) return d
+    }
+    return undefined
+  }, [value])
+
   return (
     <InputGroup className={cn("w-full", className)}>
       <InputGroupInput
@@ -76,7 +86,7 @@ export function DatePicker({
           <PopoverContent className="w-auto p-0" align="end">
             <Calendar
               mode="single"
-              selected={value instanceof Date ? value : undefined}
+              selected={parsedSelected}
               month={month}
               onMonthChange={setMonth}
               onSelect={handleSelectCalendar}
