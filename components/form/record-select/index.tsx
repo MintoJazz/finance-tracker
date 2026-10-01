@@ -13,7 +13,7 @@ import { RecordSelectTrigger } from "./trigger"
 import type { RecordSelectProps } from "./types"
 import { getRecordEntries } from "./utils"
 
-export default function RecordSelect({
+export function RecordSelect({
   value,
   onChange,
   children,
@@ -24,13 +24,13 @@ export default function RecordSelect({
   className,
 }: RecordSelectProps) {
   const entries = getRecordEntries(options, keys)
-  const displayLabel = options[value]?.label ?? placeholder
+  const displayLabel = (value ? options[value]?.label : undefined) ?? placeholder
 
   return (
     <DropdownMenu>
       {children ? (
         <DropdownMenuTrigger>
-          {typeof children === "function" ? children(value) : children}
+          {typeof children === "function" ? children(value ?? "") : children}
         </DropdownMenuTrigger>
       ) : (
         <RecordSelectTrigger label={displayLabel} className={className} />
@@ -43,7 +43,7 @@ export default function RecordSelect({
 
             return (
               // Base UI usa onClick (onSelect é do Radix)
-              <DropdownMenuItem key={key} onClick={() => onChange(key)}>
+              <DropdownMenuItem key={key} onClick={() => onChange?.(key)}>
                 {renderItem ? (
                   renderItem(key, isSelected)
                 ) : (

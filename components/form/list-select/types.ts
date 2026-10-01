@@ -1,3 +1,5 @@
+import * as React from "react"
+
 export type ListItem = { id: number; name: string }
 
 export interface ListSelectProps {
@@ -7,4 +9,5 @@ export interface ListSelectProps {
   name?: string
   options: ListItem[]
   placeholder?: string
+  ref?: React.Ref<HTMLInputElement>
 }

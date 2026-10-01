@@ -1,1 +1,0 @@
-export { ControlledField } from "./component"
