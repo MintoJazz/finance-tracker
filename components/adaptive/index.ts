@@ -1,4 +1,4 @@
-export * from "./types"
+export * from "../../types/adaptive.types"
 export { default as ViewRenderer } from "./view-renderer"
 export { default as ViewContainer } from "./view-container"
 export * from "./view-renderer"

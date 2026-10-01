@@ -1,6 +1,6 @@
 "use client"
 
-import type { AdaptiveConfig } from "./types"
+import type { AdaptiveConfig } from "../../types/adaptive.types"
 import { useIsDesktop } from "@/hooks/use-breakpoint"
 import { useMounted } from "@/hooks/use-mounted"
 import ViewRenderer from "./view-renderer"

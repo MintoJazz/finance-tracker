@@ -1,6 +1,6 @@
 "use client"
 
-import type { ViewportConfig } from "./types"
+import type { ViewportConfig } from "../../types/adaptive.types"
 
 export interface ViewRendererProps<TInput, TProps> extends ViewportConfig<TInput, TProps> {
     data: TInput
