@@ -1,19 +1,32 @@
-import { Button } from "@/components/ui/button"
+import { AccountFactory } from "@/modules/account/infra/factories/account.factory";
+import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
+import { redirect } from "next/navigation";
+import { PageRequest } from "@/types/pagination.types";
+import { BaseFilter, BaseFilterSchema } from "@/types/filters.types";
+import { ViewContainer } from "@/components/adaptive";
+import { WalletsOverviewConfig } from "@/modules/account/ui/views/wallets-overview";
+import { ErrorView } from "@/components/error-view";
 
-export default function Page() {
-  return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
-    </div>
-  )
+interface Props {
+    searchParams: Promise<PageRequest & BaseFilter>;
+}
+
+export default async function Page(props: Props) {
+    const session = await SessionHandler.getSession();
+    if (!session) redirect("/login");
+
+    const { page, pageSize, search, showArchived } = await props.searchParams;
+
+    const pageRequest: PageRequest = { page, pageSize };
+    const filter = BaseFilterSchema.parse({ search, showArchived });
+
+    const useCase = AccountFactory.makeGetContextWalletsUseCase();
+    const { success, data, error } = await useCase.execute({ session, pageRequest, filter });
+
+    if (!success || !data) {
+        console.error("[WalletsPage] Falha ao carregar carteiras:", error);
+        return <ErrorView title="Erro ao carregar carteiras" error={error ?? "Não foi possível carregar as carteiras."} />;
+    }
+
+    return <ViewContainer data={data} {...WalletsOverviewConfig} />;
 }
