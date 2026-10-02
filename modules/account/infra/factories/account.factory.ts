@@ -6,7 +6,7 @@ import { CardPrismaQueries } from "../repositories/card-prisma.queries";
 import { IWalletQueries } from "@/modules/account/core/types/wallet-queries.interface";
 import { ICardQueries } from "@/modules/account/core/types/card-queries.interface";
 import { IContextMemberRepository } from "@/modules/space/core/types/context-member-repository.interface";
-import { PrismaContextMembersRepository } from "@/modules/space/infra/prisma/context-members/prisma.repository";
+import { PrismaContextMembersRepository } from "@/modules/space/infra/repositories/context-members-prisma.repository";
 
 export class AccountFactory {
     private static readonly walletQueries: IWalletQueries = new WalletPrismaQueries();

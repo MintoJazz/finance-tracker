@@ -14,7 +14,13 @@ interface Props {
 export default function CardList({ data, actionContext, className }: Props) {
     const items = Array.isArray(data) ? data : data.data;
 
-    if (items.length === 0) return <EmptyCardList className={cn("mx-4", className)} />;
+    if (items.length === 0) {
+        return (
+            <div className={cn("px-4", className)}>
+                <EmptyCardList />
+            </div>
+        );
+    }
 
     return (
         <div
