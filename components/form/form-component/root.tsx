@@ -16,6 +16,7 @@ interface FormRootProps<T extends FieldValues> {
   onError?: SubmitErrorHandler<T>
   id?: string
   className?: string
+  autoComplete?: string
   children: ReactNode
 }
 
@@ -25,6 +26,7 @@ export function FormRoot<T extends FieldValues>({
   onError,
   id,
   className,
+  autoComplete = "off",
   children,
 }: FormRootProps<T>) {
   return (
@@ -32,6 +34,7 @@ export function FormRoot<T extends FieldValues>({
       <form
         id={id}
         method="post"
+        autoComplete={autoComplete}
         onSubmit={form.handleSubmit(onSubmit, onError)}
         className={cn("flex flex-col", className)}
       >

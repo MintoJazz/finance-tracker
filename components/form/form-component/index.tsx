@@ -10,6 +10,7 @@ import { FormRoot } from "./root"
 export interface FormProps<T extends FieldValues> {
   id: string
   submitText?: string
+  autoComplete?: string
   /**
    * Substitui o botão de submit padrão por um footer customizado.
    * Ao utilizar, inclua um botão com `type="submit"` e `form={id}`.
@@ -33,6 +34,7 @@ export function Form<T extends FieldValues>({
   className,
   contentClassName,
   submitText = "Salvar",
+  autoComplete,
   footer,
 }: FormProps<T>) {
   return (
@@ -41,6 +43,7 @@ export function Form<T extends FieldValues>({
       onSubmit={onSubmit}
       onError={onError}
       id={id}
+      autoComplete={autoComplete}
       className={cn("gap-4", className)}
     >
       <FormContent className={contentClassName}>{children}</FormContent>

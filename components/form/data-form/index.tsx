@@ -1,9 +1,9 @@
 "use client"
 
 import type { FieldValues } from "react-hook-form"
-import { ControlledField } from "@/components/form/controlled-field"
 import { Form } from "@/components/form/form-component"
 import type { DataFormProps } from "@/types/form.types"
+import { DataFormFields } from "./fields"
 
 export function DataForm<
   TForm extends FieldValues,
@@ -33,17 +33,11 @@ export function DataForm<
       className={className}
       contentClassName={contentClassName}
     >
-      {fields.map((fieldDef) => (
-        <ControlledField
-          key={fieldDef.name}
-          {...fieldDef}
-          layout={fieldDef.layout ?? layout}
-          context={context}
-        />
-      ))}
+      <DataFormFields fields={fields} context={context} layout={layout} />
       {children}
     </Form>
   )
 }
 
 export { DataForm as ObjectForm }
+export { DataFormFields }

@@ -64,7 +64,7 @@ export function HorizontalLayout({
           {label}
         </FieldLabel>
       )}
-      <FieldContent className="w-full">
+      <FieldContent className="flex-1 min-w-0 w-full">
         {children}
         {description && <FieldDescription>{description}</FieldDescription>}
         <FieldError errors={[error]} />
