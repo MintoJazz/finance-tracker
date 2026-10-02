@@ -7,6 +7,10 @@ const NOME_DO_COOKIE = 'session_token'
 export class AuthMiddlewareGuard {
     static async handle(request: NextRequest): Promise<NextResponse> {
         const { pathname } = request.nextUrl
+        const isAction = request.headers.has('next-action') || request.headers.has('x-action') || request.method === 'POST'
+
+        if (isAction) return NextResponse.next()
+
         const token = request.cookies.get(NOME_DO_COOKIE)?.value
         const session = token ? await decryptToken(token) : null
         const ehRotaPublica = ROTAS_PUBLICAS.has(pathname)
