@@ -1,0 +1,25 @@
+enum AttachmentStatus {
+  PENDING
+  CONFIRMED
+}
+
+enum AttachmentPurpose {
+  AVATAR
+  ENTRY_RECEIPT
+}
+
+model Attachment {
+  id           String            @id @default(uuid())
+  key          String            @unique
+  purpose      AttachmentPurpose
+  mimeType     String
+  size         Int
+  status       AttachmentStatus  @default(PENDING)
+  ownerPartyId Int
+  contextId    Int?
+  createdAt    DateTime          @default(now())
+  confirmedAt  DateTime?
+
+  @@index([status, createdAt])
+  @@index([ownerPartyId])
+}

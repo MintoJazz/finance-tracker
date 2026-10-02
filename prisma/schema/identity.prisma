@@ -3,7 +3,7 @@ model Party {
   name             String
   avatarUrl        String?
   birthDate        DateTime?
-  documentNumber   String?
+  documentNumber   String?   @unique
   phone            String?
   managedByPartyId Int?
   createdAt        DateTime  @default(now())
