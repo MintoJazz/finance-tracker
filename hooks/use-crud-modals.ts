@@ -1,19 +1,25 @@
 "use client";
 
-import { useQueryParams } from "@/hooks/use-query-params";
+import { useRouter, usePathname } from "next/navigation";
+import { useQueryParams } from "./use-query-params";
 
 export function useCrudModals<T extends { id: number }>() {
+    const router = useRouter();
+    const pathname = usePathname();
     const { setParam } = useQueryParams();
 
-    const onAddClick = () => setParam("create", "true");
-    const onEdit = (item: T) => setParam("edit", String(item.id));
+    const basePath = pathname.replace(/\/+$/, "");
+
+    const onAddClick = () => router.push(`${basePath}/create`);
+
+    const onEdit = (item: T) => router.push(`${basePath}/${item.id}/edit`);
+
     const onDelete = (item: T) => setParam("delete", String(item.id));
+
+    const actionsMenuContext = { onEdit, onDelete };
 
     return {
         onAddClick,
-        actionsMenuContext: {
-            onEdit,
-            onDelete,
-        },
+        actionsMenuContext,
     };
 }

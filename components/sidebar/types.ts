@@ -2,7 +2,7 @@ import type { ActionIcon, RowAction } from "@/types/actions.types"
 
 export type SidebarIcon = ActionIcon
 
-export type SidebarAction<TData = any, TContext = any> = RowAction<
+export type SidebarAction<TData = unknown, TContext = unknown> = RowAction<
   TData,
   TContext
 >
@@ -11,7 +11,7 @@ export interface SwitcherOption {
   id: string
   title: string
   subtitle?: string
-  logo: SidebarIcon
+  logo?: SidebarIcon
   shortcut?: string
 }
 

@@ -1,11 +1,8 @@
 "use client"
 
+import * as React from "react"
 import { ActionsMenu } from "@/components/actions-menu"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import BalanceAvatar from "@/components/balance-avatar"
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -13,6 +10,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { ChevronsUpDownIcon } from "lucide-react"
+import { onLogout } from "@/modules/identity/ui/actions/logout.action"
 import type { SidebarAction, SidebarUserProfile } from "./types"
 
 interface UserMenuProps {
@@ -20,25 +18,29 @@ interface UserMenuProps {
   actionGroups?: SidebarAction<SidebarUserProfile>[][]
 }
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("")
-}
-
 export function UserMenu({ profile, actionGroups = [] }: UserMenuProps) {
   const { isMobile } = useSidebar()
-  const fallbackText = profile.fallback ?? (getInitials(profile.name) || "U")
+  const [isPending, startTransition] = React.useTransition()
+
+  const handleAction = React.useCallback(
+    (action: SidebarAction<SidebarUserProfile>) => {
+      if (action.id === "logout") {
+        startTransition(async () => {
+          await onLogout()
+        })
+      }
+    },
+    []
+  )
 
   const userSummary = (
     <>
-      <Avatar>
-        <AvatarImage src={profile.avatar} alt={profile.name} />
-        <AvatarFallback>{fallbackText}</AvatarFallback>
-      </Avatar>
+      <BalanceAvatar
+        name={profile.name}
+        avatarUrl={profile.avatar}
+        size="md"
+        shape="circle"
+      />
       <div className="grid flex-1 text-left text-sm leading-tight">
         <span className="truncate font-medium">{profile.name}</span>
         <span className="truncate text-xs">{profile.subtitle}</span>
@@ -52,11 +54,16 @@ export function UserMenu({ profile, actionGroups = [] }: UserMenuProps) {
         <ActionsMenu
           row={profile}
           actionGroups={actionGroups}
+          onAction={handleAction}
           side={isMobile ? "bottom" : "right"}
           align="end"
           sideOffset={4}
           trigger={
-            <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
+            <SidebarMenuButton
+              size="lg"
+              className="aria-expanded:bg-muted"
+              disabled={isPending}
+            />
           }
           header={
             <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">

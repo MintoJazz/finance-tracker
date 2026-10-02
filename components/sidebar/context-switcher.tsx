@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { ActionsMenu, renderActionIcon } from "@/components/actions-menu"
+import BalanceAvatar from "@/components/balance-avatar"
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -52,12 +53,23 @@ export function ContextSwitcher({
       const OptionLogo = option.logo
       return {
         id: option.id,
-        label: option.title,
+        label: option.subtitle ? (
+          <div className="flex flex-col text-left">
+            <span className="font-medium leading-tight">{option.title}</span>
+            <span className="text-xs text-muted-foreground leading-tight">
+              {option.subtitle}
+            </span>
+          </div>
+        ) : (
+          option.title
+        ),
         shortcut: option.shortcut ?? `⌘${index + 1}`,
-        icon: (
+        icon: OptionLogo ? (
           <div className="flex size-6 items-center justify-center rounded-md border">
             <OptionLogo />
           </div>
+        ) : (
+          <BalanceAvatar name={option.title} size="xs" />
         ),
         onClick: () => handleSelect(option),
       }
@@ -107,13 +119,17 @@ export function ContextSwitcher({
             />
           }
         >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <ActiveLogo />
-          </div>
+          {ActiveLogo ? (
+            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <ActiveLogo />
+            </div>
+          ) : (
+            <BalanceAvatar name={activeOption.title} size="md" />
+          )}
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-medium">{activeOption.title}</span>
             {activeOption.subtitle && (
-              <span className="truncate text-xs">{activeOption.subtitle}</span>
+              <span className="truncate text-xs text-muted-foreground">{activeOption.subtitle}</span>
             )}
           </div>
           <ChevronsUpDownIcon className="ml-auto" />

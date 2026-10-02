@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/sidebar"
+import { getUserContextAction } from "@/modules/identity/ui/actions/get-user-context.action"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,14 +15,17 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 
-export default function PrivateLayout({
+export default async function PrivateLayout({
     children
 }: {
     children: React.ReactNode
 }) {
+  const userContextResult = await getUserContextAction()
+  const userContext = userContextResult.success ? userContextResult.data : null
+
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar userContext={userContext} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
