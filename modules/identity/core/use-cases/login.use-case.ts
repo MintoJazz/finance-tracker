@@ -1,12 +1,14 @@
-import { failure, success } from "@/types/result";
+import { failure, success } from "@/types/result.types";
 import { LoginSchema, LoginFormType } from "../schemas/login.schema";
 import { IAuthRepository } from "../types/auth-repository.interface";
 import { IPasswordHasher } from "../types/password-hasher.interface";
+import { IFinancialContextRepository } from "@/modules/space/core/types/financial-context-repository.interface";
 
 export class LoginUseCase {
     constructor(
         private readonly authRepo: IAuthRepository,
-        private readonly hasher: IPasswordHasher
+        private readonly hasher: IPasswordHasher,
+        private readonly contextRepo: IFinancialContextRepository
     ) { }
 
     async execute(input: LoginFormType) {
@@ -14,16 +16,17 @@ export class LoginUseCase {
         if (!parseSuccess) return failure(error.issues[0].message);
 
         try {
-            const auth = await this.authRepo.findAuthByEmail(data.email);
+            const auth = await this.authRepo.findByEmail(data.email);
             if (!auth) return failure("E-mail ou senha inválidos.");
-            const { partyId, email, password } = auth
+            const { partyId, email, password } = auth;
 
             const senhaValida = await this.hasher.compare(data.password, password);
             if (!senhaValida) return failure("E-mail ou senha inválidos.");
 
             await this.authRepo.updateLastLoginAt(partyId, new Date());
 
-            const { contextId } = await this.authRepo.findDefaultContext(partyId) ?? {}
+            const defaultContext = await this.contextRepo.findDefaultByParty(partyId);
+            const contextId = defaultContext?.contextId ?? partyId;
 
             return success({ partyId, email, contextId });
         } catch (error) {
