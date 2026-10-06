@@ -1,12 +1,18 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Toggle } from "@/components/ui/toggle";
 import { Button } from "@/components/ui/button";
 import { Plus, Search } from "lucide-react";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from "@/components/ui/input-group";
 import CardTable from "../../../components/card-table";
 import { CardOverviewProps } from "../types";
+import { IncludeArchivedToggle } from "@/components/include-archived-toggle";
+import { ArchiveCardModalViewDesktop } from "../../archive-card-modal";
+import { RestoreCardModalViewDesktop } from "../../restore-card-modal";
 
 export default function CardsOverviewViewDesktop({
     data,
@@ -14,6 +20,8 @@ export default function CardsOverviewViewDesktop({
     filterContext,
     onAddClick,
     paginationContext,
+    archiveContext,
+    restoreContext,
 }: CardOverviewProps) {
     const { searchProps, showArchived } = filterContext;
 
@@ -42,16 +50,8 @@ export default function CardsOverviewViewDesktop({
                         placeholder="Buscar por nome"
                     />
                 </InputGroup>
-
                 <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-                    <Toggle
-                        {...showArchived}
-                        aria-label="Incluir arquivados"
-                        size="sm"
-                        variant="outline"
-                    >
-                        Incluir arquivados
-                    </Toggle>
+                    <IncludeArchivedToggle {...showArchived} />
                 </div>
             </div>
 
@@ -64,6 +64,9 @@ export default function CardsOverviewViewDesktop({
             <p className="text-xs text-muted-foreground">
                 Mostrando {data.data.length} de {data.total} cartões
             </p>
+
+            <ArchiveCardModalViewDesktop {...archiveContext} />
+            <RestoreCardModalViewDesktop {...restoreContext} />
         </div>
     );
 }

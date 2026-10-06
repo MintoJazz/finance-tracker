@@ -1,6 +1,8 @@
 import { Page } from "@/types/pagination.types";
-import { CardActionContext } from "../../config/card-actions-menu";
 import { CardSummary } from "@/modules/account/core/schemas/card.schema";
+import { ArchiveCardModalProps } from "../archive-card-modal/types";
+import { RestoreCardModalProps } from "../restore-card-modal/types";
+import { CardActionContext } from "../../components/card-actions-drawer";
 
 export interface FilterContext {
     searchProps: { value: string; onValueChange: (val: string) => void };
@@ -18,6 +20,8 @@ export interface CardOverviewProps {
     onAddClick: () => void;
     filterContext: FilterContext;
     paginationContext: PaginationContext;
+    archiveContext: ArchiveCardModalProps;
+    restoreContext: RestoreCardModalProps;
 }
 
 export interface MobileCardOverviewProps {
@@ -30,4 +34,6 @@ export interface MobileCardOverviewProps {
     actionsMenuContext: CardActionContext;
     onAddClick: () => void;
     filterContext: FilterContext;
+    archiveContext: ArchiveCardModalProps;
+    restoreContext: RestoreCardModalProps;
 }

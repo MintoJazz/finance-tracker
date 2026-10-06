@@ -2,11 +2,17 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Toggle } from "@/components/ui/toggle";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from "@/components/ui/input-group";
 import { Loader2, Plus, Search } from "lucide-react";
 import CardList from "../../../components/card-list";
 import { MobileCardOverviewProps } from "../types";
+import { IncludeArchivedToggle } from "@/components/include-archived-toggle";
+import { ArchiveCardModalViewMobile } from "../../archive-card-modal";
+import { RestoreCardModalViewMobile } from "../../restore-card-modal";
 
 export default function CardsOverviewViewMobile({
     items,
@@ -17,6 +23,8 @@ export default function CardsOverviewViewMobile({
     actionsMenuContext,
     filterContext,
     onAddClick,
+    archiveContext,
+    restoreContext,
 }: MobileCardOverviewProps) {
     const { searchProps, showArchived } = filterContext;
 
@@ -45,18 +53,12 @@ export default function CardsOverviewViewMobile({
                         placeholder="Buscar por nome"
                     />
                 </InputGroup>
-
                 <div className="flex items-center justify-between">
-                    <Toggle
+                    <IncludeArchivedToggle
                         {...showArchived}
-                        aria-label="Incluir arquivados"
-                        size="sm"
-                        variant="outline"
                         className="text-xs"
-                    >
-                        Incluir arquivados
-                    </Toggle>
-
+                        iconClassName="size-3.5"
+                    />
                     <span className="text-xs text-muted-foreground tabular-nums">
                         {items.length} de {total}
                     </span>
@@ -87,6 +89,9 @@ export default function CardsOverviewViewMobile({
                     Todos os cartões foram carregados
                 </p>
             )}
+
+            <ArchiveCardModalViewMobile {...archiveContext} />
+            <RestoreCardModalViewMobile {...restoreContext} />
         </div>
     );
 }

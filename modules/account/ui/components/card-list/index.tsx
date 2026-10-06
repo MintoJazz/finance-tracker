@@ -1,6 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import { Page } from "@/types/pagination.types";
 import { CardSummary } from "@/modules/account/core/schemas/card.schema";
-import { CardActionContext } from "../../config/card-actions-menu";
+import {
+    CardActionContext,
+    CardActionsDrawer,
+} from "../card-actions-drawer";
 import CardListItem from "./list-item";
 import EmptyCardList from "./empty";
 import { cn } from "cn";
@@ -13,6 +19,7 @@ interface Props {
 
 export default function CardList({ data, actionContext, className }: Props) {
     const items = Array.isArray(data) ? data : data.data;
+    const [activeCard, setActiveCard] = useState<CardSummary | null>(null);
 
     if (items.length === 0) {
         return (
@@ -33,9 +40,24 @@ export default function CardList({ data, actionContext, className }: Props) {
                 <CardListItem
                     key={card.id}
                     card={card}
-                    context={actionContext}
+                    onSelect={
+                        actionContext.onView
+                            ? () => actionContext.onView?.(card)
+                            : undefined
+                    }
+                    onOpenActions={() => setActiveCard(card)}
                 />
             ))}
+
+            <CardActionsDrawer
+                open={!!activeCard}
+                onOpenChange={(open) => {
+                    if (!open) setActiveCard(null);
+                }}
+                card={activeCard}
+                context={actionContext}
+                trigger={null}
+            />
         </div>
     );
 }
