@@ -10,6 +10,8 @@ enum BalanceType {
   RESERVE
   CATEGORY
   COMMITMENT
+  RECEIVABLE
+  PAYABLE
 }
 
 model Balance {

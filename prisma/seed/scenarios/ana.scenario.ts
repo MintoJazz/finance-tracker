@@ -1,8 +1,8 @@
-import { MovementDirection } from "../../generated/prisma/enums";
+import { EntryType, MovementDirection } from "../../generated/prisma/enums";
 import type { SystemSeedFactory } from "../core/system.factory";
 
 export async function seedAnaScenario(factory: SystemSeedFactory) {
-    console.log("🚀 Populando cenário de carga da Ana (30 carteiras e 30 cartões)...");
+    console.log("🚀 Populando cenário da Ana (6 carteiras e ~35 transações detalhadas)...");
 
     const { party, space } = await factory.createUser({
         name: "Ana Souza",
@@ -12,224 +12,448 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         defaultContextName: "Finanças da Ana",
     });
 
-    await space.addWallets([
-        { name: "Conta Nubank", initialBalance: { amount: 250000, date: "2026-08-01T10:00:00Z" } },
-        { name: "Carteira Física", initialBalance: { amount: 15000, date: "2026-08-03T14:30:00Z" } },
-        { name: "Conta Itaú Uniclass", initialBalance: { amount: 480050, date: "2026-08-05T09:15:00Z" } },
-        { name: "Reserva de Emergência (Tesouro Selic)", initialBalance: { amount: 1500000, date: "2026-08-07T11:20:00Z" } },
-        { name: "Banco Inter", initialBalance: { amount: 89000, date: "2026-08-09T16:45:00Z" } },
-        { name: "PicPay", initialBalance: { amount: 12500, date: "2026-08-11T08:10:00Z" } },
-        { name: "Mercado Pago", initialBalance: { amount: 34200, date: "2026-08-13T19:00:00Z" } },
-        { name: "C6 Bank", initialBalance: { amount: 110000, date: "2026-08-15T12:00:00Z" } },
-        { name: "Caixinha Viagem Europa", initialBalance: { amount: 620000, date: "2026-08-17T15:30:00Z" } },
-        { name: "Caixinha Troca de Notebook", initialBalance: { amount: 310000, date: "2026-08-19T10:40:00Z" } },
-        { name: "Wise (Dólar - USD)", initialBalance: { amount: 450000, date: "2026-08-21T14:00:00Z" } },
-        { name: "Wise (Euro - EUR)", initialBalance: { amount: 380000, date: "2026-08-23T14:05:00Z" } },
-        { name: "Nomad Global", initialBalance: { amount: 195000, date: "2026-08-25T17:50:00Z" } },
-        { name: "XP Investimentos - Conta Corrente", initialBalance: { amount: 75000, date: "2026-08-27T09:00:00Z" } },
-        { name: "BTG Pactual Banking", initialBalance: { amount: 540000, date: "2026-08-29T13:15:00Z" } },
-        { name: "Rico Corretora" }, // Sem saldo inicial (R$ 0,00)
-        { name: "Cartão Caju (Benefícios)", initialBalance: { amount: 85000, date: "2026-09-01T08:00:00Z" } },
-        { name: "Flash Benefícios", initialBalance: { amount: 60000, date: "2026-09-02T08:30:00Z" } },
-        { name: "Alelo Refeição", initialBalance: { amount: 42000, date: "2026-09-04T12:15:00Z" } },
-        { name: "Ticket Alimentação", initialBalance: { amount: 55000, date: "2026-09-06T18:20:00Z" } },
-        { name: "Binance (Spot Wallet)", initialBalance: { amount: 215000, date: "2026-09-08T21:00:00Z" } },
-        { name: "Hardware Wallet (Ledger)", initialBalance: { amount: 890000, date: "2026-09-10T22:10:00Z" } },
-        { name: "Cofre de Moedas em Casa", initialBalance: { amount: 4350, date: "2026-09-12T11:00:00Z" } },
-        { name: "Conta Conjunta Despesas Casa", initialBalance: { amount: 180000, date: "2026-09-14T10:00:00Z" } },
-        { name: "Fundo IPVA e Seguro Auto", initialBalance: { amount: 275000, date: "2026-09-16T15:45:00Z" } },
-        { name: "Poupança Antiga Caixa", initialBalance: { amount: 5000, date: "2026-09-18T09:30:00Z" } },
+    // =========================================================================
+    // 1. CARTEIRAS (6 carteiras cobrindo todos os cenários de UI)
+    // =========================================================================
+    const [
+        nubank,          // ID 1: Carteira Principal (muitas transações, paginação e filtros)
+        itau,            // ID 2: Conta Secundária (movimentações moderadas e transferências)
+        reservaSelic,    // ID 3: Reserva / Investimentos
+        carteiraFisica,  // ID 4: Dinheiro em espécie
+        ricoCorretora,   // ID 5: Carteira Vazia (R$ 0,00 e sem movimentações -> testa Empty State)
+        santanderAntigo, // ID 6: Carteira Arquivada e com saldo negativo
+    ] = await space.addWallets([
         {
-            name: "Conta Santander Van Gogh",
-            initialBalance: { amount: 35000, direction: MovementDirection.DEBIT, date: "2026-09-20T14:00:00Z" },
+            name: "Conta Nubank",
+            createdAt: "2025-01-10T10:00:00Z",
+            initialBalance: { amount: 150000, date: "2026-08-01T09:00:00Z" }, // +R$ 1.500,00 (ADJUSTMENT)
         },
-        { name: "PayPal", initialBalance: { amount: 18900, date: "2026-09-22T16:10:00Z" } },
-        { name: "RecargaPay" }, // Carteira zerada
-        { name: "Conta MEI (Cora)", initialBalance: { amount: 740000, date: "2026-09-28T11:00:00Z" } },
+        {
+            name: "Conta Itaú Uniclass",
+            createdAt: "2025-02-15T14:00:00Z",
+            initialBalance: { amount: 320000, date: "2026-08-01T09:30:00Z" }, // +R$ 3.200,00
+        },
+        {
+            name: "Reserva de Emergência (Selic)",
+            createdAt: "2025-03-20T11:00:00Z",
+            initialBalance: { amount: 1200000, date: "2026-08-01T10:00:00Z" }, // +R$ 12.000,00
+        },
+        {
+            name: "Carteira Física (Dinheiro)",
+            createdAt: "2025-06-01T08:00:00Z",
+            initialBalance: { amount: 25000, date: "2026-08-05T12:00:00Z" }, // +R$ 250,00
+        },
+        {
+            name: "Rico Corretora",
+            createdAt: "2026-01-10T16:00:00Z",
+            // Sem saldo inicial -> testa Empty State no perfil!
+        },
+        {
+            name: "Conta Santander Antiga",
+            createdAt: "2024-05-01T08:00:00Z",
+            isArchived: true,
+            initialBalance: {
+                amount: 4500,
+                direction: MovementDirection.DEBIT,
+                date: "2026-07-10T10:00:00Z",
+            }, // -R$ 45,00 (Tarifa pendente em conta arquivada)
+        },
     ]);
 
+    // Categorias para contrapartida contábil
+    const catSalario = await space.addCategory("Salário & Renda");
+    const catAlimentacao = await space.addCategory("Alimentação & Mercado");
+    const catMoradia = await space.addCategory("Moradia & Contas");
+    const catTransporte = await space.addCategory("Transporte & Combustível");
+    const catLazer = await space.addCategory("Lazer & Assinaturas");
+    const catSaude = await space.addCategory("Saúde & Farmácia");
+
+    // =========================================================================
+    // 2. TRANSAÇÕES NA CONTA NUBANK (ID 1) — ~28 lançamentos (Ago a Out/2026)
+    // =========================================================================
+
+    // --- AGOSTO / 2026 ---
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catSalario.id,
+        description: "Salário Mensal - Tech Corp (Agosto)",
+        amount: 850000, // +R$ 8.500,00
+        direction: MovementDirection.CREDIT,
+        type: EntryType.DIRECT,
+        date: "2026-08-05T10:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catMoradia.id,
+        description: "Aluguel Apartamento (Agosto)",
+        amount: 280000, // -R$ 2.800,00
+        direction: MovementDirection.DEBIT,
+        type: EntryType.SETTLEMENT,
+        date: "2026-08-06T14:20:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catAlimentacao.id,
+        description: "Supermercado Carrefour - Compra Mensal",
+        amount: 64250, // -R$ 642,50
+        direction: MovementDirection.DEBIT,
+        date: "2026-08-08T18:30:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catMoradia.id,
+        description: "Conta de Energia CEEE Equatorial",
+        amount: 18940, // -R$ 189,40
+        direction: MovementDirection.DEBIT,
+        type: EntryType.SETTLEMENT,
+        date: "2026-08-10T11:15:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catMoradia.id,
+        description: "Internet Fibra 600Mb",
+        amount: 12990, // -R$ 129,90
+        direction: MovementDirection.DEBIT,
+        type: EntryType.SETTLEMENT,
+        date: "2026-08-12T09:00:00Z",
+    });
+
+    await space.addTransfer({
+        fromBalanceId: nubank.id,
+        toBalanceId: reservaSelic.id,
+        description: "Aporte Mensal Reserva de Emergência",
+        amount: 150000, // -R$ 1.500,00 no Nubank / +R$ 1.500,00 na Reserva
+        date: "2026-08-15T15:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catLazer.id,
+        description: "Cinema Cinemark + Pipoca",
+        amount: 9400, // -R$ 94,00
+        direction: MovementDirection.DEBIT,
+        date: "2026-08-18T20:30:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catTransporte.id,
+        description: "Posto Ipiranga - Abastecimento Completo",
+        amount: 24500, // -R$ 245,00
+        direction: MovementDirection.DEBIT,
+        date: "2026-08-21T17:45:00Z",
+    });
+
+    // Lançamento que será estornado em Agosto (Cobrança duplicada)
+    const cobrancaDuplicadaAgo = await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catLazer.id,
+        description: "Cobrança Duplicada - Apple Services",
+        amount: 4990, // -R$ 49,90
+        direction: MovementDirection.DEBIT,
+        date: "2026-08-24T13:10:00Z",
+    });
+
+    await space.reverseEntry({
+        originalEntryId: cobrancaDuplicadaAgo.id,
+        balanceId: nubank.id,
+        counterpartBalanceId: catLazer.id,
+        description: "Estorno Cobrança Duplicada - Apple Services",
+        amount: 4990, // +R$ 49,90 (REVERSAL)
+        originalDirection: MovementDirection.DEBIT,
+        date: "2026-08-25T10:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catAlimentacao.id,
+        description: "iFood - Sushi Delivery",
+        amount: 13800, // -R$ 138,00
+        direction: MovementDirection.DEBIT,
+        date: "2026-08-28T21:15:00Z",
+    });
+
+    // --- SETEMBRO / 2026 ---
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catSalario.id,
+        description: "Dividendos FIIs (MXRF11 e HGLG11)",
+        amount: 16450, // +R$ 164,50
+        direction: MovementDirection.CREDIT,
+        date: "2026-09-02T11:30:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catSalario.id,
+        description: "Salário Mensal - Tech Corp (Setembro)",
+        amount: 850000, // +R$ 8.500,00
+        direction: MovementDirection.CREDIT,
+        date: "2026-09-04T10:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catMoradia.id,
+        description: "Aluguel Apartamento (Setembro)",
+        amount: 280000, // -R$ 2.800,00
+        direction: MovementDirection.DEBIT,
+        type: EntryType.SETTLEMENT,
+        date: "2026-09-05T14:00:00Z",
+    });
+
+    await space.addTransfer({
+        fromBalanceId: nubank.id,
+        toBalanceId: carteiraFisica.id,
+        description: "Saque Banco24Horas para Carteira Física",
+        amount: 20000, // -R$ 200,00 no Nubank / +R$ 200,00 na Carteira Física
+        date: "2026-09-07T16:20:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catAlimentacao.id,
+        description: "Padaria & Confeitaria Colonial",
+        amount: 4680, // -R$ 46,80
+        direction: MovementDirection.DEBIT,
+        date: "2026-09-10T08:40:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catTransporte.id,
+        description: "Uber Viagens - Semana",
+        amount: 7490, // -R$ 74,90
+        direction: MovementDirection.DEBIT,
+        date: "2026-09-12T22:10:00Z",
+    });
+
+    await space.addTransfer({
+        fromBalanceId: itau.id,
+        toBalanceId: nubank.id,
+        description: "Transferência Pix Recebida - Conta Itaú",
+        amount: 50000, // +R$ 500,00 no Nubank / -R$ 500,00 no Itaú
+        date: "2026-09-14T19:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catSaude.id,
+        description: "Farmácia Panvel - Medicamentos",
+        amount: 11850, // -R$ 118,50
+        direction: MovementDirection.DEBIT,
+        date: "2026-09-16T12:45:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catLazer.id,
+        description: "Assinatura Netflix & Spotify Duo",
+        amount: 8480, // -R$ 84,80
+        direction: MovementDirection.DEBIT,
+        date: "2026-09-18T07:30:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catSalario.id,
+        description: "Recebimento Freelance UI/UX Design",
+        amount: 180000, // +R$ 1.800,00
+        direction: MovementDirection.CREDIT,
+        date: "2026-09-20T14:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catTransporte.id,
+        description: "Posto Shell - Combustível",
+        amount: 21000, // -R$ 210,00
+        direction: MovementDirection.DEBIT,
+        date: "2026-09-22T17:35:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catSalario.id,
+        description: "Rendimento Automático CDI (100% CDI)",
+        amount: 9240, // +R$ 92,40
+        direction: MovementDirection.CREDIT,
+        date: "2026-09-24T08:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        description: "Ajuste de Conciliação Bancária",
+        amount: 1520, // +R$ 15,20
+        direction: MovementDirection.CREDIT,
+        type: EntryType.ADJUSTMENT,
+        date: "2026-09-25T18:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catAlimentacao.id,
+        description: "Restaurante Outback Steakhouse",
+        amount: 23450, // -R$ 234,50
+        direction: MovementDirection.DEBIT,
+        date: "2026-09-27T21:10:00Z",
+    });
+
+    // Compra estornada em Setembro (Fone Bluetooth)
+    const compraFone = await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catLazer.id,
+        description: "Compra Loja FastShop - Fone Bluetooth",
+        amount: 38990, // -R$ 389,90
+        direction: MovementDirection.DEBIT,
+        date: "2026-09-28T16:20:00Z",
+    });
+
+    await space.reverseEntry({
+        originalEntryId: compraFone.id,
+        balanceId: nubank.id,
+        counterpartBalanceId: catLazer.id,
+        description: "Estorno FastShop - Devolução Fone Bluetooth",
+        amount: 38990, // +R$ 389,90 (REVERSAL)
+        originalDirection: MovementDirection.DEBIT,
+        date: "2026-09-29T11:05:00Z",
+    });
+
+    // --- OUTUBRO / 2026 ---
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catSalario.id,
+        description: "Salário Mensal - Tech Corp (Outubro)",
+        amount: 850000, // +R$ 8.500,00
+        direction: MovementDirection.CREDIT,
+        date: "2026-10-01T10:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catMoradia.id,
+        description: "Aluguel Apartamento (Outubro)",
+        amount: 280000, // -R$ 2.800,00
+        direction: MovementDirection.DEBIT,
+        type: EntryType.SETTLEMENT,
+        date: "2026-10-02T14:30:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catAlimentacao.id,
+        description: "Supermercado Pão de Açúcar",
+        amount: 45680, // -R$ 456,80
+        direction: MovementDirection.DEBIT,
+        date: "2026-10-03T19:45:00Z",
+    });
+
+    await space.addTransfer({
+        fromBalanceId: nubank.id,
+        toBalanceId: reservaSelic.id,
+        description: "Transferência para Reserva de Emergência",
+        amount: 150000, // -R$ 1.500,00
+        date: "2026-10-04T09:15:00Z",
+    });
+
+    // =========================================================================
+    // 3. TRANSAÇÕES EXTRAS NAS DEMAIS CARTEIRAS (Itaú e Carteira Física)
+    // =========================================================================
+    await space.addDirectEntry({
+        balanceId: itau.id,
+        counterpartBalanceId: catSaude.id,
+        description: "Plano de Saúde Unimed",
+        amount: 68000, // -R$ 680,00
+        direction: MovementDirection.DEBIT,
+        type: EntryType.SETTLEMENT,
+        date: "2026-09-10T10:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: itau.id,
+        counterpartBalanceId: catSalario.id,
+        description: "Restituição Imposto de Renda (Lote 4)",
+        amount: 142000, // +R$ 1.420,00
+        direction: MovementDirection.CREDIT,
+        date: "2026-09-30T09:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: carteiraFisica.id,
+        counterpartBalanceId: catAlimentacao.id,
+        description: "Feira Livre de Domingo (Hortifruti)",
+        amount: 8500, // -R$ 85,00
+        direction: MovementDirection.DEBIT,
+        date: "2026-09-13T10:30:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: carteiraFisica.id,
+        counterpartBalanceId: catTransporte.id,
+        description: "Estacionamento Centro",
+        amount: 2000, // -R$ 20,00
+        direction: MovementDirection.DEBIT,
+        date: "2026-09-20T15:00:00Z",
+    });
+
+    // =========================================================================
+    // 4. CARTÕES DE CRÉDITO (Enxugados para 6 cartões realistas)
+    // =========================================================================
     await space.addCreditCards([
         {
             name: "Nubank Ultravioleta Mastercard Black",
             limit: 3500000,
             closingDay: 28,
             dueDay: 5,
-            initialExpenses: [{ description: "Compra Supermercado Pão de Açúcar", amount: 1425080, date: "2026-08-30T19:45:00Z" }],
-        },
-        {
-            name: "XP Visa Infinite",
-            limit: 5000000,
-            closingDay: 15,
-            dueDay: 22,
-            initialExpenses: [{ description: "Passagens Aéreas LATAM", amount: 893040, date: "2026-08-29T14:20:00Z" }],
+            initialExpenses: [
+                { description: "Supermercado Pão de Açúcar", amount: 142580, date: "2026-09-30T19:45:00Z", categoryId: catAlimentacao.id },
+                { description: "Amazon Prime - Livros Técnicos", amount: 28900, date: "2026-10-02T14:10:00Z", categoryId: catLazer.id },
+            ],
         },
         {
             name: "Itaú Personnalité Mastercard Black",
             limit: 4000000,
             closingDay: 20,
             dueDay: 28,
-            initialExpenses: [{ description: "Reserva Hotel Booking.com", amount: 2215000, date: "2026-08-28T10:15:00Z" }],
+            initialExpenses: [
+                { description: "Passagens Aéreas LATAM", amount: 221500, date: "2026-09-28T10:15:00Z", categoryId: catLazer.id },
+            ],
+        },
+        {
+            name: "XP Visa Infinite",
+            limit: 5000000,
+            closingDay: 15,
+            dueDay: 22,
+            initialExpenses: [
+                { description: "Seguro Auto Anual (Parcela 1)", amount: 89300, date: "2026-09-25T14:20:00Z", categoryId: catTransporte.id },
+            ],
         },
         {
             name: "C6 Carbon Mastercard Black",
             limit: 2500000,
             closingDay: 10,
             dueDay: 17,
-            initialExpenses: [{ description: "Restaurante Fasano", amount: 320050, date: "2026-08-27T18:00:00Z" }],
-        },
-        { name: "Inter Mastercard Black", limit: 3000000, closingDay: 5, dueDay: 12 },
-        {
-            name: "Bradesco Elo Nanquim",
-            limit: 2800000,
-            closingDay: 12,
-            dueDay: 20,
-            initialExpenses: [{ description: "Revisão Concessionária Honda", amount: 1250000, date: "2026-08-25T09:30:00Z" }],
+            initialExpenses: [
+                { description: "Jantar Restaurante", amount: 32050, date: "2026-09-27T18:00:00Z", categoryId: catAlimentacao.id },
+            ],
         },
         {
-            name: "Santander Unique Visa Infinite",
-            limit: 3200000,
-            closingDay: 25,
-            dueDay: 2,
-            initialExpenses: [{ description: "Eletrônicos FastShop", amount: 674090, date: "2026-08-24T16:45:00Z" }],
+            name: "Inter Mastercard Black",
+            limit: 3000000,
+            closingDay: 5,
+            dueDay: 12,
         },
         {
-            name: "BTG Pactual Black Modular",
-            limit: 4500000,
-            closingDay: 18,
-            dueDay: 25,
-            initialExpenses: [{ description: "Seguro Residencial", amount: 1890000, date: "2026-08-23T11:10:00Z" }],
-        },
-        {
-            name: "Porto Bank Visa Infinite",
-            limit: 3800000,
-            closingDay: 7,
-            dueDay: 15,
-            initialExpenses: [{ description: "Abastecimento Posto Shell", amount: 430000, date: "2026-08-22T20:15:00Z" }],
-        },
-        {
-            name: "Nubank Gold Mastercard",
+            name: "Nubank Gold Antigo",
             limit: 800000,
             closingDay: 28,
             dueDay: 5,
             isArchived: true,
-            initialExpenses: [{ description: "Assinatura Netflix", amount: 120000, date: "2026-07-15T12:00:00Z" }],
         },
-        {
-            name: "Caixa Elo Diners Club",
-            limit: 2200000,
-            closingDay: 14,
-            dueDay: 21,
-            initialExpenses: [{ description: "Farmácia Droga Raia", amount: 950000, date: "2026-08-20T15:30:00Z" }],
-        },
-        {
-            name: "Mercado Pago Visa Platinum",
-            limit: 650000,
-            closingDay: 3,
-            dueDay: 10,
-            initialExpenses: [{ description: "Compras Mercado Livre", amount: 154020, date: "2026-08-19T17:25:00Z" }],
-        },
-        {
-            name: "Banco do Brasil Altus Visa Infinite",
-            limit: 6000000,
-            closingDay: 1,
-            dueDay: 8,
-            initialExpenses: [{ description: "Mobiliário Tok&Stok", amount: 2890000, date: "2026-08-18T13:50:00Z" }],
-        },
-        {
-            name: "Sicredi Mastercard Black",
-            limit: 2000000,
-            closingDay: 16,
-            dueDay: 23,
-            initialExpenses: [{ description: "Artigos Esportivos Decathlon", amount: 520000, date: "2026-08-17T08:40:00Z" }],
-        },
-        {
-            name: "Sicoob Mastercard Black Merit",
-            limit: 3500000,
-            closingDay: 22,
-            dueDay: 30,
-            initialExpenses: [{ description: "Jantar Família", amount: 1100000, date: "2026-08-16T19:10:00Z" }],
-        },
-        {
-            name: "Nomad Visa Platinum Internacional",
-            limit: 1500000,
-            closingDay: 9,
-            dueDay: 16,
-            initialExpenses: [{ description: "Apple Store US", amount: 340000, date: "2026-08-15T21:00:00Z" }],
-        },
-        {
-            name: "Wise Visa Internacional",
-            limit: 1000000,
-            closingDay: 27,
-            dueDay: 4,
-            initialExpenses: [{ description: "Uber Viagem Paris", amount: 85000, date: "2026-08-14T16:15:00Z" }],
-        },
-        { name: "Digio Visa Gold", limit: 500000, closingDay: 11, dueDay: 18, isArchived: true },
-        { name: "Next Visa Internacional", limit: 400000, closingDay: 15, dueDay: 22, isArchived: true },
-        {
-            name: "PicPay Card Mastercard Platinum",
-            limit: 750000,
-            closingDay: 8,
-            dueDay: 15,
-            initialExpenses: [{ description: "iFood Delivery", amount: 290000, date: "2026-08-12T10:30:00Z" }],
-        },
-        {
-            name: "Amazon Prime Mastercard Platinum",
-            limit: 1200000,
-            closingDay: 19,
-            dueDay: 26,
-            initialExpenses: [{ description: "Amazon Compras Prime", amount: 680000, date: "2026-08-11T14:00:00Z" }],
-        },
-        {
-            name: "Azul Itaú Visa Infinite",
-            limit: 4500000,
-            closingDay: 26,
-            dueDay: 3,
-            initialExpenses: [{ description: "Pacote Azul Viagens", amount: 1750000, date: "2026-08-10T18:45:00Z" }],
-        },
-        {
-            name: "LATAM Pass Itaú Mastercard Black",
-            limit: 3800000,
-            closingDay: 21,
-            dueDay: 28,
-            initialExpenses: [{ description: "Upgrade Cabine LATAM", amount: 1230000, date: "2026-08-09T11:20:00Z" }],
-        },
-        {
-            name: "Smiles Gol Santander Visa Infinite",
-            limit: 3200000,
-            closingDay: 13,
-            dueDay: 20,
-            initialExpenses: [{ description: "Reserva Smiles", amount: 940000, date: "2026-08-08T15:10:00Z" }],
-        },
-        {
-            name: "Pão de Açúcar Itaú Mastercard Black",
-            limit: 2900000,
-            closingDay: 6,
-            dueDay: 13,
-            initialExpenses: [{ description: "Compras Semanais PDA", amount: 810000, date: "2026-08-07T09:00:00Z" }],
-        },
-        {
-            name: "Carrefour Mastercard Gold",
-            limit: 450000,
-            closingDay: 4,
-            dueDay: 11,
-            initialExpenses: [{ description: "Eletrodomésticos Carrefour", amount: 120000, date: "2026-08-06T17:30:00Z" }],
-        },
-        { name: "C&A Bradescard Visa Gold", limit: 350000, closingDay: 17, dueDay: 24, isArchived: true },
-        {
-            name: "Renner Meu Cartão Mastercard",
-            limit: 300000,
-            closingDay: 23,
-            dueDay: 30,
-            initialExpenses: [{ description: "Roupas Lojas Renner", amount: 95000, date: "2026-08-04T13:15:00Z" }],
-        },
-        {
-            name: "Magalu Visa Platinum",
-            limit: 550000,
-            closingDay: 2,
-            dueDay: 9,
-            initialExpenses: [{ description: "Smartphone Magazine Luiza", amount: 210000, date: "2026-08-03T10:45:00Z" }],
-        },
-        { name: "RappiCard Visa Gold", limit: 400000, closingDay: 18, dueDay: 25, isArchived: true },
     ]);
 
     return { party, space };
