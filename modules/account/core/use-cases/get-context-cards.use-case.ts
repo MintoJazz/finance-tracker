@@ -1,7 +1,7 @@
 import { PageRequest } from "@/types/pagination.types";
 import { ICardQueries } from "../types/card-queries.interface";
 import { BaseFilter } from "@/types/filters.types";
-import { GetSpaceAccessUseCase } from "@/modules/space/core/use-case/get-acess.use-case";
+import { ISpaceAccessProvider } from "../types/space-access-provider.interface";
 import { SessionPayload } from "@/modules/identity/infra/cryptography/jwt-utils";
 import { failure, success } from "@/types/result.types";
 
@@ -14,7 +14,7 @@ export interface GetContextCardsUseCaseDTO {
 export class GetContextCardsUseCase {
     constructor(
         private readonly cardQueries: ICardQueries,
-        private readonly getSpaceAccess: GetSpaceAccessUseCase
+        private readonly getSpaceAccess: ISpaceAccessProvider
     ) {}
 
     async execute({ session, pageRequest, filter }: GetContextCardsUseCaseDTO) {
