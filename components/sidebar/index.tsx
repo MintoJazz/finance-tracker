@@ -3,7 +3,6 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { NavMain } from "@/components/sidebar/nav-main"
-import { NavProjects } from "@/components/sidebar/nav-projects"
 import { UserMenu } from "@/components/sidebar/user-menu"
 import { ContextSwitcher } from "@/components/sidebar/context-switcher"
 import {
@@ -18,6 +17,7 @@ import { switchContextAction } from "@/modules/space/ui/actions/switch-context.a
 import type { UserContextData } from "@/modules/identity/core/schemas/user-context.schema"
 import { sidebarConfig } from "./config"
 import type { SwitcherOption, SidebarUserProfile } from "./types"
+import { NavSecondary } from "./nav-secondary"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   userContext?: UserContextData | null
@@ -26,7 +26,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 export function AppSidebar({ userContext, ...props }: AppSidebarProps) {
   const router = useRouter()
   const [, startTransition] = React.useTransition()
-  const { navMain, projects, switcher, user } = sidebarConfig
+  const { navMain, navSecondary, switcher, user } = sidebarConfig
 
   const contexts = userContext?.contexts
   const profile = userContext?.profile
@@ -83,7 +83,8 @@ export function AppSidebar({ userContext, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain {...navMain} />
-        <NavProjects {...projects} />
+        {/* <NavProjects {...projects} /> */}
+        <NavSecondary {...navSecondary} className="mt-auto"/>
       </SidebarContent>
       <SidebarFooter>
         <UserMenu profile={userProfile} actionGroups={user.actionGroups} />

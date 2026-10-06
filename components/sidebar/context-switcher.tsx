@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ActionsMenu, renderActionIcon } from "@/components/actions-menu"
+import { ActionsMenu, renderActionIcon } from "@/components/actions/menu"
 import BalanceAvatar from "@/components/balance-avatar"
 import {
   SidebarMenu,

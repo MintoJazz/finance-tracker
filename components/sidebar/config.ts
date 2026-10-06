@@ -1,18 +1,18 @@
 import {
   ArrowRightIcon,
-  AudioLinesIcon,
   BadgeCheckIcon,
   BellIcon,
+  Calendar,
   CalendarClock,
   CreditCardIcon,
   FolderIcon,
-  GalleryVerticalEndIcon,
+  Handshake,
   Landmark,
   LogOutIcon,
   PlusIcon,
   SparklesIcon,
-  TerminalIcon,
   Trash2Icon,
+  UsersIcon,
 } from "lucide-react"
 import type {
   NavCollapsibleItem,
@@ -24,29 +24,10 @@ import type {
 
 export const sidebarConfig = {
   switcher: {
-    label: "Teams",
-    options: [
-      {
-        id: "acme-inc",
-        title: "Acme Inc",
-        subtitle: "Enterprise",
-        logo: GalleryVerticalEndIcon,
-      },
-      {
-        id: "acme-corp",
-        title: "Acme Corp.",
-        subtitle: "Startup",
-        logo: AudioLinesIcon,
-      },
-      {
-        id: "evil-corp",
-        title: "Evil Corp.",
-        subtitle: "Free",
-        logo: TerminalIcon,
-      },
-    ] satisfies SwitcherOption[],
+    label: "Espaços",
+    options: [] as SwitcherOption[],
     footerAction: {
-      label: "Add team",
+      label: "Novo Espaço",
       icon: PlusIcon,
     } satisfies SidebarAction,
   },
@@ -60,7 +41,7 @@ export const sidebarConfig = {
         icon: Landmark,
         isActive: true,
         items: [
-          { title: "Carteiras", url: "/" },
+          { title: "Carteiras", url: "/wallets" },
           { title: "Cartões", url: "/cards" },
           { title: "Reservas", url: "#" },
         ],
@@ -72,7 +53,7 @@ export const sidebarConfig = {
         isActive: true,
         items: [
           { title: "Compromissos", url: "#" },
-          { title: "Recorrências", url: "#" },
+          { title: "Contratos", url: "#" },
           { title: "Categorias", url: "#" }
         ],
       },
@@ -122,6 +103,13 @@ export const sidebarConfig = {
     },
   },
 
+  navSecondary: {
+    items: [
+      { title: "Meus Compromissos", url: "/commitments", icon: Calendar },
+      { title: "Solicitações", url: "#", icon: Handshake },
+      { title: "Amigos", url: "#", icon: UsersIcon },
+    ] satisfies NavOptionItem[],
+  },
   user: {
     profile: {
       name: "shadcn",

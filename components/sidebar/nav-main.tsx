@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ActionsMenu } from "@/components/actions-menu"
+import { ActionsMenu } from "@/components/actions/menu"
 import {
   Collapsible,
   CollapsibleContent,
