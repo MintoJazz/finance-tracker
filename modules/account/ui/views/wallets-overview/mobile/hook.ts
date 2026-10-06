@@ -8,10 +8,14 @@ import { useCrudModals } from "@/hooks/use-crud-modals";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { getWalletsAction } from "@/modules/account/ui/actions/get-wallets.action";
 import { toast } from "@/components/ui/toast";
+import { useArchiveRestore } from "@/hooks/use-archive-restore";
+
+import { archiveWalletAction } from "@/modules/account/ui/actions/archive-wallet.action";
+import { restoreWalletAction } from "@/modules/account/ui/actions/restore-wallet.action";
 
 export function useMobileWalletOverview(data: Page<WalletSummary>): MobileWalletOverviewProps {
     const { debouncedSearch, filterContext } = useOverviewFilters();
-    const { onAddClick, actionsMenuContext } = useCrudModals<WalletSummary>();
+    const { onAddClick, onDelete: _onDelete, ...routeActionsMenuContext } = useCrudModals<WalletSummary>();
 
     const {
         items,
@@ -47,6 +51,24 @@ export function useMobileWalletOverview(data: Page<WalletSummary>): MobileWallet
         },
     });
 
+    const { archiveContext, restoreContext, onArchive, onRestore } = useArchiveRestore<WalletSummary>({
+        find: (item) => items.find((w) => w.id === item.id),
+        onArchiveConfirm: async (wallet) => {
+            const result = await archiveWalletAction({ id: wallet.id });
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+        },
+        onRestoreConfirm: async (wallet) => {
+            const result = await restoreWalletAction({ id: wallet.id });
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+        },
+    });
+
+    const actionsMenuContext = { ...routeActionsMenuContext, onArchive, onRestore };
+
     return {
         items,
         total,
@@ -57,5 +79,7 @@ export function useMobileWalletOverview(data: Page<WalletSummary>): MobileWallet
         actionsMenuContext,
         filterContext,
         onAddClick,
+        archiveContext,
+        restoreContext,
     };
 }

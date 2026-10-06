@@ -12,4 +12,6 @@ export interface EditWalletModalProps {
     form: UseFormReturn<CreateWalletFormValues>;
     onSubmit: (data: CreateWalletFormValues) => void;
     onClose: () => void;
+    onOpenChangeComplete?: (open: boolean) => void;
 }
+

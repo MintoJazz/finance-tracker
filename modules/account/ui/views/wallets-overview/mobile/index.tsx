@@ -1,12 +1,18 @@
-"use client"
+"use client";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Toggle } from "@/components/ui/toggle";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from "@/components/ui/input-group";
 import { Loader2, Plus, Search } from "lucide-react";
 import WalletList from "../../../components/wallet-list";
 import { MobileWalletOverviewProps } from "../types";
+import { IncludeArchivedToggle } from "@/components/include-archived-toggle";
+import { ArchiveWalletModalViewMobile } from "../../archive-wallet-modal";
+import { RestoreWalletModalViewMobile } from "../../restore-wallet-modal";
 
 export default function WalletsOverviewViewMobile({
     items,
@@ -16,7 +22,9 @@ export default function WalletsOverviewViewMobile({
     sentinelRef,
     actionsMenuContext,
     filterContext,
-    onAddClick
+    onAddClick,
+    archiveContext,
+    restoreContext,
 }: MobileWalletOverviewProps) {
     const { searchProps, showArchived } = filterContext;
 
@@ -45,18 +53,13 @@ export default function WalletsOverviewViewMobile({
                         placeholder="Buscar por nome"
                     />
                 </InputGroup>
-
                 <div className="flex items-center justify-between">
-                    <Toggle
+                    <IncludeArchivedToggle
                         {...showArchived}
-                        aria-label="Incluir arquivadas"
-                        size="sm"
-                        variant="outline"
+                        label="Incluir arquivadas"
                         className="text-xs"
-                    >
-                        Incluir arquivadas
-                    </Toggle>
-
+                        iconClassName="size-3.5"
+                    />
                     <span className="text-xs text-muted-foreground tabular-nums">
                         {items.length} de {total}
                     </span>
@@ -87,6 +90,9 @@ export default function WalletsOverviewViewMobile({
                     Todas as carteiras foram carregadas
                 </p>
             )}
+
+            <ArchiveWalletModalViewMobile {...archiveContext} />
+            <RestoreWalletModalViewMobile {...restoreContext} />
         </div>
     );
 }

@@ -15,6 +15,7 @@ export default function EditWalletModalViewDesktop({
     form,
     onSubmit,
     onClose,
+    onOpenChangeComplete,
     isSubmitting,
 }: EditWalletModalProps) {
     return (
@@ -23,6 +24,7 @@ export default function EditWalletModalViewDesktop({
             onOpenChange={(open) => {
                 if (!open) onClose();
             }}
+            onOpenChangeComplete={onOpenChangeComplete}
         >
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>

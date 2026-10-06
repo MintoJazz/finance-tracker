@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +13,7 @@ export function useEditWalletModal(input?: EditWalletModalInput): EditWalletModa
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const hasNavigatedRef = useRef(false);
 
     const form = useForm<CreateWalletFormValues>({
         resolver: zodResolver(CreateWalletSchema),
@@ -22,10 +23,26 @@ export function useEditWalletModal(input?: EditWalletModalInput): EditWalletModa
         values: input?.defaultName !== undefined ? { name: input.defaultName } : undefined,
     });
 
-    const onClose = () => {
+    const navigateBack = useCallback(() => {
+        if (!hasNavigatedRef.current) {
+            hasNavigatedRef.current = true;
+            router.back();
+        }
+    }, [router]);
+
+    const onClose = useCallback(() => {
         setIsOpen(false);
-        router.back();
-    };
+        // Fallback para assegurar a navegação caso a animação não chame onOpenChangeComplete
+        setTimeout(() => {
+            navigateBack();
+        }, 300);
+    }, [navigateBack]);
+
+    const onOpenChangeComplete = useCallback((open: boolean) => {
+        if (!open) {
+            navigateBack();
+        }
+    }, [navigateBack]);
 
     const onSubmit = async (data: CreateWalletFormValues) => {
         if (!input?.id) {
@@ -46,6 +63,7 @@ export function useEditWalletModal(input?: EditWalletModalInput): EditWalletModa
             });
 
             if (!result.success) {
+                setIsSubmitting(false);
                 toast.add({
                     type: "error",
                     title: "Erro ao atualizar carteira",
@@ -61,10 +79,9 @@ export function useEditWalletModal(input?: EditWalletModalInput): EditWalletModa
                 description: `A carteira "${data.name}" foi atualizada com sucesso.`,
             });
 
-            setIsOpen(false);
-            router.back();
-            router.refresh();
+            onClose();
         } catch (error) {
+            setIsSubmitting(false);
             console.error("[useEditWalletModal] Falha ao atualizar carteira:", error);
             toast.add({
                 type: "error",
@@ -72,8 +89,6 @@ export function useEditWalletModal(input?: EditWalletModalInput): EditWalletModa
                 description: "Ocorreu um erro interno. Tente novamente mais tarde.",
                 priority: "high",
             });
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -83,5 +98,6 @@ export function useEditWalletModal(input?: EditWalletModalInput): EditWalletModa
         form,
         onSubmit,
         onClose,
+        onOpenChangeComplete,
     };
 }

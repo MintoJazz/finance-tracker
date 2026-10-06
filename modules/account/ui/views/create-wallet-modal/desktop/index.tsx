@@ -15,6 +15,7 @@ export default function CreateWalletModalViewDesktop({
     form,
     onSubmit,
     onClose,
+    onOpenChangeComplete,
     isSubmitting,
 }: CreateWalletModalProps) {
     return (
@@ -23,6 +24,7 @@ export default function CreateWalletModalViewDesktop({
             onOpenChange={(open) => {
                 if (!open) onClose();
             }}
+            onOpenChangeComplete={onOpenChangeComplete}
         >
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>

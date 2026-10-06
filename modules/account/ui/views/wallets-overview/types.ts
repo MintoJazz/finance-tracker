@@ -1,6 +1,8 @@
 import { Page } from "@/types/pagination.types";
-import { WalletActionContext } from "../../config/wallet-actions-menu";
 import { WalletSummary } from "@/modules/account/core/schemas/wallet.schema";
+import { ArchiveWalletModalProps } from "../archive-wallet-modal/types";
+import { RestoreWalletModalProps } from "../restore-wallet-modal/types";
+import { WalletActionContext } from "../../components/wallet-actions-drawer";
 
 export interface FilterContext {
     searchProps: { value: string; onValueChange: (val: string) => void };
@@ -18,6 +20,8 @@ export interface WalletOverviewProps {
     onAddClick: () => void;
     filterContext: FilterContext;
     paginationContext: PaginationContext;
+    archiveContext: ArchiveWalletModalProps;
+    restoreContext: RestoreWalletModalProps;
 }
 
 export interface MobileWalletOverviewProps {
@@ -30,4 +34,6 @@ export interface MobileWalletOverviewProps {
     actionsMenuContext: WalletActionContext;
     onAddClick: () => void;
     filterContext: FilterContext;
+    archiveContext: ArchiveWalletModalProps;
+    restoreContext: RestoreWalletModalProps;
 }

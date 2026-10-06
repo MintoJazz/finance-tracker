@@ -1,9 +1,9 @@
 import { WalletSummary } from "@/modules/account/core/schemas/wallet.schema";
-import { WALLET_ACTIONS, WalletActionContext } from "../../config/wallet-actions-menu";
 import { WALLET_COLUMNS } from "./columns";
 import { DataTable } from "@/components/data-table";
 import { Page } from "@/types/pagination.types";
 import EmptyWalletTable from "./empty";
+import { WalletActionContext, WALLET_ACTIONS } from "../wallet-actions-drawer";
 
 interface Props {
     data: Page<WalletSummary>;
@@ -25,6 +25,7 @@ export default function WalletTable({ data, actionContext, setPage, setPageSize 
             manualPagination
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
+            onRowClick={actionContext.onView ? (row) => actionContext.onView?.(row.original) : undefined}
         />
     );
 }
