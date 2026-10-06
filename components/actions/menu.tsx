@@ -56,10 +56,12 @@ export function DataTableRowActions<
   sideOffset = 4,
   contentClassName,
 }: DataTableRowActionsProps<TData, TContext>) {
-  const normalizedRow: RowLike<TData> =
-    row && typeof row === "object" && "original" in row
+  const normalizedRow = React.useMemo(() => {
+    if (!row) return undefined
+    return typeof row === "object" && "original" in row
       ? (row as RowLike<TData>)
       : ({ original: row as TData } as RowLike<TData>)
+  }, [row])
 
   const rawGroups = React.useMemo(() => {
     if (actionGroups && actionGroups.length > 0) return actionGroups
@@ -68,12 +70,14 @@ export function DataTableRowActions<
   }, [actionGroups, actions])
 
   const visibleGroups = React.useMemo(
-    () =>
-      rawGroups
+    () => {
+      if (!normalizedRow) return []
+      return rawGroups
         .map((group) =>
           group.filter((action) => !action.hidden?.(normalizedRow, context))
         )
-        .filter((group) => group.length > 0),
+        .filter((group) => group.length > 0)
+    },
     [rawGroups, normalizedRow, context]
   )
 
@@ -126,7 +130,7 @@ export function DataTableRowActions<
                   actionIndex > 0
                 const isDisabled =
                   typeof action.disabled === "function"
-                    ? action.disabled(normalizedRow, context)
+                    ? action.disabled(normalizedRow!, context)
                     : action.disabled
 
                 return (
@@ -139,8 +143,8 @@ export function DataTableRowActions<
                         action.href ? <Link href={action.href} /> : undefined
                       }
                       onClick={() => {
-                        action.onClick?.(normalizedRow, context as TContext)
-                        onAction?.(action, normalizedRow, context)
+                        action.onClick?.(normalizedRow!, context as TContext)
+                        onAction?.(action, normalizedRow!, context)
                       }}
                       className={
                         action.variant === "destructive"

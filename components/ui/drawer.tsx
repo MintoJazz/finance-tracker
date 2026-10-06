@@ -1,64 +1,17 @@
 "use client"
 
 import * as React from "react"
-import { createPortal } from "react-dom"
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer"
 import { cn } from "cn"
-
-type SnapPoint = number | string | null
 
 type DrawerContextProps = {
   hasSnapPoints: boolean
   modal: DrawerPrimitive.Root.Props["modal"]
   showSwipeHandle: boolean
   swipeDirection: NonNullable<DrawerPrimitive.Root.Props["swipeDirection"]>
-  expandForKeyboard: () => void
 }
 
 const DrawerContext = React.createContext<DrawerContextProps | null>(null)
-
-
-// ---- TEMPORÁRIO: remover depois de validar no aparelho ----
-function DebugVars() {
-  const anchorRef = React.useRef<HTMLSpanElement>(null)
-  const [text, setText] = React.useState("")
-
-  React.useEffect(() => {
-    const popup = anchorRef.current?.closest(
-      "[data-slot=drawer-popup]"
-    ) as HTMLElement | null
-    if (!popup) return
-    const read = () => {
-      const cs = getComputedStyle(popup)
-      const r = popup.getBoundingClientRect()
-      setText(
-        [
-          `kb-inset: ${cs.getPropertyValue("--drawer-keyboard-inset")}`,
-          `snap-offset: ${cs.getPropertyValue("--drawer-snap-point-offset")}`,
-          `snap-points: ${popup.hasAttribute("data-snap-points")} expanded: ${popup.hasAttribute("data-expanded")}`,
-          `popup top/bottom/h: ${Math.round(r.top)}/${Math.round(r.bottom)}/${Math.round(r.height)}`,
-          `innerHeight: ${window.innerHeight} vv: ${Math.round(window.visualViewport?.height ?? 0)}`,
-        ].join("\n")
-      )
-    }
-    read()
-    const id = window.setInterval(read, 300)
-    return () => window.clearInterval(id)
-  }, [])
-
-  return (
-    <>
-      <span ref={anchorRef} />
-      {createPortal(
-        <pre className="pointer-events-none fixed top-14 left-0 z-[999] bg-black/80 p-1 text-[10px] leading-tight text-green-400">
-          {text}
-        </pre>,
-        document.body
-      )}
-    </>
-  )
-}
-// ---- fim do trecho temporário ----
 
 function useDrawer() {
   const context = React.useContext(DrawerContext)
@@ -70,74 +23,19 @@ function useDrawer() {
   return context
 }
 
-const NON_TEXT_INPUT_TYPES = [
-  "checkbox",
-  "radio",
-  "button",
-  "submit",
-  "reset",
-  "range",
-  "file",
-  "color",
-]
-
-function isTextField(target: EventTarget) {
-  if (target instanceof HTMLTextAreaElement) return true
-  if (target instanceof HTMLInputElement) {
-    return !NON_TEXT_INPUT_TYPES.includes(target.type)
-  }
-  return target instanceof HTMLElement && target.isContentEditable
-}
-
 function Drawer({
   modal = true,
   showSwipeHandle = false,
   snapPoints,
-  snapPoint: snapPointProp,
-  onSnapPointChange,
-  onOpenChangeComplete,
-  keyboardSnapPoint,
   swipeDirection = "down",
   ...props
 }: DrawerPrimitive.Root.Props & {
   showSwipeHandle?: boolean
-  /**
-   * Snap point usado quando um campo de texto recebe foco.
-   * Padrão: o último item de `snapPoints`.
-   * Só tem efeito quando `snapPoint` não é controlado pela tela.
-   */
-  keyboardSnapPoint?: number | string
 }) {
   const hasSnapPoints = snapPoints != null && snapPoints.length > 0
-  const initialSnap: SnapPoint = snapPoints?.[0] ?? null
-  const targetSnap: SnapPoint =
-    keyboardSnapPoint ?? snapPoints?.[snapPoints.length - 1] ?? null
-
-  const [internalSnap, setInternalSnap] = React.useState<SnapPoint>(initialSnap)
-  const isControlled = snapPointProp !== undefined
-  const snapPoint = isControlled ? snapPointProp : internalSnap
-
-  const expandForKeyboard = React.useCallback(() => {
-    if (!hasSnapPoints || isControlled || targetSnap == null) return
-    setInternalSnap(targetSnap)
-  }, [hasSnapPoints, isControlled, targetSnap])
-
-  const handleSnapPointChange: NonNullable<
-    DrawerPrimitive.Root.Props["onSnapPointChange"]
-  > = (value, details) => {
-    if (!isControlled) setInternalSnap(value)
-    onSnapPointChange?.(value, details)
-  }
-
   const contextValue = React.useMemo(
-    () => ({
-      hasSnapPoints,
-      modal,
-      showSwipeHandle,
-      swipeDirection,
-      expandForKeyboard,
-    }),
-    [hasSnapPoints, modal, showSwipeHandle, swipeDirection, expandForKeyboard]
+    () => ({ hasSnapPoints, modal, showSwipeHandle, swipeDirection }),
+    [hasSnapPoints, modal, showSwipeHandle, swipeDirection]
   )
 
   return (
@@ -147,15 +45,6 @@ function Drawer({
         modal={modal}
         snapPoints={snapPoints}
         swipeDirection={swipeDirection}
-        {...(hasSnapPoints && {
-          snapPoint,
-          onSnapPointChange: handleSnapPointChange,
-        })}
-        onOpenChangeComplete={(open) => {
-          // Ao fechar, volta ao snap inicial para a próxima abertura.
-          if (!open && !isControlled) setInternalSnap(initialSnap)
-          onOpenChangeComplete?.(open)
-        }}
         {...props}
       />
     </DrawerContext.Provider>
@@ -166,15 +55,8 @@ function DrawerTrigger({ ...props }: DrawerPrimitive.Trigger.Props) {
   return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />
 }
 
-function DrawerPortal({ children, ...props }: DrawerPrimitive.Portal.Props) {
-  return (
-    <DrawerPrimitive.Portal data-slot="drawer-portal" {...props}>
-      {/* Expõe --drawer-keyboard-inset (altura do teclado virtual). */}
-      <DrawerPrimitive.VirtualKeyboardProvider>
-        {children}
-      </DrawerPrimitive.VirtualKeyboardProvider>
-    </DrawerPrimitive.Portal>
-  )
+function DrawerPortal({ ...props }: DrawerPrimitive.Portal.Props) {
+  return <DrawerPrimitive.Portal data-slot="drawer-portal" {...props} />
 }
 
 function DrawerClose({ ...props }: DrawerPrimitive.Close.Props) {
@@ -217,16 +99,9 @@ function DrawerSwipeHandle({
 function DrawerContent({
   className,
   children,
-  onFocus,
   ...props
 }: DrawerPrimitive.Popup.Props) {
-  const {
-    hasSnapPoints,
-    modal,
-    showSwipeHandle,
-    swipeDirection,
-    expandForKeyboard,
-  } = useDrawer()
+  const { hasSnapPoints, modal, showSwipeHandle, swipeDirection } = useDrawer()
   const swipeAxis =
     swipeDirection === "down" || swipeDirection === "up" ? "y" : "x"
 
@@ -244,10 +119,6 @@ function DrawerContent({
           data-slot="drawer-popup"
           data-swipe-axis={swipeAxis}
           data-snap-points={hasSnapPoints ? "" : undefined}
-          onFocus={(event) => {
-            if (isTextField(event.target)) expandForKeyboard()
-            onFocus?.(event)
-          }}
           className={cn(
             // Base.
             "group/drawer-popup pointer-events-auto fixed z-50 m-(--drawer-inset,0px) flex h-(--drawer-content-height) max-h-(--drawer-content-max-height,none) min-h-0 w-(--drawer-content-width,auto) transform-[translate3d(var(--translate-x,0px),var(--translate-y,0px),0)_scale(var(--stack-scale))] flex-col rounded-[min(var(--radius-4xl),24px)] border border-popover bg-popover text-sm text-popover-foreground shadow-xl transition-[transform,height,opacity,filter] duration-450 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform outline-none select-none [--drawer-bleed-background:transparent] [--drawer-inset:--spacing(2)] [--drawer-stacked-shadow:0_-20px_25px_-5px_rgb(0_0_0/0.1),0_-8px_10px_-6px_rgb(0_0_0/0.1)] [interpolate-size:allow-keywords] data-[swipe-direction=down]:data-nested-drawer-open:shadow-(--drawer-stacked-shadow) dark:border-border",
@@ -256,7 +127,7 @@ function DrawerContent({
             // Bleed.
             "after:pointer-events-none after:absolute after:bg-(--drawer-bleed-background,var(--color-popover)) data-[swipe-axis=x]:after:inset-y-0 data-[swipe-axis=x]:after:w-(--bleed) data-[swipe-axis=y]:after:inset-x-0 data-[swipe-axis=y]:after:h-(--bleed) data-[swipe-direction=down]:after:top-full data-[swipe-direction=left]:after:right-full data-[swipe-direction=right]:after:left-full data-[swipe-direction=up]:after:bottom-full",
             // Sizing.
-            "[--drawer-content-height:var(--drawer-height,auto)] data-[swipe-axis=x]:[--drawer-content-width:75%] data-[swipe-axis=y]:[--drawer-content-max-height:max(calc(100dvh-6rem),26rem)] data-[swipe-axis=y]:data-snap-points:[--drawer-content-height:100dvh] data-[swipe-axis=x]:sm:[--drawer-content-width:24rem]",
+            "[--drawer-content-height:var(--drawer-height,auto)] data-[swipe-axis=x]:[--drawer-content-width:75%] data-[swipe-axis=y]:[--drawer-content-max-height:calc(100dvh-6rem)] data-[swipe-axis=y]:data-snap-points:[--drawer-content-height:100dvh] data-[swipe-axis=x]:sm:[--drawer-content-width:24rem]",
             // Stack.
             "[--bleed:3rem] [--peek:1rem] [--stack-height:var(--drawer-frontmost-height,var(--drawer-height,0px))] [--stack-peek-offset:max(0px,calc((var(--nested-drawers)-var(--stack-progress))*var(--peek)))] [--stack-progress:clamp(0,var(--drawer-swipe-progress),1)] [--stack-scale-base:max(0,calc(1-(var(--nested-drawers)*var(--stack-step))))] [--stack-scale:clamp(0,calc(var(--stack-scale-base)+(var(--stack-step)*var(--stack-progress))),1)] [--stack-shrink:calc(1-var(--stack-scale))] [--stack-step:0.05]",
             // Transitions.
@@ -265,8 +136,8 @@ function DrawerContent({
             "data-[swipe-axis=y]:inset-x-0 data-[swipe-axis=y]:data-nested-drawer-open:h-(--stack-height)",
             // Axis: x.
             "data-[swipe-axis=x]:inset-y-0 data-[swipe-axis=x]:flex-row",
-            // Direction: down (sobe pela altura do teclado virtual).
-            "data-[swipe-direction=down]:bottom-(--drawer-keyboard-inset,0px) data-[swipe-direction=down]:origin-bottom data-[swipe-direction=down]:[--closed-transform:translate3d(0,calc(100%+var(--drawer-inset,0px)+2px),0)] data-[swipe-direction=down]:[--translate-y:calc(var(--drawer-snap-point-offset,0px)+var(--drawer-swipe-movement-y)-var(--stack-peek-offset)-(var(--stack-shrink)*var(--stack-height)))]",
+            // Direction: down.
+            "data-[swipe-direction=down]:bottom-0 data-[swipe-direction=down]:origin-bottom data-[swipe-direction=down]:[--closed-transform:translate3d(0,calc(100%+var(--drawer-inset,0px)+2px),0)] data-[swipe-direction=down]:[--translate-y:calc(var(--drawer-snap-point-offset,0px)+var(--drawer-swipe-movement-y)-var(--stack-peek-offset)-(var(--stack-shrink)*var(--stack-height)))]",
             // Direction: up.
             "data-[swipe-direction=up]:top-0 data-[swipe-direction=up]:origin-top data-[swipe-direction=up]:[--closed-transform:translate3d(0,calc(-100%-var(--drawer-inset,0px)-2px),0)] data-[swipe-direction=up]:[--translate-y:calc(var(--drawer-snap-point-offset,0px)+var(--drawer-swipe-movement-y)+var(--stack-peek-offset)+(var(--stack-shrink)*var(--stack-height)))]",
             // Direction: left.
@@ -284,7 +155,6 @@ function DrawerContent({
               "flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain rounded-[inherit] transition-opacity duration-300 ease-[cubic-bezier(0.45,1.005,0,1.005)] select-text group-data-nested-drawer-open/drawer-popup:opacity-0 group-data-nested-drawer-swiping/drawer-popup:opacity-100 group-data-swiping/drawer-popup:select-none"
             )}
           >
-            <DebugVars />
             {children}
           </DrawerPrimitive.Content>
         </DrawerPrimitive.Popup>
@@ -299,21 +169,6 @@ function DrawerHeader({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="drawer-header"
       className={cn(
         "flex shrink-0 flex-col gap-0.5 p-4 pb-0 group-data-[swipe-axis=y]/drawer-popup:text-center md:gap-1.5 md:text-left",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function DrawerBody({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="drawer-body"
-      className={cn(
-        "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4",
-        // Com snap points: só rola no snap cheio, para não brigar com o swipe.
-        "group-data-snap-points/drawer-popup:overflow-hidden group-data-snap-points/drawer-popup:group-data-expanded/drawer-popup:overflow-y-auto",
         className
       )}
       {...props}
@@ -366,7 +221,6 @@ export {
   DrawerClose,
   DrawerContent,
   DrawerHeader,
-  DrawerBody,
   DrawerFooter,
   DrawerTitle,
   DrawerDescription,
