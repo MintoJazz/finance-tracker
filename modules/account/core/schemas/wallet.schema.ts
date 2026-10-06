@@ -1,5 +1,14 @@
 import z from "zod";
 
+export const WalletEntitySchema = z.object({
+    id: z.number().int().positive(),
+    name: z.string().min(1),
+    contextId: z.number().int().positive(),
+    isArchived: z.boolean(),
+});
+
+export type WalletEntity = z.infer<typeof WalletEntitySchema>;
+
 export const WalletSummarySchema = z.object({
     id: z.number(),
     name: z.string(),
@@ -30,3 +39,15 @@ export const UpdateWalletSchema = z.object({
 });
 
 export type UpdateWalletInput = z.infer<typeof UpdateWalletSchema>;
+
+export const ArchiveWalletSchema = z.object({
+    id: z.number().int().positive("ID da carteira inválido"),
+});
+
+export type ArchiveWalletInput = z.infer<typeof ArchiveWalletSchema>;
+
+export const RestoreWalletSchema = z.object({
+    id: z.number().int().positive("ID da carteira inválido"),
+});
+
+export type RestoreWalletInput = z.infer<typeof RestoreWalletSchema>;
