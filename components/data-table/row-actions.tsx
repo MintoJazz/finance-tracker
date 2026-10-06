@@ -1,8 +1,9 @@
+// components/data-table/row-actions.tsx
 "use client"
 
+import * as React from "react"
 import type { Row } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -13,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
 import type { RowAction } from "./types"
 
 interface DataTableRowActionsProps<TData, TContext> {
@@ -28,7 +28,6 @@ export function DataTableRowActions<TData, TContext>({
   context,
 }: DataTableRowActionsProps<TData, TContext>) {
   const visibleActions = actions.filter((action) => !action.hidden?.(row, context))
-
   if (!visibleActions.length) return null
 
   return (
@@ -39,13 +38,18 @@ export function DataTableRowActions<TData, TContext>({
             variant="ghost"
             className="h-8 w-8 p-0"
             onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
           />
         }
       >
         <span className="sr-only">Abrir menu</span>
         <MoreHorizontal className="h-4 w-4" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent
+        align="end"
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <DropdownMenuGroup>
           <DropdownMenuLabel>Ações</DropdownMenuLabel>
         </DropdownMenuGroup>
@@ -61,13 +65,15 @@ export function DataTableRowActions<TData, TContext>({
                 }}
                 className={action.variant === "destructive" ? "text-destructive focus:text-destructive" : ""}
               >
-                {typeof action.icon === "function" ? (
-                  (() => {
-                    const IconComponent = action.icon
-                    return <IconComponent className="mr-2 h-4 w-4" />
-                  })()
-                ) : action.icon ? (
-                  <span className="mr-2">{action.icon as React.ReactNode}</span>
+                {action.icon ? (
+                  React.isValidElement(action.icon) ? (
+                    <span className="mr-2">{action.icon}</span>
+                  ) : (
+                    (() => {
+                      const IconComponent = action.icon as React.ElementType
+                      return <IconComponent className="mr-2 h-4 w-4" />
+                    })()
+                  )
                 ) : null}
                 {action.label}
               </DropdownMenuItem>

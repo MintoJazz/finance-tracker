@@ -1,7 +1,7 @@
+// components/data-table/columns.tsx
 "use client"
 
 import type { ColumnDef } from "@tanstack/react-table"
-
 import { DataTableRowActions } from "./row-actions"
 import { SelectAllCheckbox, SelectRowCheckbox } from "./selection"
 import type { RowAction } from "./types"
@@ -32,11 +32,18 @@ export function getActionsColumn<TData, TContext>(
     },
     header: () => <span className="sr-only">Ações</span>,
     cell: ({ row }) => (
-      <DataTableRowActions
-        row={row}
-        actions={rowActions}
-        context={actionContext}
-      />
+      <div
+        role="presentation"
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <DataTableRowActions
+          row={row}
+          actions={rowActions}
+          context={actionContext}
+        />
+      </div>
     ),
     enableSorting: false,
     enableHiding: false,
