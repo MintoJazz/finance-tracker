@@ -11,7 +11,8 @@
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test 'modules/**/*.spec.ts'",
-    "db:seed": "tsx prisma/seed/index.ts"
+    "db:seed": "tsx prisma/seed/index.ts",
+    "minio:up": "docker compose up -d minio"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1145.0",
@@ -26,6 +27,7 @@
     "cn": "^0.4.0",
     "date-fns": "^4.4.0",
     "dotenv": "^18.0.4",
+    "embla-carousel-react": "^8.6.0",
     "jose": "^6.2.12",
     "lucide-react": "^1.48.0",
     "next": "16.3.4",
