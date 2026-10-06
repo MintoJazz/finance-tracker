@@ -48,7 +48,9 @@ export type DataFormProps<
 > = ContextProp<TContext> & {
   id: string
   form: UseFormReturn<TForm>
-  fields: FormField<TForm, TContext>[]
+  fields:
+    | FormField<TForm, TContext>[]
+    | ((context: TContext) => FormField<TForm, TContext>[])
   /** Layout padrão aplicado aos campos do formulário (padrão: VerticalLayout) */
   layout?: ComponentType<FieldLayoutProps>
   submitText?: string

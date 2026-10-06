@@ -22,4 +22,21 @@ export {
   type AttachmentInputProps,
   type AttachmentInputValue,
 } from "@/components/form/attachment"
+export {
+  DateRangePicker,
+  type DateRangePickerProps,
+} from "@/components/form/date-picker/date-range"
+export {
+  BadgeCarousel,
+  BadgeCarouselContent,
+  BadgeCarouselControls,
+  BadgeCarouselLeft,
+  BadgeCarouselRight,
+  BadgeCarouselButtonLeft,
+  BadgeCarouselButtonRight,
+  CarouselSelect,
+  useBadgeCarousel,
+  type BadgeCarouselProps,
+  type CarouselOption,
+} from "@/components/form/carousel"
 export { DataForm, ObjectForm, DataFormFields } from "@/components/form/data-form"

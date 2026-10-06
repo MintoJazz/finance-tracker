@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import type { FieldValues } from "react-hook-form"
 import { Form } from "@/components/form/form-component"
 import type { DataFormProps } from "@/types/form.types"
@@ -22,6 +23,22 @@ export function DataForm<
   onError,
   onSubmit,
 }: DataFormProps<TForm, TContext>) {
+  const resolvedFields = useMemo(
+    () => (typeof fields === "function" ? fields(context as TContext) : fields),
+    [fields, context]
+  )
+
+  const renderedFields = useMemo(
+    () => (
+      <DataFormFields
+        fields={resolvedFields}
+        context={context}
+        layout={layout}
+      />
+    ),
+    [resolvedFields, context, layout]
+  )
+
   return (
     <Form
       id={id}
@@ -33,7 +50,7 @@ export function DataForm<
       className={className}
       contentClassName={contentClassName}
     >
-      <DataFormFields fields={fields} context={context} layout={layout} />
+      {renderedFields}
       {children}
     </Form>
   )
