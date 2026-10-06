@@ -1,0 +1,13 @@
+interface Props {
+    children: React.ReactNode;
+    modal: React.ReactNode;
+}
+
+export default function CardProfileLayout({ children, modal }: Props) {
+    return (
+        <>
+            {children}
+            {modal}
+        </>
+    );
+}

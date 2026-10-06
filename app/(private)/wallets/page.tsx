@@ -15,7 +15,8 @@ export default async function Page(props: Props) {
     const session = await SessionHandler.getSession();
     if (!session) redirect("/login");
 
-    const { page, pageSize, search, showArchived } = await props.searchParams;
+    const searchParams = await props.searchParams;
+    const { page, pageSize, search, showArchived } = searchParams;
 
     const pageRequest: PageRequest = { page, pageSize };
     const filter = BaseFilterSchema.parse({ search, showArchived });
