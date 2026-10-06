@@ -1,4 +1,5 @@
 import { GetSpaceAccessUseCase } from "@/modules/space/core/use-case/get-acess.use-case";
+import { ISpaceAccessProvider } from "@/modules/storage/core/types/space-access-provider.interface";
 import { IContextMemberRepository } from "@/modules/space/core/types/context-member-repository.interface";
 import { PrismaContextMembersRepository } from "@/modules/space/infra/repositories/context-members-prisma.repository";
 import { IAttachmentRepository } from "../../core/types/attachment-repository.interface";
@@ -15,7 +16,7 @@ export class StorageFactory {
   private static readonly fileStorage: IFileStorage = new S3FileStorage();
   private static readonly memberRepository: IContextMemberRepository =
     new PrismaContextMembersRepository();
-  private static readonly getSpaceAccessUseCase = new GetSpaceAccessUseCase(
+  private static readonly spaceAccessProvider: ISpaceAccessProvider = new GetSpaceAccessUseCase(
     this.memberRepository
   );
 
@@ -25,7 +26,7 @@ export class StorageFactory {
     new RequestUploadUseCase(
       this.attachmentRepository,
       this.fileStorage,
-      this.getSpaceAccessUseCase
+      this.spaceAccessProvider
     );
 
   public static readonly makeConfirmUpload = () =>

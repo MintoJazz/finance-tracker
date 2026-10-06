@@ -1,5 +1,5 @@
 import { failure, success, Result } from "@/types/result.types";
-import { GetSpaceAccessUseCase } from "@/modules/space/core/use-case/get-acess.use-case";
+import { ISpaceAccessProvider } from "../types/space-access-provider.interface";
 import {
   RequestUploadInput,
   RequestUploadSchema,
@@ -26,7 +26,7 @@ export class RequestUploadUseCase {
   constructor(
     private readonly attachmentRepository: IAttachmentRepository,
     private readonly fileStorage: IFileStorage,
-    private readonly getSpaceAccess: GetSpaceAccessUseCase
+    private readonly getSpaceAccess: ISpaceAccessProvider
   ) {}
 
   async execute({
