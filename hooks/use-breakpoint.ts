@@ -1,29 +1,34 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react";
 
 export function useMediaQuery(query: string): boolean {
-    const [matches, setMatches] = useState(false)
-
-    useEffect(() => {
-        const media = window.matchMedia(query)
-        setMatches(media.matches)
-
-        const listener = (event: MediaQueryListEvent) => {
-            setMatches(event.matches)
+    const subscribe = (callback: () => void) => {
+        if (typeof window === "undefined") {
+            return () => {};
         }
 
-        media.addEventListener("change", listener)
-        return () => media.removeEventListener("change", listener)
-    }, [query])
+        const media = window.matchMedia(query);
+        media.addEventListener("change", callback);
+        return () => media.removeEventListener("change", callback);
+    };
 
-    return matches
+    const getSnapshot = () => {
+        if (typeof window === "undefined") {
+            return false;
+        }
+        return window.matchMedia(query).matches;
+    };
+
+    const getServerSnapshot = () => false;
+
+    return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 export function useIsDesktop(breakpoint = "(min-width: 768px)"): boolean {
-    return useMediaQuery(breakpoint)
+    return useMediaQuery(breakpoint);
 }
 
 export function useIsMobile(breakpoint = "(min-width: 768px)"): boolean {
-    return !useIsDesktop(breakpoint)
+    return !useIsDesktop(breakpoint);
 }

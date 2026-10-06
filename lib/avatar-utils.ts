@@ -24,3 +24,32 @@ export function getInitials(name: string): string {
 }
 
 export const getBalanceColorStyle = getHashColorStyle;
+
+export interface WalletHashColors {
+    hue: number;
+    cardBg: string;
+    cardGradient: string;
+    quickActionBg: string;
+    quickActionBorder: string;
+    quickActionHoverBg: string;
+    accentColor: string;
+}
+
+export function getWalletHashColors(name: string): WalletHashColors {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = Math.trunc((name.codePointAt(i) ?? 0) + ((hash << 5) - hash));
+    }
+
+    const hue = Math.abs(hash) % 360;
+
+    return {
+        hue,
+        cardBg: `oklch(0.64 0.22 ${hue})`,
+        cardGradient: `linear-gradient(135deg, oklch(0.66 0.24 ${hue}) 0%, oklch(0.56 0.20 ${hue}) 100%)`,
+        quickActionBg: `oklch(0.65 0.18 ${hue} / 0.08)`,
+        quickActionBorder: `oklch(0.65 0.18 ${hue} / 0.18)`,
+        quickActionHoverBg: `oklch(0.65 0.18 ${hue} / 0.15)`,
+        accentColor: `oklch(0.60 0.20 ${hue})`,
+    };
+}

@@ -1,14 +1,13 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useSyncExternalStore } from "react";
+
+const emptySubscribe = () => () => {};
 
 export function useMounted() {
-    const [isMounted, setIsMounted] = useState(false)
-
-    useEffect(() => {
-        const timeoutId = setTimeout(() => setIsMounted(true), 0)
-        return () => clearTimeout(timeoutId)
-    }, [])
-
-    return isMounted
+    return useSyncExternalStore(
+        emptySubscribe,
+        () => true,
+        () => false
+    );
 }

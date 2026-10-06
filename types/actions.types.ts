@@ -17,6 +17,8 @@ export interface RowAction<TData extends RowData = any, TContext = any> {
   variant?: "default" | "destructive"
   separator?: boolean
   separatorBefore?: boolean
+  confirmTitle?: string
+  confirmDescription?: string
 }
 
 export type ActionRow<TData extends RowData = any, TContext = any> = RowAction<
