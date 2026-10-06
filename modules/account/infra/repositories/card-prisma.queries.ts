@@ -1,7 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { BaseFilter } from "@/types/filters.types";
-import { ICardQueries } from "@/modules/account/core/types/card-queries.interface";
-import { BalanceInclude, BalanceWhereInput, StringFilter } from "@/prisma/generated/prisma/models";
+import {
+    CardEditData,
+    ICardQueries,
+} from "@/modules/account/core/types/card-queries.interface";
+import {
+    BalanceInclude,
+    BalanceWhereInput,
+    StringFilter,
+} from "@/prisma/generated/prisma/models";
 import { PageRequest, Page } from "@/types/pagination.types";
 import { CardMapper } from "../mappers/card.mapper";
 import { CardSummary } from "@/modules/account/core/schemas/card.schema";
@@ -17,10 +24,7 @@ export class CardPrismaQueries implements ICardQueries {
             },
         },
         limitEntries: {
-            orderBy: [
-                { effectiveAt: "desc" },
-                { id: "desc" },
-            ],
+            orderBy: [{ effectiveAt: "desc" }, { id: "desc" }],
             take: 1,
         },
         movements: {
@@ -54,15 +58,21 @@ export class CardPrismaQueries implements ICardQueries {
         };
 
         if (search) {
-            const name: StringFilter<"Balance"> = { contains: search, mode: "insensitive" };
+            const name: StringFilter<"Balance"> = {
+                contains: search,
+                mode: "insensitive",
+            };
             where.OR = [{ name }];
         }
 
         const rawPage = Number(pageRequest.page);
         const rawPageSize = Number(pageRequest.pageSize);
-
         const page = !Number.isNaN(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
-        const pageSize = !Number.isNaN(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : 10;
+        const pageSize =
+            !Number.isNaN(rawPageSize) && rawPageSize > 0
+                ? Math.floor(rawPageSize)
+                : 10;
+
         const skip = (page - 1) * pageSize;
         const take = pageSize;
 
@@ -71,7 +81,9 @@ export class CardPrismaQueries implements ICardQueries {
             prisma.balance.count({ where }),
         ]);
 
-        const usedLimitByBalanceId = await this.sumAmountsByBalance(rawItems.map((b) => b.id));
+        const usedLimitByBalanceId = await this.sumAmountsByBalance(
+            rawItems.map((b) => b.id)
+        );
 
         const items: CardSummary[] = rawItems.map((balance) =>
             CardMapper.toSummary(balance, usedLimitByBalanceId.get(balance.id) ?? 0)
@@ -86,7 +98,49 @@ export class CardPrismaQueries implements ICardQueries {
         };
     }
 
-    private async sumAmountsByBalance(balanceIds: number[]): Promise<Map<number, number>> {
+    async findCardById(
+        id: number,
+        contextId: number
+    ): Promise<CardEditData | null> {
+        const card = await prisma.balance.findFirst({
+            where: {
+                id,
+                contextId,
+                balanceType: "CREDIT",
+            },
+            include: {
+                recurrence: {
+                    include: {
+                        rules: {
+                            orderBy: { effectiveFrom: "desc" },
+                            take: 1,
+                        },
+                    },
+                },
+                limitEntries: {
+                    orderBy: [{ effectiveAt: "desc" }, { id: "desc" }],
+                    take: 1,
+                },
+            },
+        });
+
+        if (!card) return null;
+
+        const currentRule = card.recurrence?.rules?.[0];
+        const limit = card.limitEntries?.[0]?.amount ?? 0;
+
+        return {
+            id: card.id,
+            name: card.name,
+            limit,
+            closingDay: currentRule?.closingDay ?? 1,
+            dueDay: currentRule?.dueDay ?? 10,
+        };
+    }
+
+    private async sumAmountsByBalance(
+        balanceIds: number[]
+    ): Promise<Map<number, number>> {
         if (balanceIds.length === 0) return new Map();
 
         const sums = await prisma.movement.groupBy({
@@ -95,6 +149,8 @@ export class CardPrismaQueries implements ICardQueries {
             _sum: { amount: true },
         });
 
-        return new Map(sums.map((s) => [s.balanceId as number, s._sum.amount ?? 0]));
+        return new Map(
+            sums.map((s) => [s.balanceId as number, s._sum.amount ?? 0])
+        );
     }
 }
