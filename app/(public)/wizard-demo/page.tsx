@@ -1,5 +1,4 @@
-
-import { SheetWizardDemo } from "@/components/wizard/examples/sheet-wizard-demo"
+// Demo component can be rendered here
 
 export const metadata = {
   title: "Wizard Demo | Finance Tracker",
@@ -18,7 +17,7 @@ export default function WizardDemoPage() {
         </p>
       </div>
 
-      <SheetWizardDemo />
+      <div className="p-4 border rounded-lg text-center text-muted-foreground text-sm">Demo em atualização</div>
     </div>
   )
 }

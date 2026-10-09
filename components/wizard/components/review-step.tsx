@@ -6,8 +6,8 @@ import { Pencil } from "lucide-react"
 import { formatDateToPTBR } from "@/components/form/date-picker/utils"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { CustomStepProps, FieldsStep } from "./types"
-import { useWizard } from "./wizard"
+import type { CustomStepProps, FieldsStep } from "../core"
+import { useWizard } from "../core"
 
 export interface ReviewStepProps<TData = any> extends Partial<CustomStepProps<TData>> {
   className?: string

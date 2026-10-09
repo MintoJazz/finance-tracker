@@ -5,8 +5,7 @@ import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useWizard } from "./wizard"
-import { wizardFormId } from "./wizard-form-id"
+import { useWizard, wizardFormId } from "../core"
 
 export interface WizardBackProps extends React.ComponentProps<typeof Button> {
   children?: React.ReactNode

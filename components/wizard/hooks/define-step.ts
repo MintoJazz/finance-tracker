@@ -3,7 +3,7 @@ import type { FieldValues } from "react-hook-form"
 import type { z } from "zod"
 import type { FieldLayoutProps } from "@/components/form/field-layouts"
 import type { FormField } from "@/types/form.types"
-import type { CustomStep, CustomStepProps, FieldsStep } from "./types"
+import type { CustomStep, CustomStepProps, FieldsStep } from "../core"
 
 export interface DefineStepOptions<
   TSchema extends z.ZodType<FieldValues, any, any>,

@@ -13,12 +13,14 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
-import type { WizardProps } from "./types"
-import { Wizard } from "./wizard"
-import { WizardActions } from "./wizard-actions"
-import { WizardProgress } from "./wizard-progress"
-import { WizardStepContent } from "./wizard-step-content"
-import { WizardStepper } from "./wizard-stepper"
+import type { WizardProps } from "../core"
+import { Wizard } from "../core"
+import {
+  WizardActions,
+  WizardProgress,
+  WizardStepContent,
+  WizardStepper,
+} from "../components"
 
 export interface WizardSheetProps<TData = any> extends WizardProps<TData> {
   /** Elemento que dispara a abertura do Sheet (opcional se controlado por `open`) */

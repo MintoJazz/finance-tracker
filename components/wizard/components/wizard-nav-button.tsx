@@ -5,7 +5,7 @@ import { ArrowLeft, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useWizard } from "./wizard"
+import { useWizard } from "../core"
 
 export interface WizardNavButtonProps extends React.ComponentProps<typeof Button> {
   /** Callback executado ao fechar no primeiro passo (sobrescreve o do contexto) */

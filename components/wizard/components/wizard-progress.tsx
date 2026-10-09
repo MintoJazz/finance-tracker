@@ -3,8 +3,7 @@
 import * as React from "react"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
-import { useWizard } from "./wizard"
-import { WizardNavButton } from "./wizard-nav-button"
+import { useWizard } from "../core"
 
 export interface WizardProgressProps {
   className?: string

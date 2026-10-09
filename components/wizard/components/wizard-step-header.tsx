@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { useWizard } from "./wizard"
+import { useWizard } from "../core"
 import { WizardNavButton } from "./wizard-nav-button"
 
 export interface WizardStepHeaderProps extends React.ComponentProps<"div"> {

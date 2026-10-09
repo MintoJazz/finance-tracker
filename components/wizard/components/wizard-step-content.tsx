@@ -7,9 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 import { DataFormFields, FormContent, FormRoot } from "@/components/form"
 import { cn } from "@/lib/utils"
-import type { FieldsStep } from "./types"
-import { useWizard } from "./wizard"
-import { wizardFormId } from "./wizard-form-id"
+import type { FieldsStep } from "../core"
+import { useWizard, wizardFormId } from "../core"
 
 function FieldsStepForm<TData = any>({
   step,
