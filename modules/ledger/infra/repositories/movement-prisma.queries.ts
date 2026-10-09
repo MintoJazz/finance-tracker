@@ -21,7 +21,8 @@ export class MovementPrismaQueries implements IMovementQueries {
             select: {
                 id: true,
                 description: true,
-                date: true,
+                dueDate: true,
+                competanceDate: true,
                 type: true,
                 reversedBy: {
                     select: { id: true },
@@ -53,7 +54,7 @@ export class MovementPrismaQueries implements IMovementQueries {
                 skip,
                 take,
                 include,
-                orderBy: [{ entry: { date: "desc" } }, { id: "desc" }],
+                orderBy: [{ entry: { dueDate: "desc" } }, { id: "desc" }],
             }),
             prisma.movement.count({ where }),
         ]);
@@ -97,7 +98,7 @@ export class MovementPrismaQueries implements IMovementQueries {
             if (filter.to) {
                 dateFilter.lte = new Date(`${filter.to}T23:59:59.999Z`);
             }
-            entryWhere.date = dateFilter;
+            entryWhere.dueDate = dateFilter;
         }
 
         const where: MovementWhereInput = {

@@ -9,7 +9,8 @@ export type MovementWithEntry = PrismaMovement & {
     entry: {
         id: number;
         description: string;
-        date: Date;
+        dueDate: Date;
+        competanceDate: Date | null;
         type: PrismaEntryType;
         reversedBy: { id: number } | null;
     };
@@ -23,7 +24,7 @@ export class WalletMovementMapper {
             movementId: movement.id,
             entryId: movement.entryId,
             description: entry.description,
-            date: entry.date,
+            date: entry.dueDate,
             type: WalletMovementTypeResolver.resolve(
                 entry.type,
                 movement.direction
