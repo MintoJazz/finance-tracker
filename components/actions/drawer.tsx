@@ -6,6 +6,7 @@ import type { RowData } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
   Drawer,
   DrawerClose,
@@ -109,10 +110,10 @@ export function ActionsDrawer<
         className={contentClassName}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="max-h-[calc(88dvh-12px)] overflow-y-auto overscroll-contain px-4 py-3 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-          <div className="flex flex-col gap-3">
+        <div className="max-h-[calc(88dvh-12px)] overflow-y-auto overscroll-contain px-3.5 pt-1.5 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+          <div className="flex flex-col gap-2.5">
             {header && (
-              <div className="pb-1">
+              <div className="px-0.5 pb-0.5">
                 {header}
               </div>
             )}
@@ -125,7 +126,10 @@ export function ActionsDrawer<
               )}
               {visibleGroups.map((group, groupIndex) => (
                 <div
-                  className={`grid gap-1 ${groupIndex > 0 ? "mt-3 border-t border-border pt-3" : ""}`}
+                  className={cn(
+                    "rounded-xl border border-border bg-card/60 backdrop-blur-xs overflow-hidden shadow-xs",
+                    groupIndex > 0 && "mt-2"
+                  )}
                   key={groupIndex}
                 >
                   {group.map((action, actionIndex) => {
@@ -137,10 +141,12 @@ export function ActionsDrawer<
                       <Button
                         variant="ghost"
                         disabled={isDisabled}
-                        className={`h-11 w-full justify-start px-2.5 py-2 text-left ${action.variant === "destructive"
-                          ? "text-destructive hover:text-destructive bg-destructive/10 hover:bg-destructive/20"
-                          : ""
-                          }`}
+                        className={cn(
+                          "h-11 w-full justify-start px-3.5 py-2 text-left rounded-none border-0 transition-colors",
+                          action.variant === "destructive"
+                            ? "text-destructive hover:text-destructive hover:bg-destructive/10"
+                            : "text-foreground hover:bg-muted/60"
+                        )}
                         onClick={(e) => {
                           if (action.confirmTitle) {
                             e.preventDefault()
@@ -150,8 +156,15 @@ export function ActionsDrawer<
                           }
                         }}
                       >
-                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-secondary">
-                          {renderActionIcon(action.icon, "h-4 w-4")}
+                        <span
+                          className={cn(
+                            "flex size-5 shrink-0 items-center justify-center mr-2.5",
+                            action.variant === "destructive"
+                              ? "text-destructive"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {renderActionIcon(action.icon, "size-4")}
                         </span>
                         <span className="block text-sm font-medium truncate">
                           {action.label}
@@ -159,37 +172,39 @@ export function ActionsDrawer<
                       </Button>
                     )
 
-                    if (action.confirmTitle) {
-                      return (
-                        <React.Fragment key={action.id ?? actionIndex}>
-                          {actionContent}
-                        </React.Fragment>
-                      )
-                    }
+                    const itemKey = action.id ?? `${groupIndex}-${actionIndex}`
 
                     return (
-                      <DrawerClose
-                        key={action.id ?? actionIndex}
-                        render={
-                          action.href ? (
-                            <Link href={action.href}>{actionContent}</Link>
-                          ) : (
-                            actionContent
-                          )
-                        }
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          if (action.href) {
-                            runAction(action)
-                          }
-                        }}
-                      />
+                      <React.Fragment key={itemKey}>
+                        {actionIndex > 0 && <div className="h-px w-full bg-border" />}
+                        {action.confirmTitle ? (
+                          actionContent
+                        ) : (
+                          <DrawerClose
+                            render={
+                              action.href ? (
+                                <Link href={action.href} className="block w-full">
+                                  {actionContent}
+                                </Link>
+                              ) : (
+                                actionContent
+                              )
+                            }
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (action.href) {
+                                runAction(action)
+                              }
+                            }}
+                          />
+                        )}
+                      </React.Fragment>
                     )
                   })}
                 </div>
               ))}
             </div>
-            {footer && <div className="border-t border-border pt-3">{footer}</div>}
+            {footer && <div className="border-t border-border pt-2.5">{footer}</div>}
           </div>
         </div>
       </DrawerContent>

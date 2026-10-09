@@ -47,10 +47,10 @@ export function ControlledField<
     return <>{render({ field, fieldState, context: context as TContext })}</>
   }
 
-  const resolvedChildren =
-    typeof children === "function"
-      ? children(context as TContext, field)
-      : children
+  const isFunctionChildren = typeof children === "function"
+  const resolvedChildren = isFunctionChildren
+    ? children(context as TContext, field)
+    : children
 
   const LayoutComponent = layout ?? VerticalLayout
 
@@ -62,7 +62,11 @@ export function ControlledField<
       error={fieldState.error}
       className={className}
     >
-      <Slot id={generatedId} aria-invalid={!!fieldState.error} {...field}>
+      <Slot
+        id={generatedId}
+        aria-invalid={!!fieldState.error}
+        {...(isFunctionChildren ? {} : field)}
+      >
         {resolvedChildren}
       </Slot>
     </LayoutComponent>
