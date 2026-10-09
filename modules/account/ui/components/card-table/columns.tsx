@@ -4,6 +4,7 @@ import { CardSummary } from "@/modules/account/core/schemas/card.schema";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "cn";
 import BalanceAvatar from "../balance-avatar";
+import { AmountSpan } from "@/components/amount-span";
 
 export const CARD_COLUMNS: ColumnDef<CardSummary>[] = [
     {
@@ -62,15 +63,15 @@ export const CARD_COLUMNS: ColumnDef<CardSummary>[] = [
     },
     {
         id: "limit",
-        header: "Limite",
+        header: () => <div className="text-right">Limite</div>,
         accessorKey: "limit",
         cell: ({ row }) => {
             const { limit, isArchived } = row.original;
-            return (
-                <span className={cn("text-muted-foreground text-sm font-mono tabular-nums", isArchived && "opacity-60")}>
-                    {formatMoney(limit)}
-                </span>
-            );
+            return <AmountSpan
+                className="text-right"
+                amount={limit}
+                isCancelled={isArchived}
+            />
         },
     },
 ];

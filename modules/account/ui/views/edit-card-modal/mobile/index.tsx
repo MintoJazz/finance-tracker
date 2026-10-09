@@ -3,11 +3,10 @@
 import {
     Drawer,
     DrawerContent,
-    DrawerHeader,
     DrawerTitle,
     DrawerDescription,
 } from "@/components/ui/drawer";
-import { CardForm } from "../../../components/card-form";
+import { CardWizard } from "../../../components/card-wizard";
 import type { EditCardModalProps } from "../types";
 
 export default function EditCardModalViewMobile({
@@ -16,7 +15,6 @@ export default function EditCardModalViewMobile({
     onSubmit,
     onClose,
     onOpenChangeComplete,
-    isSubmitting,
 }: EditCardModalProps) {
     return (
         <Drawer
@@ -28,20 +26,16 @@ export default function EditCardModalViewMobile({
             showSwipeHandle
         >
             <DrawerContent className="data-[swipe-axis=y]:[--drawer-content-max-height:calc(100dvh-calc(var(--drawer-inset,0px)*2))] max-h-[calc(100dvh-calc(var(--drawer-inset,0px)*2))]">
-                <DrawerHeader>
-                    <DrawerTitle>Editar Cartão</DrawerTitle>
-                    <DrawerDescription>
-                        Altere o nome, limite ou dias de fechamento e vencimento do seu cartão.
-                    </DrawerDescription>
-                </DrawerHeader>
-                <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                    <CardForm
-                        form={form}
+                <DrawerTitle className="sr-only">Editar Cartão</DrawerTitle>
+                <DrawerDescription className="sr-only">
+                    Altere o nome, limite ou dias de fechamento e vencimento do seu cartão.
+                </DrawerDescription>
+                <div className="flex flex-col min-h-0 flex-1 px-3.5 pt-1 pb-3">
+                    <CardWizard
+                        initialData={form.getValues()}
                         onSubmit={onSubmit}
-                        onCancel={onClose}
-                        isSubmitting={isSubmitting}
+                        onClose={onClose}
                         submitText="Salvar alterações"
-                        submitLoadingText="Salvando..."
                     />
                 </div>
             </DrawerContent>

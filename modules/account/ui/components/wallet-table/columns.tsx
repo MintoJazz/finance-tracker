@@ -36,25 +36,6 @@ export const WALLET_COLUMNS: ColumnDef<WalletSummary>[] = [
         },
     },
     {
-        id: "balance",
-        header: "Saldo",
-        accessorKey: "amount",
-        cell: ({ row }) => {
-            const { amount, isArchived } = row.original;
-            const isNegative = amount < 0;
-            const isPositive = amount > 0;
-
-            return (
-                <AmountSpan
-                    amount={amount}
-                    isNegative={isNegative}
-                    isPositive={isPositive}
-                    isCancelled={isArchived}
-                />
-            );
-        },
-    },
-    {
         id: "lastActivityAt",
         header: "Última Atividade",
         accessorKey: "lastActivityAt",
@@ -69,6 +50,24 @@ export const WALLET_COLUMNS: ColumnDef<WalletSummary>[] = [
                     {formatDate(new Date(lastActivityAt))}
                 </span>
             );
+        },
+    },
+    {
+        id: "balance",
+        header: () => <div className="text-right">Saldo</div>,
+        accessorKey: "amount",
+        cell: ({ row }) => {
+            const { amount, isArchived } = row.original;
+            const isNegative = amount < 0;
+            const isPositive = amount > 0;
+
+            return <AmountSpan
+                className="text-right"
+                amount={amount}
+                isNegative={isNegative}
+                isPositive={isPositive}
+                isCancelled={isArchived}
+            />
         },
     },
 ];

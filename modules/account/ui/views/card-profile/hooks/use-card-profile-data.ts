@@ -17,11 +17,15 @@ export interface UseCardProfileDataReturn {
     reloadProfile: () => Promise<void>;
 }
 
-export function useCardProfileData(cardId: number): UseCardProfileDataReturn {
+export function useCardProfileData(
+    cardId: number,
+    initialProfile?: CardProfile | null
+): UseCardProfileDataReturn {
     const pathname = usePathname();
     const prevPathnameRef = useRef<string>(pathname);
-    const [profile, setProfile] = useState<CardProfile | null>(null);
-    const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(true);
+    const hasMountedRef = useRef(false);
+    const [profile, setProfile] = useState<CardProfile | null>(initialProfile ?? null);
+    const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(!initialProfile);
     const [profileError, setProfileError] = useState<string | null>(null);
 
     const fetchProfile = useCallback(async () => {
@@ -54,9 +58,16 @@ export function useCardProfileData(cardId: number): UseCardProfileDataReturn {
     }, [fetchProfile]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (!hasMountedRef.current) {
+            hasMountedRef.current = true;
+            if (!initialProfile) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                void fetchProfile();
+            }
+            return;
+        }
         void fetchProfile();
-    }, [fetchProfile]);
+    }, [fetchProfile, initialProfile]);
 
     // Recarrega silenciosamente quando retorna do modal de rota interceptada (/edit -> /cards/[id])
     useEffect(() => {
@@ -66,7 +77,6 @@ export function useCardProfileData(cardId: number): UseCardProfileDataReturn {
         prevPathnameRef.current = pathname;
 
         if (wasInSubRoute && pathname === `/cards/${cardId}`) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             void fetchProfile();
         }
     }, [pathname, cardId, fetchProfile]);

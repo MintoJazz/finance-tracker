@@ -16,16 +16,18 @@ import { MovementActionContext } from "@/modules/ledger/ui/components/wallet-mov
 
 export function useWalletProfileDesktop({
     walletId,
+    profile: initialProfile,
+    initialMovements,
 }: WalletProfileInput): WalletProfileDesktopProps {
     const router = useRouter();
 
-    // 1. Busca isolada dos dados do perfil da carteira (não recarrega em filtros)
+    // 1. Busca isolada dos dados do perfil da carteira (hidratado via SSR)
     const {
         profile,
         isLoadingProfile,
         profileError,
         reloadProfile,
-    } = useWalletProfileData(walletId);
+    } = useWalletProfileData(walletId, initialProfile);
 
     useBreadcrumbLabel("walletProfile", profile?.name);
 
@@ -37,14 +39,14 @@ export function useWalletProfileDesktop({
         clearFilters,
     } = useWalletMovementFilters();
 
-    // 3. Busca das movimentações paginadas (apenas este entra em loading ao filtrar)
+    // 3. Busca das movimentações paginadas (hidratado via SSR)
     const {
         data: movementsData,
         isLoading: isLoadingMovements,
         error: movementsError,
         reload: reloadMovements,
         paginationContext,
-    } = useWalletMovementsPaginated(walletId, filters);
+    } = useWalletMovementsPaginated(walletId, filters, initialMovements);
 
     // 4. Modais secundários por estado (Arquivar / Desarquivar)
     const walletSummaryItem = useMemo<WalletSummary | undefined>(() => {

@@ -1,12 +1,19 @@
 import { ViewContainer } from "@/components/adaptive";
 import { ErrorView } from "@/components/error-view";
 import { CardProfileAdaptiveConfig } from "@/modules/account/ui/views/card-profile";
+import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
+import { CardProfileMockService } from "@/modules/account/infra/mock/card-profile.mock";
+import { CardMovementMockService } from "@/modules/ledger/infra/mock/card-movement.mock";
+import { redirect } from "next/navigation";
 
 interface CardProfilePageProps {
     params: Promise<{ id: string }>;
 }
 
 export default async function CardProfilePage(props: CardProfilePageProps) {
+    const session = await SessionHandler.getSession();
+    if (!session) redirect("/login");
+
     const params = await props.params;
     const cardId = Number(params.id);
 
@@ -19,9 +26,32 @@ export default async function CardProfilePage(props: CardProfilePageProps) {
         );
     }
 
+    const profileResult = await CardProfileMockService.getProfileById(cardId);
+    if (!profileResult.success || !profileResult.data) {
+        return (
+            <ErrorView
+                title="Erro ao carregar cartão"
+                error={profileResult.error ?? "Não foi possível carregar os dados do cartão."}
+            />
+        );
+    }
+
+    const profile = profileResult.data;
+    const activeCycle = profile.cycles.find((c) => c.status === "OPEN") ?? profile.cycles.at(-1);
+
+    const movementsResult = await CardMovementMockService.getMovements({
+        walletId: cardId,
+        pageRequest: { page: 1, pageSize: 10 },
+        filter: activeCycle ? { from: activeCycle.from, to: activeCycle.to } : {},
+    });
+
     return (
         <ViewContainer
-            data={{ cardId }}
+            data={{
+                cardId,
+                profile,
+                initialMovements: movementsResult.success && movementsResult.data ? movementsResult.data : null,
+            }}
             {...CardProfileAdaptiveConfig}
         />
     );

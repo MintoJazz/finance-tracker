@@ -17,16 +17,18 @@ import { MovementActionContext } from "@/modules/ledger/ui/components/wallet-mov
 
 export function useCardProfileDesktop({
     cardId,
+    profile: initialProfile,
+    initialMovements,
 }: CardProfileInput): CardProfileDesktopProps {
     const router = useRouter();
 
-    // 1. Busca isolada do perfil + lista de ciclos do cartão
+    // 1. Busca isolada do perfil + lista de ciclos do cartão (hidratado via SSR)
     const {
         profile,
         isLoadingProfile,
         profileError,
         reloadProfile,
-    } = useCardProfileData(cardId);
+    } = useCardProfileData(cardId, initialProfile);
 
     useBreadcrumbLabel("cardProfile", profile?.name);
 
@@ -41,14 +43,14 @@ export function useCardProfileDesktop({
         clearExtraFilters,
     } = useCardCycleNavigation(profile, filters, applyFilters);
 
-    // 4. Busca paginada do extrato apenas do ciclo ativo
+    // 4. Busca paginada do extrato apenas do ciclo ativo (hidratado via SSR)
     const {
         data: movementsData,
         isLoading: isLoadingMovements,
         error: movementsError,
         reload: reloadMovements,
         paginationContext,
-    } = useCardMovementsPaginated(cardId, effectiveFilters);
+    } = useCardMovementsPaginated(cardId, effectiveFilters, initialMovements);
 
     // 5. Modais secundários por estado (Arquivar / Desarquivar)
     const cardSummaryItem = useMemo<CardSummary | undefined>(() => {

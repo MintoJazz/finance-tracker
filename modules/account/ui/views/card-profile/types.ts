@@ -14,6 +14,8 @@ import { MovementActionContext } from "@/modules/ledger/ui/components/wallet-mov
 
 export interface CardProfileInput {
     cardId: number;
+    profile?: CardProfile | null;
+    initialMovements?: Page<WalletMovement> | null;
 }
 
 export interface CardCycleNavigationContext {

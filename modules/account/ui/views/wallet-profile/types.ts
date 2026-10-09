@@ -8,6 +8,8 @@ import { MovementActionContext } from "@/modules/ledger/ui/components/wallet-mov
 
 export interface WalletProfileInput {
     walletId: number;
+    profile?: WalletProfile | null;
+    initialMovements?: Page<WalletMovement> | null;
 }
 
 export interface WalletProfileDesktopProps {

@@ -3,11 +3,10 @@
 import {
     Drawer,
     DrawerContent,
-    DrawerHeader,
     DrawerTitle,
     DrawerDescription,
 } from "@/components/ui/drawer";
-import { WalletForm } from "../../../components/wallet-form";
+import { WalletWizard } from "../../../components/wallet-wizard";
 import type { EditWalletModalProps } from "../types";
 
 export default function EditWalletModalViewMobile({
@@ -16,7 +15,6 @@ export default function EditWalletModalViewMobile({
     onSubmit,
     onClose,
     onOpenChangeComplete,
-    isSubmitting,
 }: EditWalletModalProps) {
     return (
         <Drawer
@@ -28,23 +26,20 @@ export default function EditWalletModalViewMobile({
             showSwipeHandle
         >
             <DrawerContent className="data-[swipe-axis=y]:[--drawer-content-max-height:calc(100dvh-calc(var(--drawer-inset,0px)*2))] max-h-[calc(100dvh-calc(var(--drawer-inset,0px)*2))]">
-                <DrawerHeader>
-                    <DrawerTitle>Editar Carteira</DrawerTitle>
-                    <DrawerDescription>
-                        Altere as informações da sua carteira.
-                    </DrawerDescription>
-                </DrawerHeader>
-                <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                    <WalletForm
-                        form={form}
+                <DrawerTitle className="sr-only">Editar Carteira</DrawerTitle>
+                <DrawerDescription className="sr-only">
+                    Altere as informações da sua carteira.
+                </DrawerDescription>
+                <div className="flex flex-col min-h-0 flex-1 px-3.5 pt-1 pb-3">
+                    <WalletWizard
+                        initialData={form.getValues()}
                         onSubmit={onSubmit}
-                        onCancel={onClose}
-                        isSubmitting={isSubmitting}
+                        onClose={onClose}
                         submitText="Salvar alterações"
-                        submitLoadingText="Salvando..."
                     />
                 </div>
             </DrawerContent>
         </Drawer>
     );
 }
+

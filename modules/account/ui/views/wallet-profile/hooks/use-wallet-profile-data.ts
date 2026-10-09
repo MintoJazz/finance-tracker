@@ -12,12 +12,16 @@ export interface UseWalletProfileDataReturn {
     reloadProfile: () => Promise<void>;
 }
 
-export function useWalletProfileData(walletId: number): UseWalletProfileDataReturn {
+export function useWalletProfileData(
+    walletId: number,
+    initialProfile?: WalletProfile | null
+): UseWalletProfileDataReturn {
     const pathname = usePathname();
     const prevPathnameRef = useRef<string>(pathname);
+    const hasMountedRef = useRef(false);
 
-    const [profile, setProfile] = useState<WalletProfile | null>(null);
-    const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(true);
+    const [profile, setProfile] = useState<WalletProfile | null>(initialProfile ?? null);
+    const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(!initialProfile);
     const [profileError, setProfileError] = useState<string | null>(null);
 
     const fetchProfile = useCallback(async () => {
@@ -46,9 +50,16 @@ export function useWalletProfileData(walletId: number): UseWalletProfileDataRetu
     }, [fetchProfile]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (!hasMountedRef.current) {
+            hasMountedRef.current = true;
+            if (!initialProfile) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                void fetchProfile();
+            }
+            return;
+        }
         void fetchProfile();
-    }, [fetchProfile]);
+    }, [fetchProfile, initialProfile]);
 
     // Recarrega silenciosamente quando retorna do modal de rota interceptada (/edit -> /wallets/[id])
     useEffect(() => {

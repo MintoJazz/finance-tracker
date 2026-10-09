@@ -3,11 +3,10 @@
 import {
     Drawer,
     DrawerContent,
-    DrawerHeader,
     DrawerTitle,
     DrawerDescription,
 } from "@/components/ui/drawer";
-import { CardForm } from "../../../components/card-form";
+import { CardWizard } from "../../../components/card-wizard";
 import type { CreateCardModalProps } from "../types";
 
 export default function CreateCardModalViewMobile({
@@ -16,7 +15,6 @@ export default function CreateCardModalViewMobile({
     onSubmit,
     onClose,
     onOpenChangeComplete,
-    isSubmitting,
 }: CreateCardModalProps) {
     return (
         <Drawer
@@ -28,18 +26,15 @@ export default function CreateCardModalViewMobile({
             showSwipeHandle
         >
             <DrawerContent className="data-[swipe-axis=y]:[--drawer-content-max-height:calc(100dvh-calc(var(--drawer-inset,0px)*2))] max-h-[calc(100dvh-calc(var(--drawer-inset,0px)*2))]">
-                <DrawerHeader>
-                    <DrawerTitle>Novo Cartão</DrawerTitle>
-                    <DrawerDescription>
-                        Cadastre um cartão de crédito para acompanhar limites, faturas e lançamentos.
-                    </DrawerDescription>
-                </DrawerHeader>
-                <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                    <CardForm
-                        form={form}
+                <DrawerTitle className="sr-only">Novo Cartão</DrawerTitle>
+                <DrawerDescription className="sr-only">
+                    Cadastre um cartão de crédito para acompanhar limites, faturas e lançamentos.
+                </DrawerDescription>
+                <div className="flex flex-col min-h-0 flex-1 px-3.5 pt-1 pb-3">
+                    <CardWizard
+                        initialData={form.getValues()}
                         onSubmit={onSubmit}
-                        onCancel={onClose}
-                        isSubmitting={isSubmitting}
+                        onClose={onClose}
                     />
                 </div>
             </DrawerContent>
