@@ -1,4 +1,12 @@
 import z from "zod";
+import { Page } from "@/types/pagination.types";
+
+export const CommitmentCycleKindEnumSchema = z.enum([
+    "ACTUAL",    // Ciclo gerado com entradas reais registradas
+    "PROJECTED", // Ciclo puramente projetado por regra sem lançamentos
+]);
+
+export type CommitmentCycleKindEnum = z.infer<typeof CommitmentCycleKindEnumSchema>;
 
 export const CommitmentSourceTypeEnumSchema = z.enum([
     "CREDIT",     // Fatura de Cartão de Crédito
@@ -21,6 +29,7 @@ export const CommitmentCycleItemSchema = z.object({
     balanceId: z.number().int().positive(),
     balanceName: z.string().min(1),
     balanceType: CommitmentSourceTypeEnumSchema,
+    kind: CommitmentCycleKindEnumSchema.default("ACTUAL"),
 
     // Janela do ciclo gerada pela Engine
     label: z.string().min(1),        // Ex: "Outubro 2026"
@@ -37,6 +46,11 @@ export const CommitmentCycleItemSchema = z.object({
 });
 
 export type CommitmentCycleItem = z.infer<typeof CommitmentCycleItemSchema>;
+
+export interface CommitmentCyclesResult {
+    summary: CommitmentsPeriodSummary;
+    cycles: Page<CommitmentCycleItem>;
+}
 
 export const CommitmentCycleFiltersSchema = z.object({
     from: z.string().min(1, "Data inicial obrigatória"), // YYYY-MM-DD
