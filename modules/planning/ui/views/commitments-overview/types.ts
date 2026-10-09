@@ -9,6 +9,8 @@ import { CommitmentCycleActionContext } from "../../components/commitment-cycle-
 export interface CommitmentsOverviewInput {
     contextId?: number;
     title?: string;
+    initialSummary?: CommitmentsPeriodSummary | null;
+    initialCycles?: Page<CommitmentCycleItem> | null;
 }
 
 export interface CommitmentsOverviewDesktopProps {

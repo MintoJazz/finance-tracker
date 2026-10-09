@@ -24,9 +24,10 @@ export const COMMITMENT_CYCLE_COLUMNS: ColumnDef<CommitmentCycleItem>[] = [
         ),
         cell: ({ row }) => {
             const { dueDate, status } = row.original;
+            const { label, badgeClassName } = COMMITMENT_STATUS_REGISTRY[status];
             const isOverdue = status === "OVERDUE";
 
-            return (
+            return <div className="flex flex-col">
                 <span
                     className={cn(
                         "font-mono text-xs tabular-nums whitespace-nowrap",
@@ -37,7 +38,9 @@ export const COMMITMENT_CYCLE_COLUMNS: ColumnDef<CommitmentCycleItem>[] = [
                 >
                     {formatDate(dueDate)}
                 </span>
-            );
+
+                <span className={cn("text-xs", badgeClassName)}>{label}</span>
+            </div>
         },
     },
     {
@@ -69,22 +72,22 @@ export const COMMITMENT_CYCLE_COLUMNS: ColumnDef<CommitmentCycleItem>[] = [
             );
         },
     },
-    {
-        accessorKey: "status",
-        size: 120,
-        header: "Status",
-        cell: ({ row }) => {
-            const meta = COMMITMENT_STATUS_REGISTRY[row.original.status];
-            return (
-                <Badge
-                    variant="outline"
-                    className={cn("text-xs font-medium", meta.badgeClassName)}
-                >
-                    {meta.label}
-                </Badge>
-            );
-        },
-    },
+    // {
+    //     accessorKey: "status",
+    //     size: 120,
+    //     header: "Status",
+    //     cell: ({ row }) => {
+
+    //         return (
+    //             <Badge
+    //                 variant="outline"
+    //                 className={cn("text-xs font-medium", meta.badgeClassName)}
+    //             >
+    //                 {meta.label}
+    //             </Badge>
+    //         );
+    //     },
+    // },
     {
         accessorKey: "remainingAmount",
         size: 150,

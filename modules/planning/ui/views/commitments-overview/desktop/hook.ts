@@ -16,6 +16,8 @@ import {
 export function useCommitmentsOverviewDesktop({
     contextId,
     title = "Meus Compromissos",
+    initialSummary,
+    initialCycles,
 }: CommitmentsOverviewInput): CommitmentsOverviewDesktopProps {
     const router = useRouter();
 
@@ -23,14 +25,14 @@ export function useCommitmentsOverviewDesktop({
         useCommitmentCycleFilters();
 
     const { summary, isLoadingSummary, summaryError } =
-        useCommitmentsSummaryData(filters, contextId);
+        useCommitmentsSummaryData(filters, contextId, initialSummary);
 
     const {
         data: cyclesData,
         isLoading: isLoadingCycles,
         error: cyclesError,
         paginationContext,
-    } = useCommitmentCyclesPaginated(filters, contextId);
+    } = useCommitmentCyclesPaginated(filters, contextId, initialCycles);
 
     const actionContext = useMemo<CommitmentCycleActionContext>(
         () => ({

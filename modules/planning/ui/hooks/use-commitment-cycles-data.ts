@@ -22,7 +22,8 @@ export interface UseCommitmentCyclesPaginatedReturn {
 
 export function useCommitmentCyclesPaginated(
     filters: CommitmentCycleFilters,
-    contextId?: number
+    contextId?: number,
+    initialData?: Page<CommitmentCycleItem> | null
 ): UseCommitmentCyclesPaginatedReturn {
     const router = useRouter();
     const pathname = usePathname();
@@ -36,9 +37,10 @@ export function useCommitmentCyclesPaginated(
             ? Math.floor(rawPageSize)
             : 10;
 
-    const [data, setData] = useState<Page<CommitmentCycleItem> | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [data, setData] = useState<Page<CommitmentCycleItem> | null>(initialData ?? null);
+    const [isLoading, setIsLoading] = useState<boolean>(!initialData);
     const [error, setError] = useState<string | null>(null);
+    const hasMountedRef = useRef(false);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
@@ -67,9 +69,14 @@ export function useCommitmentCyclesPaginated(
     }, [contextId, page, pageSize, filters]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (!hasMountedRef.current) {
+            hasMountedRef.current = true;
+            if (initialData && page === 1) {
+                return;
+            }
+        }
         void loadData();
-    }, [loadData]);
+    }, [loadData, initialData, page]);
 
     const setPage = useCallback(
         (pageIndex: number) => {
@@ -123,15 +130,17 @@ export interface UseCommitmentCyclesInfiniteReturn {
 export function useCommitmentCyclesInfinite(
     filters: CommitmentCycleFilters,
     contextId?: number,
-    pageSize = 10
+    pageSize = 10,
+    initialData?: Page<CommitmentCycleItem> | null
 ): UseCommitmentCyclesInfiniteReturn {
-    const [items, setItems] = useState<CommitmentCycleItem[]>([]);
-    const [pageIndex, setPageIndex] = useState<number>(0);
-    const [pageCount, setPageCount] = useState<number>(1);
-    const [total, setTotal] = useState<number>(0);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [items, setItems] = useState<CommitmentCycleItem[]>(initialData?.data ?? []);
+    const [pageIndex, setPageIndex] = useState<number>(initialData?.pageIndex ?? 0);
+    const [pageCount, setPageCount] = useState<number>(initialData?.pageCount ?? 1);
+    const [total, setTotal] = useState<number>(initialData?.total ?? 0);
+    const [isLoading, setIsLoading] = useState<boolean>(!initialData);
     const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const hasMountedRef = useRef(false);
 
     const hasMore = pageIndex < pageCount - 1 && items.length < total;
 
@@ -167,9 +176,14 @@ export function useCommitmentCyclesInfinite(
     }, [contextId, filters, pageSize]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (!hasMountedRef.current) {
+            hasMountedRef.current = true;
+            if (initialData) {
+                return;
+            }
+        }
         void loadInitial();
-    }, [loadInitial]);
+    }, [loadInitial, initialData]);
 
     const loadMore = useCallback(async () => {
         if (isLoadingMore || !hasMore || isLoading) return;

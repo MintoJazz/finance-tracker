@@ -16,6 +16,8 @@ import {
 export function useCommitmentsOverviewMobile({
     contextId,
     title = "Meus Compromissos",
+    initialSummary,
+    initialCycles,
 }: CommitmentsOverviewInput): CommitmentsOverviewMobileProps {
     const router = useRouter();
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] =
@@ -25,7 +27,7 @@ export function useCommitmentsOverviewMobile({
         useCommitmentCycleFilters();
 
     const { summary, isLoadingSummary, summaryError } =
-        useCommitmentsSummaryData(filters, contextId);
+        useCommitmentsSummaryData(filters, contextId, initialSummary);
 
     const {
         items,
@@ -35,7 +37,7 @@ export function useCommitmentsOverviewMobile({
         isLoadingMore,
         error: cyclesError,
         sentinelRef,
-    } = useCommitmentCyclesInfinite(filters, contextId);
+    } = useCommitmentCyclesInfinite(filters, contextId, 10, initialCycles);
 
     const actionContext = useMemo<CommitmentCycleActionContext>(
         () => ({

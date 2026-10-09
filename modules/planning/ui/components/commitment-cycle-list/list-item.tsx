@@ -11,6 +11,19 @@ import {
     COMMITMENT_STATUS_REGISTRY,
 } from "../../../core/registries/commitment-cycle.registry";
 import { CommitmentCycleItem } from "../../../core/schemas/commitment-cycle.schema";
+import {
+    ListItem,
+    ListItemHeader,
+    ListItemAvatar,
+    ListItemContent,
+    ListItemTitle,
+    ListItemSubtitle,
+    ListItemActions,
+    ListItemFooter,
+    ListItemFooterLeft,
+    ListItemFooterRight,
+    ListItemFooterInfo
+} from "@/components/list-item";
 
 interface Props {
     item: CommitmentCycleItem;
@@ -44,84 +57,57 @@ export default function CommitmentCycleListItem({
     const displayAmount = isPaid ? totalAmount : remainingAmount;
 
     return (
-        <div
-            data-slot="item"
-            tabIndex={onSelect ? 0 : undefined}
-            onClick={onSelect}
-            onKeyDown={
-                onSelect
-                    ? (e) => {
-                          if (e.target !== e.currentTarget) return;
-                          if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              onSelect();
-                          }
-                      }
-                    : undefined
-            }
-            className={cn(
-                "group/item flex w-full flex-col gap-2 px-4 py-3 hover:bg-muted/40 transition-colors text-sm",
-                onSelect &&
-                    "cursor-pointer focus-visible:outline-none focus-visible:bg-muted/40",
-                className
-            )}
-        >
-            {/* Linha 1: Avatar + Nome + Badge Status + Botão de Ações */}
-            <div className="flex items-center justify-between gap-3 w-full">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
+        <ListItem onSelect={onSelect} className={className}>
+            <ListItemHeader>
+                <ListItemAvatar>
                     <BalanceAvatar name={balanceName} size="md" />
-                    <div className="flex flex-col min-w-0 flex-1">
-                        <div className="flex items-center gap-2 min-w-0">
-                            <span className="truncate font-medium text-foreground text-sm">
-                                {balanceName}
-                            </span>
-                            <Badge
-                                variant="outline"
-                                className={cn(
-                                    "text-[10px] px-1.5 py-0 shrink-0",
-                                    statusMeta.badgeClassName
-                                )}
-                            >
-                                {statusMeta.label}
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
-                            <SourceIcon className="size-3 shrink-0" />
-                            <span>{sourceMeta.shortLabel}</span>
-                            <span>•</span>
-                            <span>{label}</span>
-                        </div>
-                    </div>
-                </div>
+                </ListItemAvatar>
+                <ListItemContent>
+                    <ListItemTitle>
+                        <span className="truncate font-medium text-foreground text-sm">
+                            {balanceName}
+                        </span>
+                        <Badge
+                            variant="outline"
+                            className={cn(
+                                "text-[10px] px-1.5 py-0 shrink-0",
+                                statusMeta.badgeClassName
+                            )}
+                        >
+                            {statusMeta.label}
+                        </Badge>
+                    </ListItemTitle>
+                    <ListItemSubtitle>
+                        <SourceIcon className="size-3 shrink-0" />
+                        <span>{sourceMeta.shortLabel}</span>
+                        <span>•</span>
+                        <span>{label}</span>
+                    </ListItemSubtitle>
+                </ListItemContent>
 
-                <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-8 w-8 p-0 shrink-0"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenActions();
-                    }}
-                >
-                    <MoreHorizontal className="h-4 w-4" />
-                </Button>
-            </div>
+                <ListItemActions>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 shrink-0"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenActions();
+                        }}
+                    >
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </ListItemActions>
+            </ListItemHeader>
 
-            {/* Linha 2: Data de Vencimento à esquerda + Valor à direita */}
-            <div className="flex items-center justify-between gap-3 w-full text-xs text-muted-foreground">
-                <div
-                    className={cn(
-                        "flex items-center gap-1.5 min-w-0",
-                        isOverdue && "text-rose-600 dark:text-rose-400 font-medium"
-                    )}
-                >
-                    <Calendar className="size-3.5 shrink-0" />
-                    <span className="truncate">
+            <ListItemFooter>
+                <ListItemFooterLeft className={cn(isOverdue && "text-rose-600 dark:text-rose-400 font-medium")}>
+                    <ListItemFooterInfo icon={Calendar}>
                         Vence em {formatDate(dueDate)}
-                    </span>
-                </div>
+                    </ListItemFooterInfo>
+                </ListItemFooterLeft>
 
-                <div className="flex items-baseline gap-1.5 shrink-0">
+                <ListItemFooterRight>
                     {status === "PARTIAL" && (
                         <span className="text-[11px] text-muted-foreground tabular-nums">
                             (Pago {formatMoney(paidAmount)})
@@ -132,8 +118,8 @@ export default function CommitmentCycleListItem({
                         isPositive={isPaid}
                         isNegative={isOverdue}
                     />
-                </div>
-            </div>
-        </div>
+                </ListItemFooterRight>
+            </ListItemFooter>
+        </ListItem>
     );
 }

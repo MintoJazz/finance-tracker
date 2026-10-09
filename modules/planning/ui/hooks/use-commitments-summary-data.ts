@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
     CommitmentCycleFilters,
     CommitmentsPeriodSummary,
@@ -16,10 +16,12 @@ export interface UseCommitmentsSummaryDataReturn {
 
 export function useCommitmentsSummaryData(
     filters: CommitmentCycleFilters,
-    contextId?: number
+    contextId?: number,
+    initialSummary?: CommitmentsPeriodSummary | null
 ): UseCommitmentsSummaryDataReturn {
-    const [summary, setSummary] = useState<CommitmentsPeriodSummary | null>(null);
-    const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(true);
+    const hasMountedRef = useRef(false);
+    const [summary, setSummary] = useState<CommitmentsPeriodSummary | null>(initialSummary ?? null);
+    const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(!initialSummary);
     const [summaryError, setSummaryError] = useState<string | null>(null);
 
     const fetchSummary = useCallback(async () => {
@@ -49,9 +51,14 @@ export function useCommitmentsSummaryData(
     }, [contextId, filters]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (!hasMountedRef.current) {
+            hasMountedRef.current = true;
+            if (initialSummary) {
+                return;
+            }
+        }
         void fetchSummary();
-    }, [fetchSummary]);
+    }, [fetchSummary, initialSummary]);
 
     return {
         summary,

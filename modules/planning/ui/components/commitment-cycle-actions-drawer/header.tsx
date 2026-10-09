@@ -24,10 +24,11 @@ export function CommitmentCycleActionsDrawerHeader({ item }: Props) {
             </EntityHeaderMedia>
             <EntityHeaderContent>
                 <EntityHeaderTitle>{item.balanceName}</EntityHeaderTitle>
-                <EntityHeaderDescription className="font-mono">
-                    {formatMoney(displayAmount)}
-                    {" • "}
-                    <span className="font-sans">
+                <EntityHeaderDescription className="flex items-center gap-1.5 mt-0.5">
+                    <span className="font-mono font-medium tabular-nums text-foreground">
+                        {formatMoney(displayAmount)}
+                    </span>
+                    <span>
                         Vence {formatDate(item.dueDate)}
                     </span>
                 </EntityHeaderDescription>
