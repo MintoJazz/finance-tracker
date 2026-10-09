@@ -24,12 +24,11 @@ model Balance {
   removedAt   DateTime?
 
   financialContext FinancialContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
-  recurrence       Recurrence?
+  agreement        Agreement?
   movements        Movement[]
-  limitEntries     LimitEntry[]
 }
 
-model Recurrence {
+model Agreement {
   id                  Int       @id @default(autoincrement())
   balanceId           Int       @unique
   includeInProjection Boolean   @default(true)
@@ -38,13 +37,14 @@ model Recurrence {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  balance Balance     @relation(fields: [balanceId], references: [id], onDelete: Restrict)
-  rules   CycleRule[]
+  balance       Balance                @relation(fields: [balanceId], references: [id], onDelete: Restrict)
+  rules         CycleRule[]
+  amountEntries AgreementAmountEntry[]
 }
 
 model CycleRule {
   id            Int            @id @default(autoincrement())
-  recurrenceId  Int
+  agreementId   Int
   effectiveFrom DateTime       @db.Date
   frequency     CycleFrequency @default(MONTHLY)
   interval      Int            @default(1)
@@ -52,21 +52,28 @@ model CycleRule {
   dueDay        Int
   createdAt     DateTime       @default(now())
 
-  recurrence Recurrence @relation(fields: [recurrenceId], references: [id], onDelete: Restrict)
+  agreement           Agreement            @relation(fields: [agreementId], references: [id], onDelete: Restrict)
+  entryCycleRuleViews EntryCycleRuleView[] // <-- ADICIONAR ESTA LINHA
 
-  @@unique([recurrenceId, effectiveFrom])
-  @@index([recurrenceId])
+  @@unique([agreementId, effectiveFrom])
+  @@index([agreementId])
 }
 
-model LimitEntry {
+/// Log append-only de ajustes (deltas, em centavos) do valor de um Agreement.
+/// Valor vigente em uma data = max(0, soma dos amount com effectiveAt <= data).
+/// Semântica por Balance.balanceType:
+///   CREDIT                         -> limite do cartão
+///   COMMITMENT | PAYABLE | RECEIVABLE -> valor esperado por ciclo do compromisso
+model AgreementAmountEntry {
   id          Int      @id @default(autoincrement())
-  balanceId   Int
+  agreementId Int
   amount      Int
   effectiveAt DateTime
   reason      String?
   createdAt   DateTime @default(now())
 
-  balance Balance @relation(fields: [balanceId], references: [id], onDelete: Restrict)
+  agreement Agreement @relation(fields: [agreementId], references: [id], onDelete: Restrict)
 
-  @@index([balanceId])
+  @@index([agreementId, effectiveAt])
 }
+

@@ -20,6 +20,14 @@ export interface WalletSeedInput {
   };
 }
 
+export interface CycleRuleSeedInput {
+  effectiveFrom: string | Date;
+  frequency?: CycleFrequency;
+  interval?: number;
+  closingDay?: number | null;
+  dueDay: number;
+}
+
 export interface CreditCardSeedInput {
   name: string;
   limit: number;
@@ -27,12 +35,36 @@ export interface CreditCardSeedInput {
   dueDay: number;
   isArchived?: boolean;
   startsAt?: string | Date;
+  endsAt?: string | Date | null;
+  extraRules?: CycleRuleSeedInput[];
+  limitEntries?: Array<{
+    amount: number;
+    effectiveAt: string | Date;
+    reason?: string;
+  }>;
   initialExpenses?: Array<{
     description: string;
     amount: number;
     date?: string | Date;
+    competanceDate?: string | Date;
     categoryId?: number;
   }>;
+}
+
+export interface CommitmentAgreementSeedInput {
+  name: string;
+  balanceType?: BalanceType; // Default: PAYABLE (pode ser RECEIVABLE no futuro)
+  amount?: number; // Added so we can show default/expected amount in the UI
+  amountEntries?: Array<{
+    amount: number;
+    effectiveAt: string | Date;
+    reason?: string;
+  }>;
+  startsAt: string | Date;
+  endsAt?: string | Date | null;
+  includeInProjection?: boolean;
+  isArchived?: boolean;
+  rules: CycleRuleSeedInput[];
 }
 
 export class FinancialContextFactory {
@@ -91,7 +123,6 @@ export class FinancialContextFactory {
   }
 
   async addWallets(items: WalletSeedInput[]) {
-    // Executa em série para preservar a ordem determinística dos IDs (1, 2, 3...)
     const results = [];
     for (const item of items) {
       results.push(await this.addWallet(item));
@@ -105,33 +136,233 @@ export class FinancialContextFactory {
     });
   }
 
+  /**
+   * Cria um Balance (por padrão COMMITMENT) acoplado a um Agreement e múltiplas CycleRules
+   * para testar histórico de regras (PAST, CURRENT, FUTURE) e vigência (startsAt / endsAt).
+   */
+  async addCommitmentAgreement(params: CommitmentAgreementSeedInput) {
+    const startDate = new Date(params.startsAt);
+    const endDate = params.endsAt ? new Date(params.endsAt) : null;
+
+    return this.prisma.balance.create({
+      data: {
+        contextId: this.contextId,
+        name: params.name,
+        balanceType: params.balanceType ?? BalanceType.PAYABLE,
+        removedAt: params.isArchived ? new Date() : null,
+        agreement: {
+          create: {
+            startsAt: startDate,
+            endsAt: endDate,
+            includeInProjection: params.includeInProjection ?? true,
+            rules: {
+              create: params.rules.map((r) => ({
+                effectiveFrom: new Date(r.effectiveFrom),
+                frequency: r.frequency ?? CycleFrequency.MONTHLY,
+                interval: r.interval ?? 1,
+                closingDay: r.closingDay ?? null,
+                dueDay: r.dueDay,
+              })),
+            },
+            ...(params.amountEntries?.length
+              ? {
+                  amountEntries: {
+                    create: params.amountEntries.map((e) => ({
+                      amount: e.amount,
+                      effectiveAt: new Date(e.effectiveAt),
+                      reason: e.reason ?? "Ajuste de Valor",
+                    })),
+                  },
+                }
+              : params.amount !== undefined
+                ? {
+                    amountEntries: {
+                      create: {
+                        amount: params.amount,
+                        effectiveAt: startDate,
+                        reason: "Valor Inicial",
+                      },
+                    },
+                  }
+                : {}),
+          },
+        },
+      },
+      include: {
+        agreement: { include: { rules: true } },
+      },
+    });
+  }
+
+  async addCommitmentAgreements(items: CommitmentAgreementSeedInput[]) {
+    const results = [];
+    for (const item of items) {
+      results.push(await this.addCommitmentAgreement(item));
+    }
+    return results;
+  }
+
+  async addAmountDelta(params: {
+    agreementId?: number;
+    balanceId?: number;
+    amount: number;
+    effectiveAt: string | Date;
+    reason?: string;
+  }) {
+    let targetAgreementId = params.agreementId;
+    if (!targetAgreementId && params.balanceId) {
+      const agreement = await this.prisma.agreement.findUnique({
+        where: { balanceId: params.balanceId },
+      });
+      if (!agreement) {
+        throw new Error(`Agreement não encontrado para balanceId ${params.balanceId}`);
+      }
+      targetAgreementId = agreement.id;
+    }
+    if (!targetAgreementId) {
+      throw new Error("É necessário fornecer agreementId ou balanceId");
+    }
+
+    return this.prisma.agreementAmountEntry.create({
+      data: {
+        agreementId: targetAgreementId,
+        amount: params.amount,
+        effectiveAt: new Date(params.effectiveAt),
+        reason: params.reason,
+      },
+    });
+  }
+
+  /**
+   * Registra a provisão/geração da obrigação no ciclo (ACCRUAL):
+   * Debita o COMMITMENT (-x) e Credita a CATEGORY (+x) na competanceDate do ciclo.
+   */
+  async addAccrual(params: {
+    commitmentBalanceId: number;
+    categoryBalanceId: number;
+    description: string;
+    amount: number;
+    dueDate: string | Date;
+    competanceDate?: string | Date;
+  }) {
+    const absAmount = Math.abs(params.amount);
+    const due = new Date(params.dueDate);
+    const comp = params.competanceDate ? new Date(params.competanceDate) : due;
+
+    return this.prisma.entry.create({
+      data: {
+        description: params.description,
+        type: EntryType.ACCRUAL,
+        dueDate: due,
+        competanceDate: comp,
+        movements: {
+          create: [
+            {
+              balanceId: params.commitmentBalanceId,
+              amount: -absAmount,
+              direction: MovementDirection.DEBIT,
+            },
+            {
+              balanceId: params.categoryBalanceId,
+              amount: absAmount,
+              direction: MovementDirection.CREDIT,
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  /**
+   * Liquida uma obrigação (SETTLEMENT):
+   * Debita a Carteira (-x) na data real do pagamento (dueDate)
+   * e Credita o COMMITMENT/CREDIT (+x) ancorado na competanceDate do ciclo.
+   */
+  async addSettlement(params: {
+    walletBalanceId: number;
+    commitmentBalanceId: number;
+    description: string;
+    amount: number;
+    dueDate: string | Date;
+    competanceDate?: string | Date;
+  }) {
+    const absAmount = Math.abs(params.amount);
+    const due = new Date(params.dueDate);
+    const comp = params.competanceDate ? new Date(params.competanceDate) : due;
+
+    return this.prisma.entry.create({
+      data: {
+        description: params.description,
+        type: EntryType.SETTLEMENT,
+        dueDate: due,
+        competanceDate: comp,
+        movements: {
+          create: [
+            {
+              balanceId: params.walletBalanceId,
+              amount: -absAmount,
+              direction: MovementDirection.DEBIT,
+            },
+            {
+              balanceId: params.commitmentBalanceId,
+              amount: absAmount,
+              direction: MovementDirection.CREDIT,
+            },
+          ],
+        },
+      },
+    });
+  }
+
   async addCreditCard(params: CreditCardSeedInput) {
     const startDate = params.startsAt ? new Date(params.startsAt) : new Date(2026, 0, 1);
+    const endDate = params.endsAt ? new Date(params.endsAt) : null;
+
+    const rulesToCreate = [
+      {
+        closingDay: params.closingDay,
+        dueDay: params.dueDay,
+        frequency: CycleFrequency.MONTHLY,
+        interval: 1,
+        effectiveFrom: startDate,
+      },
+      ...(params.extraRules?.map((r) => ({
+        closingDay: r.closingDay ?? params.closingDay,
+        dueDay: r.dueDay,
+        frequency: r.frequency ?? CycleFrequency.MONTHLY,
+        interval: r.interval ?? 1,
+        effectiveFrom: new Date(r.effectiveFrom),
+      })) ?? []),
+    ];
+
     const card = await this.prisma.balance.create({
       data: {
         contextId: this.contextId,
         name: params.name,
         balanceType: BalanceType.CREDIT,
         removedAt: params.isArchived ? new Date() : null,
-        limitEntries: {
-          create: {
-            amount: params.limit,
-            effectiveAt: startDate,
-            reason: "Limite Inicial",
-          },
-        },
-        recurrence: {
+        agreement: {
           create: {
             startsAt: startDate,
+            endsAt: endDate,
             includeInProjection: true,
             rules: {
-              create: {
-                closingDay: params.closingDay,
-                dueDay: params.dueDay,
-                frequency: CycleFrequency.MONTHLY,
-                interval: 1,
-                effectiveFrom: startDate,
-              },
+              create: rulesToCreate,
+            },
+            amountEntries: {
+              create: params.limitEntries?.length
+                ? params.limitEntries.map((e) => ({
+                    amount: e.amount,
+                    effectiveAt: new Date(e.effectiveAt),
+                    reason: e.reason ?? "Ajuste de Limite",
+                  }))
+                : [
+                    {
+                      amount: params.limit,
+                      effectiveAt: startDate,
+                      reason: "Limite Inicial",
+                    },
+                  ],
             },
           },
         },
@@ -147,7 +378,8 @@ export class FinancialContextFactory {
           amount: exp.amount,
           direction: MovementDirection.DEBIT,
           date: exp.date,
-          keepPositiveOnDebit: true, // Em cartão (CREDIT), usedLimit soma o valor positivo das despesas
+          competanceDate: exp.competanceDate ?? exp.date,
+          keepPositiveOnDebit: true,
         });
       }
     }
@@ -156,7 +388,11 @@ export class FinancialContextFactory {
   }
 
   async addCreditCards(items: CreditCardSeedInput[]) {
-    return Promise.all(items.map((item) => this.addCreditCard(item)));
+    const results = [];
+    for (const item of items) {
+      results.push(await this.addCreditCard(item));
+    }
+    return results;
   }
 
   async addDirectEntry(params: {
@@ -167,6 +403,7 @@ export class FinancialContextFactory {
     direction: MovementDirection;
     type?: EntryType;
     date?: string | Date;
+    competanceDate?: string | Date;
     keepPositiveOnDebit?: boolean;
   }) {
     const absAmount = Math.abs(params.amount);
@@ -188,7 +425,6 @@ export class FinancialContextFactory {
         params.direction === MovementDirection.DEBIT
           ? MovementDirection.CREDIT
           : MovementDirection.DEBIT;
-
       movements.push({
         balanceId: params.counterpartBalanceId,
         amount: -signedAmount,
@@ -196,10 +432,14 @@ export class FinancialContextFactory {
       });
     }
 
+    const due = params.date ? new Date(params.date) : new Date();
+    const comp = params.competanceDate ? new Date(params.competanceDate) : due;
+
     return this.prisma.entry.create({
       data: {
         description: params.description,
-        date: params.date ? new Date(params.date) : new Date(),
+        dueDate: due,
+        competanceDate: comp,
         type: params.type ?? EntryType.DIRECT,
         movements: { create: movements },
       },
@@ -214,10 +454,13 @@ export class FinancialContextFactory {
     date?: string | Date;
   }) {
     const absAmount = Math.abs(params.amount);
+    const due = params.date ? new Date(params.date) : new Date();
+
     return this.prisma.entry.create({
       data: {
         description: params.description,
-        date: params.date ? new Date(params.date) : new Date(),
+        dueDate: due,
+        competanceDate: due,
         type: EntryType.TRANSFER,
         movements: {
           create: [
@@ -245,6 +488,7 @@ export class FinancialContextFactory {
     amount: number;
     originalDirection: MovementDirection;
     date?: string | Date;
+    competanceDate?: string | Date;
   }) {
     const absAmount = Math.abs(params.amount);
     const reversalDirection =
@@ -252,8 +496,6 @@ export class FinancialContextFactory {
         ? MovementDirection.CREDIT
         : MovementDirection.DEBIT;
 
-    // Como o original ainda existe na tabela Movement, o estorno precisa anular a soma
-    // ou compensar o lançamento original
     const signedReversalAmount =
       reversalDirection === MovementDirection.DEBIT ? -absAmount : absAmount;
 
@@ -273,10 +515,14 @@ export class FinancialContextFactory {
       });
     }
 
+    const due = params.date ? new Date(params.date) : new Date();
+    const comp = params.competanceDate ? new Date(params.competanceDate) : due;
+
     return this.prisma.entry.create({
       data: {
         description: params.description,
-        date: params.date ? new Date(params.date) : new Date(),
+        dueDate: due,
+        competanceDate: comp,
         type: EntryType.REVERSAL,
         reversesEntryId: params.originalEntryId,
         movements: { create: movements },

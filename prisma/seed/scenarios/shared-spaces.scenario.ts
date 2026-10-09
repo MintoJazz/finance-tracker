@@ -2,6 +2,7 @@ import {
   BalanceType,
   ContextMemberRole,
   ContextMemberStatus,
+  CycleFrequency,
   EntryType,
   MovementDirection,
 } from "../../generated/prisma/enums";
@@ -71,7 +72,33 @@ export async function seedSharedSpacesScenario(
   });
 
   const catMercado = await familySpace.addCategory("Supermercado & Feira");
-  const catMoradia = await familySpace.addCategory("Condomínio & Contas", BalanceType.COMMITMENT);
+  const catMoradia = await familySpace.addCategory("Moradia & Condomínio");
+
+  const condominioAgreement = await familySpace.addCommitmentAgreement({
+    name: "Condomínio Edifício Solar",
+    startsAt: "2026-01-01",
+    rules: [
+      { effectiveFrom: "2026-01-01", frequency: CycleFrequency.MONTHLY, closingDay: 1, dueDay: 10 },
+    ],
+  });
+
+  await familySpace.addAccrual({
+    commitmentBalanceId: condominioAgreement.id,
+    categoryBalanceId: catMoradia.id,
+    description: "Taxa Condominial Setembro/2026",
+    amount: 145000,
+    dueDate: "2026-09-10T08:00:00Z",
+    competanceDate: "2026-09-01T00:00:00Z",
+  });
+
+  await familySpace.addSettlement({
+    walletBalanceId: contaConjunta.id,
+    commitmentBalanceId: condominioAgreement.id,
+    description: "Pagamento Condomínio Setembro",
+    amount: 145000,
+    dueDate: "2026-09-10T11:00:00Z",
+    competanceDate: "2026-09-01T00:00:00Z",
+  });
 
   await familySpace.addDirectEntry({
     balanceId: contaConjunta.id,

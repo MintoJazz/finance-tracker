@@ -1,0 +1,14 @@
+// prisma/schema/views.prisma
+view EntryCycleRuleView {
+  entryId       Int
+  cycleRuleId   Int
+  agreementId   Int
+  balanceId     Int
+  referenceDate DateTime
+
+  entry     Entry     @relation(fields: [entryId], references: [id])
+  cycleRule CycleRule @relation(fields: [cycleRuleId], references: [id])
+
+  @@unique([entryId, cycleRuleId])
+  @@map("vw_entry_cycle_rule")
+}

@@ -1,17 +1,17 @@
 enum EntryType {
   DIRECT
   TRANSFER
-  
+
   ACCRUAL
   CLAIM_OPENING
-  
+
   SETTLEMENT
   CLAIM_PAYMENT
   CLAIM_RECEIPT
-  
+
   ADJUSTMENT
   CLAIM_ACCEPTANCE
-  
+
   REVERSAL
 }
 
@@ -21,18 +21,18 @@ enum MovementDirection {
 }
 
 model Entry {
-  id               Int       @id @default(autoincrement())
-  
-  description      String
-  date             DateTime
-  type             EntryType
-  reversesEntryId  Int?      @unique
-  createdAt        DateTime  @default(now())
+  id              Int       @id @default(autoincrement())
+  description     String
+  type            EntryType
+  reversesEntryId Int?      @unique
+  dueDate         DateTime
+  competanceDate  DateTime?
+  createdAt       DateTime  @default(now())
 
-  reverses   Entry?           @relation("EntryReversal", fields: [reversesEntryId], references: [id])
-  reversedBy Entry?           @relation("EntryReversal")
-
-  movements   Movement[]
+  reverses            Entry?               @relation("EntryReversal", fields: [reversesEntryId], references: [id])
+  reversedBy          Entry?               @relation("EntryReversal")
+  movements           Movement[]
+  entryCycleRuleViews EntryCycleRuleView[] // <-- ADICIONAR ESTA LINHA
 }
 
 model Movement {
