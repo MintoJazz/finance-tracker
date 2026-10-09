@@ -15,7 +15,8 @@ import {
 
 export function useCardMovementsPaginated(
     cardId: number,
-    filters: WalletMovementFilters
+    filters: WalletMovementFilters,
+    initialData?: Page<WalletMovement> | null
 ): UseWalletMovementsPaginatedReturn {
     const router = useRouter();
     const pathname = usePathname();
@@ -27,9 +28,10 @@ export function useCardMovementsPaginated(
     const pageSize =
         !Number.isNaN(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : 10;
 
-    const [data, setData] = useState<Page<WalletMovement> | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [data, setData] = useState<Page<WalletMovement> | null>(initialData ?? null);
+    const [isLoading, setIsLoading] = useState<boolean>(!initialData);
     const [error, setError] = useState<string | null>(null);
+    const hasMountedRef = useRef(false);
 
     const hasCycleWindow = Boolean(filters.from && filters.to);
 
@@ -62,9 +64,14 @@ export function useCardMovementsPaginated(
     }, [cardId, page, pageSize, filters, hasCycleWindow]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (!hasMountedRef.current) {
+            hasMountedRef.current = true;
+            if (initialData && page === 1) {
+                return;
+            }
+        }
         void loadData();
-    }, [loadData]);
+    }, [loadData, initialData, page]);
 
     const setPage = useCallback(
         (pageIndex: number) => {
@@ -102,15 +109,17 @@ export function useCardMovementsPaginated(
 export function useCardMovementsInfinite(
     cardId: number,
     filters: WalletMovementFilters,
-    pageSize = 10
+    pageSize = 10,
+    initialData?: Page<WalletMovement> | null
 ): UseWalletMovementsInfiniteReturn {
-    const [items, setItems] = useState<WalletMovement[]>([]);
-    const [pageIndex, setPageIndex] = useState<number>(0);
-    const [pageCount, setPageCount] = useState<number>(1);
-    const [total, setTotal] = useState<number>(0);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [items, setItems] = useState<WalletMovement[]>(initialData?.data ?? []);
+    const [pageIndex, setPageIndex] = useState<number>(initialData?.pageIndex ?? 0);
+    const [pageCount, setPageCount] = useState<number>(initialData?.pageCount ?? 1);
+    const [total, setTotal] = useState<number>(initialData?.total ?? 0);
+    const [isLoading, setIsLoading] = useState<boolean>(!initialData);
     const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const hasMountedRef = useRef(false);
 
     const hasCycleWindow = Boolean(filters.from && filters.to);
     const hasMore = pageIndex < pageCount - 1 && items.length < total;
@@ -149,9 +158,14 @@ export function useCardMovementsInfinite(
     }, [cardId, filters, pageSize, hasCycleWindow]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (!hasMountedRef.current) {
+            hasMountedRef.current = true;
+            if (initialData) {
+                return;
+            }
+        }
         void loadInitial();
-    }, [loadInitial]);
+    }, [loadInitial, initialData]);
 
     const loadMore = useCallback(async () => {
         if (isLoadingMore || !hasMore || isLoading || !hasCycleWindow) return;

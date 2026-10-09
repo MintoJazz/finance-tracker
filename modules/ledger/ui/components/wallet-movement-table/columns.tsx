@@ -4,38 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { MovementAmountSpan } from "../movement-amount-span";
-import { WalletMovementType, WalletMovement } from "@/modules/ledger/core/schemas/wallet-movement.schema";
-
-const TYPE_CONFIG: Record<
-    WalletMovementType,
-    { label: string; className: string }
-> = {
-    INCOME: {
-        label: "Receita",
-        className:
-            "border-emerald-500/30 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10",
-    },
-    EXPENSE: {
-        label: "Despesa",
-        className:
-            "border-rose-500/30 text-rose-700 dark:text-rose-400 bg-rose-500/10",
-    },
-    TRANSFER: {
-        label: "Transferência",
-        className:
-            "border-blue-500/30 text-blue-700 dark:text-blue-400 bg-blue-500/10",
-    },
-    ADJUSTMENT: {
-        label: "Ajuste",
-        className:
-            "border-amber-500/30 text-amber-700 dark:text-amber-400 bg-amber-500/10",
-    },
-    REVERSAL: {
-        label: "Estorno",
-        className:
-            "border-purple-500/30 text-purple-700 dark:text-purple-400 bg-purple-500/10",
-    },
-};
+import { WalletMovement } from "@/modules/ledger/core/schemas/wallet-movement.schema";
+import { MOVEMENT_TYPE_UI_CONFIG } from "../../themes/movement-type";
 
 export const MOVEMENT_COLUMNS: ColumnDef<WalletMovement, unknown>[] = [
     {
@@ -86,34 +56,27 @@ export const MOVEMENT_COLUMNS: ColumnDef<WalletMovement, unknown>[] = [
         },
     },
     {
-        id: "type",
-        header: "Tipo",
-        accessorKey: "type",
+        accessorKey: "value",
+        header: () => <div className="text-right">Valor</div>,
         cell: ({ row }) => {
-            const { type } = row.original;
-            const config = TYPE_CONFIG[type] ?? {
+            const { amount, direction, isReversed, type } = row.original;
+            const { label } = MOVEMENT_TYPE_UI_CONFIG[type] ?? {
                 label: type,
                 className: "border-border text-muted-foreground",
             };
             return (
-                <Badge variant="outline" className={cn("text-xs font-normal", config.className)}>
-                    {config.label}
-                </Badge>
-            );
-        },
-    },
-    {
-        id: "amount",
-        header: "Valor",
-        accessorKey: "amount",
-        cell: ({ row }) => {
-            const { amount, direction, isReversed } = row.original;
-            return (
-                <MovementAmountSpan
-                    amount={amount}
-                    direction={direction}
-                    isReversed={isReversed}
-                />
+                <div className="flex flex-col items-end">
+                    <span className="font-medium font-mono tabular-nums">
+                        <MovementAmountSpan
+                            amount={amount}
+                            direction={direction}
+                            isReversed={isReversed}
+                        />
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                        {label}
+                    </span>
+                </div>
             );
         },
     },
