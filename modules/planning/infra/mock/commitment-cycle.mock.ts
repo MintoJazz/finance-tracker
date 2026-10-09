@@ -8,7 +8,7 @@ import {
     GetCommitmentsSummaryDTO,
 } from "../../core/schemas/commitment-cycle.schema";
 
-const MOCK_COMMITMENT_CYCLES: CommitmentCycleItem[] = [
+const RAW_MOCK_COMMITMENT_CYCLES: Omit<CommitmentCycleItem, "kind">[] = [
     // =========================================================================
     // SETEMBRO 2026
     // =========================================================================
@@ -216,6 +216,13 @@ const MOCK_COMMITMENT_CYCLES: CommitmentCycleItem[] = [
         status: "OPEN",
     },
 ];
+
+const MOCK_COMMITMENT_CYCLES: CommitmentCycleItem[] = RAW_MOCK_COMMITMENT_CYCLES.map(
+    (item) => ({
+        ...item,
+        kind: "ACTUAL",
+    })
+);
 
 function applyCycleFilters(
     items: CommitmentCycleItem[],
