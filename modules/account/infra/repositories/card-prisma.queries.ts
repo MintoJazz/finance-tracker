@@ -15,29 +15,28 @@ import { CardSummary } from "@/modules/account/core/schemas/card.schema";
 
 export class CardPrismaQueries implements ICardQueries {
     private static readonly includeDetails = {
-        recurrence: {
+        agreement: {
             include: {
                 rules: {
                     orderBy: { effectiveFrom: "desc" },
                     take: 1,
                 },
+                amountEntries: {
+                    orderBy: { effectiveAt: "asc" },
+                },
             },
-        },
-        limitEntries: {
-            orderBy: [{ effectiveAt: "desc" }, { id: "desc" }],
-            take: 1,
         },
         movements: {
             take: 1,
             orderBy: {
-                entry: { date: "desc" },
+                entry: { dueDate: "desc" },
             },
             where: {
                 entry: { reversedBy: null },
             },
             include: {
                 entry: {
-                    select: { date: true },
+                    select: { dueDate: true },
                 },
             },
         },
@@ -109,25 +108,27 @@ export class CardPrismaQueries implements ICardQueries {
                 balanceType: "CREDIT",
             },
             include: {
-                recurrence: {
+                agreement: {
                     include: {
                         rules: {
                             orderBy: { effectiveFrom: "desc" },
                             take: 1,
                         },
+                        amountEntries: {
+                            orderBy: { effectiveAt: "asc" },
+                        },
                     },
-                },
-                limitEntries: {
-                    orderBy: [{ effectiveAt: "desc" }, { id: "desc" }],
-                    take: 1,
                 },
             },
         });
 
         if (!card) return null;
 
-        const currentRule = card.recurrence?.rules?.[0];
-        const limit = card.limitEntries?.[0]?.amount ?? 0;
+        const currentRule = card.agreement?.rules?.[0];
+        const limit = Math.max(
+            0,
+            card.agreement?.amountEntries?.reduce((sum, entry) => sum + entry.amount, 0) ?? 0
+        );
 
         return {
             id: card.id,

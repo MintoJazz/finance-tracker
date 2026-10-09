@@ -12,14 +12,14 @@ export class WalletPrismaQueries implements IWalletQueries {
         movements: {
             take: 1,
             orderBy: {
-                entry: { date: "desc" },
+                entry: { dueDate: "desc" },
             },
             where: {
                 entry: { reversedBy: null },
             },
             include: {
                 entry: {
-                    select: { date: true },
+                    select: { dueDate: true },
                 },
             },
         },

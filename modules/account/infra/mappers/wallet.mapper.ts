@@ -5,7 +5,7 @@ import { WalletProfile } from "@/modules/account/core/schemas/wallet-profile.sch
 export type BalanceWithLatestActivity = PrismaBalance & {
     movements?: {
         entry?: {
-            date: Date;
+            dueDate: Date;
         } | null;
     }[];
 };
@@ -13,7 +13,7 @@ export type BalanceWithLatestActivity = PrismaBalance & {
 export class WalletMapper {
     static toSummary(balance: BalanceWithLatestActivity, amount: number): WalletSummary {
         const { id, name, removedAt, movements } = balance;
-        const lastActivityAt = movements?.[0]?.entry?.date ?? null;
+        const lastActivityAt = movements?.[0]?.entry?.dueDate ?? null;
         const isArchived = removedAt !== null;
 
         return { id, name, isArchived, amount, lastActivityAt };

@@ -1,108 +1,206 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma"
 import {
-    CreateCardRepositoryDTO,
-    ICardRepository,
-} from "../../core/types/card-repository.interface";
-import { CardEntity } from "../../core/schemas/card.schema";
+  CreateCardRepositoryDTO,
+  ICardRepository,
+  UpdateCardRepositoryDTO,
+} from "../../core/types/card-repository.interface"
+import { CardEntity } from "../../core/schemas/card.schema"
 
 export class CardPrismaRepository implements ICardRepository {
-    async create(
-        data: CreateCardRepositoryDTO
-    ): Promise<{ id: number; name: string }> {
-        const now = new Date();
+  async create(
+    data: CreateCardRepositoryDTO
+  ): Promise<{ id: number; name: string }> {
+    const now = new Date()
 
-        const card = await prisma.balance.create({
-            data: {
-                contextId: data.contextId,
-                name: data.name,
-                balanceType: "CREDIT",
-                recurrence: {
-                    create: {
-                        includeInProjection: true,
-                        startsAt: now,
-                        rules: {
-                            create: {
-                                effectiveFrom: now,
-                                frequency: "MONTHLY",
-                                interval: 1,
-                                closingDay: data.closingDay,
-                                dueDay: data.dueDay,
-                            },
-                        },
-                    },
-                },
-                limitEntries: {
-                    create: {
-                        amount: data.limit,
-                        effectiveAt: now,
-                        reason: "Limite inicial",
-                    },
-                },
+    const card = await prisma.balance.create({
+      data: {
+        contextId: data.contextId,
+        name: data.name,
+        balanceType: "CREDIT",
+        agreement: {
+          create: {
+            includeInProjection: true,
+            startsAt: now,
+            rules: {
+              create: {
+                effectiveFrom: now,
+                frequency: "MONTHLY",
+                interval: 1,
+                closingDay: data.closingDay,
+                dueDay: data.dueDay,
+              },
             },
-            select: {
-                id: true,
-                name: true,
+            amountEntries: {
+              create: {
+                amount: data.limit,
+                effectiveAt: now,
+                reason: "Limite inicial",
+              },
             },
-        });
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    })
 
-        return card;
+    return card
+  }
+
+  async findByIdAndContextId(
+    id: number,
+    contextId: number
+  ): Promise<CardEntity | null> {
+    const card = await prisma.balance.findFirst({
+      where: {
+        id,
+        contextId,
+        balanceType: "CREDIT",
+      },
+      select: {
+        id: true,
+        name: true,
+        contextId: true,
+        removedAt: true,
+      },
+    })
+
+    if (!card) return null
+
+    return {
+      id: card.id,
+      name: card.name,
+      contextId: card.contextId,
+      isArchived: card.removedAt !== null,
     }
+  }
 
-    async findByIdAndContextId(
-        id: number,
-        contextId: number
-    ): Promise<CardEntity | null> {
-        const card = await prisma.balance.findFirst({
+  async update(
+    id: number,
+    _contextId: number,
+    data: UpdateCardRepositoryDTO
+  ): Promise<{ id: number; name: string }> {
+    return await prisma.$transaction(async (tx) => {
+      // 1. Atualizar nome do cartão
+      const updatedCard = await tx.balance.update({
+        where: { id },
+        data: {
+          name: data.name,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      })
+
+      // 2. Histórico de Limite e Regras de Ciclo via Agreement
+      const agreement = await tx.agreement.findUnique({
+        where: { balanceId: id },
+        include: {
+          amountEntries: {
+            orderBy: { effectiveAt: "asc" },
+          },
+          rules: {
+            orderBy: { effectiveFrom: "desc" },
+            take: 1,
+          },
+        },
+      })
+
+      if (!agreement) {
+        throw new Error(`Agreement não encontrado para o cartão id=${id}`)
+      }
+
+      const currentLimit = Math.max(
+        0,
+        agreement.amountEntries.reduce((sum, entry) => sum + entry.amount, 0)
+      )
+
+      const delta = data.limit - currentLimit
+      if (delta !== 0) {
+        await tx.agreementAmountEntry.create({
+          data: {
+            agreementId: agreement.id,
+            amount: delta,
+            effectiveAt: new Date(),
+            reason: "Ajuste de limite",
+          },
+        })
+      }
+
+      // 3. Regras de Ciclo (CycleRule)
+      const today = new Date()
+      today.setUTCHours(0, 0, 0, 0)
+        const currentRule = agreement.rules[0]
+        const rulesChanged =
+          currentRule?.closingDay !== data.closingDay ||
+          currentRule?.dueDay !== data.dueDay
+
+        if (rulesChanged) {
+          const todayRule = await tx.cycleRule.findUnique({
             where: {
-                id,
-                contextId,
-                balanceType: "CREDIT",
+              agreementId_effectiveFrom: {
+                agreementId: agreement.id,
+                effectiveFrom: today,
+              },
             },
-            select: {
-                id: true,
-                name: true,
-                contextId: true,
-                removedAt: true,
-            },
-        });
+          })
 
-        if (!card) return null;
+          if (todayRule) {
+            await tx.cycleRule.update({
+              where: { id: todayRule.id },
+              data: {
+                closingDay: data.closingDay,
+                dueDay: data.dueDay,
+              },
+            })
+          } else {
+            await tx.cycleRule.create({
+              data: {
+                agreementId: agreement.id,
+                effectiveFrom: today,
+                frequency: "MONTHLY",
+                interval: 1,
+                closingDay: data.closingDay,
+                dueDay: data.dueDay,
+              },
+            })
+          }
+        }
 
-        return {
-            id: card.id,
-            name: card.name,
-            contextId: card.contextId,
-            isArchived: card.removedAt !== null,
-        };
+        return updatedCard
+      })
     }
 
-    async archive(id: number): Promise<{ id: number; name: string }> {
-        const archived = await prisma.balance.update({
-            where: { id },
-            data: {
-                removedAt: new Date(),
-            },
-            select: {
-                id: true,
-                name: true,
-            },
-        });
+  async archive(id: number): Promise<{ id: number; name: string }> {
+    const archived = await prisma.balance.update({
+      where: { id },
+      data: {
+        removedAt: new Date(),
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    })
 
-        return archived;
-    }
+    return archived
+  }
 
-    async restore(id: number): Promise<{ id: number; name: string }> {
-        const restored = await prisma.balance.update({
-            where: { id },
-            data: {
-                removedAt: null,
-            },
-            select: {
-                id: true,
-                name: true,
-            },
-        });
+  async restore(id: number): Promise<{ id: number; name: string }> {
+    const restored = await prisma.balance.update({
+      where: { id },
+      data: {
+        removedAt: null,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    })
 
-        return restored;
-    }
+    return restored
+  }
 }
