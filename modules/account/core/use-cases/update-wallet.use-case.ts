@@ -34,6 +34,10 @@ export class UpdateWalletUseCase {
                 return failure("Carteira não encontrada.");
             }
 
+            if (existingWallet.isArchived) {
+                return failure("Não é possível editar uma carteira arquivada.");
+            }
+
             const updatedWallet = await this.walletRepository.update(data.id, session.contextId, {
                 name: data.name,
             });

@@ -49,6 +49,10 @@ export class UpdateCardUseCase {
         return failure("Cartão não encontrado.")
       }
 
+      if (existingCard.isArchived) {
+        return failure("Não é possível editar um cartão arquivado.")
+      }
+
       const updatedCard = await this.cardRepository.update(
         data.id,
         session.contextId,
