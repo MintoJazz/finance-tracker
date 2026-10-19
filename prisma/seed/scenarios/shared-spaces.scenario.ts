@@ -72,10 +72,15 @@ export async function seedSharedSpacesScenario(
   });
 
   const catMercado = await familySpace.addCategory("Supermercado & Feira");
-  const catMoradia = await familySpace.addCategory("Moradia & Condomínio");
+  const catMoradia = await familySpace.addCategory("Moradia & Condomínio", {
+    appearance: { icon: "house", color: "sky" },
+  });
+
+  await familySpace.addDefaultCategories();
 
   const condominioAgreement = await familySpace.addCommitmentAgreement({
     name: "Condomínio Edifício Solar",
+    categoryId: catMoradia.id,
     startsAt: "2026-01-01",
     rules: [
       { effectiveFrom: "2026-01-01", frequency: CycleFrequency.MONTHLY, closingDay: 1, dueDay: 10 },
@@ -152,7 +157,11 @@ export async function seedSharedSpacesScenario(
     initialBalance: { amount: 600000, date: "2026-09-15T14:00:00Z" },
   });
 
-  const catHospedagem = await tripSpace.addCategory("Hospedagem & Passeios");
+  const catHospedagem = await tripSpace.addCategory("Hospedagem & Passeios", {
+    appearance: { icon: "house", color: "sky" },
+  });
+
+  await tripSpace.addDefaultCategories();
 
   await tripSpace.addDirectEntry({
     balanceId: caixinhaViagem.id,
@@ -181,6 +190,8 @@ export async function seedSharedSpacesScenario(
     status: ContextMemberStatus.PENDING,
     invitedByPartyId: users.diegoId,
   });
+
+  await repSpace.addDefaultCategories();
 
   await repSpace.addWallet({
     name: "Fundo Luz, Água e Fibra",

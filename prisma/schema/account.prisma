@@ -15,17 +15,26 @@ enum BalanceType {
 }
 
 model Balance {
-  id          Int         @id @default(autoincrement())
-  contextId   Int
+  id        Int  @id @default(autoincrement())
+  parentId  Int?
+  contextId Int
+
   name        String
   balanceType BalanceType
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  removedAt   DateTime?
 
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  removedAt DateTime?
+
+  parent           Balance?         @relation("BalanceTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children         Balance[]        @relation("BalanceTree")
   financialContext FinancialContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
-  agreement        Agreement?
-  movements        Movement[]
+
+  agreement  Agreement?
+  appearance BalanceAppearance?
+  movements  Movement[]
+
+  @@unique([id, contextId, balanceType])
 }
 
 model Agreement {
@@ -59,11 +68,6 @@ model CycleRule {
   @@index([agreementId])
 }
 
-/// Log append-only de ajustes (deltas, em centavos) do valor de um Agreement.
-/// Valor vigente em uma data = max(0, soma dos amount com effectiveAt <= data).
-/// Semântica por Balance.balanceType:
-///   CREDIT                         -> limite do cartão
-///   COMMITMENT | PAYABLE | RECEIVABLE -> valor esperado por ciclo do compromisso
 model AgreementAmountEntry {
   id          Int      @id @default(autoincrement())
   agreementId Int
@@ -77,3 +81,11 @@ model AgreementAmountEntry {
   @@index([agreementId, effectiveAt])
 }
 
+model BalanceAppearance {
+  balanceId Int @id
+
+  icon  String?
+  color String?
+
+  balance Balance @relation(fields: [balanceId], references: [id], onDelete: Cascade)
+}

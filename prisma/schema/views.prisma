@@ -1,4 +1,3 @@
-// prisma/schema/views.prisma
 view EntryCycleRuleView {
   entryId       Int
   cycleRuleId   Int
@@ -11,4 +10,15 @@ view EntryCycleRuleView {
 
   @@unique([entryId, cycleRuleId])
   @@map("vw_entry_cycle_rule")
+}
+
+view EntryCategoryView {
+  entryId           Int
+  contextId         Int
+  kind              String
+  categoryBalanceId Int?
+  creditBalanceId   Int?
+
+  @@unique([entryId, contextId])
+  @@map("vw_entry_category")
 }

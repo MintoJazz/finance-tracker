@@ -54,6 +54,11 @@ export interface CreditCardSeedInput {
 export interface CommitmentAgreementSeedInput {
   name: string;
   balanceType?: BalanceType; // Default: PAYABLE (pode ser RECEIVABLE no futuro)
+  categoryId?: number;
+  appearance?: {
+    icon?: string | null;
+    color?: string | null;
+  };
   amount?: number; // Added so we can show default/expected amount in the UI
   amountEntries?: Array<{
     amount: number;
@@ -83,6 +88,7 @@ export class FinancialContextFactory {
   }) {
     const status = params.status ?? ContextMemberStatus.ACTIVE;
     const invitedAt = params.invitedAt ?? new Date();
+
     return this.prisma.contextMember.create({
       data: {
         contextId: this.contextId,
@@ -130,10 +136,69 @@ export class FinancialContextFactory {
     return results;
   }
 
-  async addCategory(name: string, type: BalanceType = BalanceType.CATEGORY) {
+  async addCategory(
+    name: string,
+    options?: {
+      type?: BalanceType;
+      appearance?: {
+        icon?: string | null;
+        color?: string | null;
+      };
+    } | BalanceType
+  ) {
+    const balanceType =
+      typeof options === "string" ? options : (options?.type ?? BalanceType.CATEGORY);
+    const appearance =
+      typeof options === "object" && options !== null ? options.appearance : undefined;
+
     return this.prisma.balance.create({
-      data: { contextId: this.contextId, name, balanceType: type },
+      data: {
+        contextId: this.contextId,
+        name,
+        balanceType,
+        appearance: appearance
+          ? {
+              create: {
+                icon: appearance.icon ?? null,
+                color: appearance.color ?? null,
+              },
+            }
+          : undefined,
+      },
+      include: {
+        appearance: true,
+      },
     });
+  }
+
+  async addCategories(
+    items: Array<{
+      name: string;
+      appearance?: { icon?: string | null; color?: string | null };
+      type?: BalanceType;
+    }>
+  ) {
+    const results = [];
+    for (const item of items) {
+      results.push(
+        await this.addCategory(item.name, {
+          type: item.type,
+          appearance: item.appearance,
+        })
+      );
+    }
+    return results;
+  }
+
+  async addDefaultCategories() {
+    return this.addCategories([
+      { name: "Moradia & Contas", appearance: { icon: "house", color: "sky" } },
+      { name: "Alimentação & Mercado", appearance: { icon: "utensils", color: "orange" } },
+      { name: "Transporte & Combustível", appearance: { icon: "car", color: "amber" } },
+      { name: "Lazer & Diversão", appearance: { icon: "party-popper", color: "violet" } },
+      { name: "Saúde & Farmácia", appearance: { icon: "heart-pulse", color: "rose" } },
+      { name: "Assinaturas & Serviços", appearance: { icon: "tv", color: "indigo" } },
+    ]);
   }
 
   /**
@@ -149,6 +214,15 @@ export class FinancialContextFactory {
         contextId: this.contextId,
         name: params.name,
         balanceType: params.balanceType ?? BalanceType.PAYABLE,
+        parentId: params.categoryId ?? null,
+        appearance: params.appearance
+          ? {
+              create: {
+                icon: params.appearance.icon ?? null,
+                color: params.appearance.color ?? null,
+              },
+            }
+          : undefined,
         removedAt: params.isArchived ? new Date() : null,
         agreement: {
           create: {
@@ -210,6 +284,7 @@ export class FinancialContextFactory {
     reason?: string;
   }) {
     let targetAgreementId = params.agreementId;
+
     if (!targetAgreementId && params.balanceId) {
       const agreement = await this.prisma.agreement.findUnique({
         where: { balanceId: params.balanceId },
@@ -219,6 +294,7 @@ export class FinancialContextFactory {
       }
       targetAgreementId = agreement.id;
     }
+
     if (!targetAgreementId) {
       throw new Error("É necessário fornecer agreementId ou balanceId");
     }
@@ -425,9 +501,68 @@ export class FinancialContextFactory {
         params.direction === MovementDirection.DEBIT
           ? MovementDirection.CREDIT
           : MovementDirection.DEBIT;
+
       movements.push({
         balanceId: params.counterpartBalanceId,
         amount: -signedAmount,
+        direction: counterpartDirection,
+      });
+    }
+
+    const due = params.date ? new Date(params.date) : new Date();
+    const comp = params.competanceDate ? new Date(params.competanceDate) : due;
+
+    return this.prisma.entry.create({
+      data: {
+        description: params.description,
+        dueDate: due,
+        competanceDate: comp,
+        type: params.type ?? EntryType.DIRECT,
+        movements: { create: movements },
+      },
+    });
+  }
+
+  async addSplitDirectEntry(params: {
+    balanceId: number;
+    splits: Array<{
+      categoryId: number;
+      amount: number;
+    }>;
+    description: string;
+    direction: MovementDirection;
+    type?: EntryType;
+    date?: string | Date;
+    competanceDate?: string | Date;
+    keepPositiveOnDebit?: boolean;
+  }) {
+    const totalAbsAmount = params.splits.reduce((acc, s) => acc + Math.abs(s.amount), 0);
+    const signedMainAmount =
+      params.direction === MovementDirection.DEBIT && !params.keepPositiveOnDebit
+        ? -totalAbsAmount
+        : totalAbsAmount;
+
+    const movements = [
+      {
+        balanceId: params.balanceId,
+        amount: signedMainAmount,
+        direction: params.direction,
+      },
+    ];
+
+    const counterpartDirection =
+      params.direction === MovementDirection.DEBIT
+        ? MovementDirection.CREDIT
+        : MovementDirection.DEBIT;
+
+    for (const split of params.splits) {
+      const splitAbs = Math.abs(split.amount);
+      const splitSigned =
+        counterpartDirection === MovementDirection.DEBIT ? -splitAbs : splitAbs;
+
+      movements.push({
+        balanceId: split.categoryId,
+        amount: splitSigned,
         direction: counterpartDirection,
       });
     }

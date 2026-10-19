@@ -2,6 +2,7 @@ import { prisma } from "../../lib/prisma";
 import { DEFAULT_PASSWORD, resetDatabase } from "./core/helpers";
 import { SystemSeedFactory } from "./core/system.factory";
 import { seedAnaScenario } from "./scenarios/ana.scenario";
+import { seedClaimsScenario } from "./scenarios/claims.scenario";
 import { seedOtherUsersScenario } from "./scenarios/others.scenario";
 import { seedSharedSpacesScenario } from "./scenarios/shared-spaces.scenario";
 
@@ -11,15 +12,21 @@ async function main() {
 
   const factory = await SystemSeedFactory.init(prisma);
 
-  const { party: ana } = await seedAnaScenario(factory);
-  const { bruno, carla, diego, eduarda } = await seedOtherUsersScenario(factory);
+  const anaData = await seedAnaScenario(factory);
+  const othersData = await seedOtherUsersScenario(factory);
 
   await seedSharedSpacesScenario(factory, {
-    anaId: ana.id,
-    brunoId: bruno.party.id,
-    carlaId: carla.party.id,
-    diegoId: diego.party.id,
-    eduardaId: eduarda.party.id,
+    anaId: anaData.party.id,
+    brunoId: othersData.bruno.party.id,
+    carlaId: othersData.carla.party.id,
+    diegoId: othersData.diego.party.id,
+    eduardaId: othersData.eduarda.party.id,
+  });
+
+  console.log("🌳 Semeando árvores de cobrança inter-contextos (claims)...");
+  await seedClaimsScenario(factory, {
+    ana: anaData,
+    others: othersData,
   });
 
   console.log(`\n✅ Seed concluída com sucesso! Senha padrão: ${DEFAULT_PASSWORD}`);

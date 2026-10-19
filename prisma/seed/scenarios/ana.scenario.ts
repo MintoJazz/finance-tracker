@@ -3,6 +3,7 @@ import type { SystemSeedFactory } from "../core/system.factory";
 
 export async function seedAnaScenario(factory: SystemSeedFactory) {
     console.log("🚀 Populando cenário da Ana (Carteiras, Contratos versionados, Ciclos e Transações)...");
+
     const { party, space } = await factory.createUser({
         name: "Ana Souza",
         email: "ana@teste.com",
@@ -58,13 +59,36 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         },
     ]);
 
-    // Categorias para contrapartida contábil
-    const catSalario = await space.addCategory("Salário & Renda");
-    const catAlimentacao = await space.addCategory("Alimentação & Mercado");
-    const catMoradia = await space.addCategory("Moradia & Contas");
-    const catTransporte = await space.addCategory("Transporte & Combustível");
-    const catLazer = await space.addCategory("Lazer & Assinaturas");
-    const catSaude = await space.addCategory("Saúde & Farmácia");
+    // Categorias para contrapartida contábil com BalanceAppearance e casos de teste
+    const catSalario = await space.addCategory("Salário & Renda", {
+        appearance: { icon: "wallet", color: "emerald" },
+    });
+    const catAlimentacao = await space.addCategory("Alimentação & Mercado", {
+        appearance: { icon: "utensils", color: "orange" },
+    });
+    const catMoradia = await space.addCategory("Moradia & Contas", {
+        appearance: { icon: "house", color: "sky" },
+    });
+    const catTransporte = await space.addCategory("Transporte & Combustível", {
+        appearance: { icon: "car", color: "amber" },
+    });
+    const catLazer = await space.addCategory("Lazer & Assinaturas", {
+        appearance: { icon: "party-popper", color: "violet" },
+    });
+    const catSaude = await space.addCategory("Saúde & Farmácia", {
+        appearance: { icon: "heart-pulse", color: "rose" },
+    });
+    const catAssinaturas = await space.addCategory("Assinaturas & Serviços", {
+        appearance: { icon: "tv", color: "indigo" },
+    });
+
+    // Caso de fallback 1: Categoria SEM appearance cadastrada (icon null, color null)
+    const catPets = await space.addCategory("Pets & Veterinário");
+
+    // Caso de fallback 2: Categoria COM ícone inexistente no Lucide para exercitar fallback
+    const catEducacao = await space.addCategory("Educação & Cursos", {
+        appearance: { icon: "icone-que-nao-existe", color: "teal" },
+    });
 
     // =========================================================================
     // 2. CONTRATOS E OBRIGAÇÕES RECORRENTES (COMMITMENT + AGREEMENT + RULES)
@@ -79,10 +103,12 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         contratoFreelance,
         contratoDividendos,
         contratoCondominio,
+        contratoAcademia,
     ] = await space.addCommitmentAgreements([
         {
             // Caso 1: Contrato com linha do tempo completa (PAST, CURRENT e FUTURE agendada) e histórico de reajustes
             name: "Aluguel Apartamento",
+            categoryId: catMoradia.id,
             startsAt: "2025-01-01",
             amountEntries: [
                 { amount: 250000, effectiveAt: "2025-01-01", reason: "Valor Inicial do Contrato" },
@@ -98,6 +124,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         {
             // Caso 2: Contrato de Concessionária (Com dia de fechamento/leitura e vencimento)
             name: "Conta de Energia CEEE Equatorial",
+            categoryId: catMoradia.id,
             amount: 21500, // Variável, usando uma média
             startsAt: "2025-03-01",
             rules: [
@@ -107,6 +134,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         {
             // Caso 3: Assinatura / Fibra com mudança recente de vencimento
             name: "Internet Fibra 600Mb",
+            categoryId: catAssinaturas.id,
             amount: 12990,
             startsAt: "2025-06-01",
             rules: [
@@ -116,6 +144,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         {
             // Caso 4: Plano de Saúde pago via Itaú
             name: "Plano de Saúde Unimed",
+            categoryId: catSaude.id,
             amount: 68000,
             startsAt: "2025-01-01",
             rules: [
@@ -125,6 +154,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         {
             // Caso 5: Obrigação de Frequência Anual (YEARLY)
             name: "IPVA & Licenciamento Anual",
+            categoryId: catTransporte.id,
             amount: 89300,
             startsAt: "2025-01-01",
             rules: [
@@ -134,6 +164,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         {
             // Caso 6: Contrato Encerrado (endsAt no passado -> testa filtro de inativos/encerrados)
             name: "Curso de Inglês Britânico",
+            categoryId: catEducacao.id,
             amount: 25000,
             startsAt: "2025-02-01",
             endsAt: "2026-07-31",
@@ -145,6 +176,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         {
             // Caso 7: Recebimento Recorrente (RECEIVABLE)
             name: "Freelance Mensal - Agência XYZ",
+            categoryId: catSalario.id,
             amount: 180000,
             balanceType: BalanceType.RECEIVABLE,
             startsAt: "2026-01-01",
@@ -155,6 +187,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         {
             // Caso 8: Recebimento Anual (RECEIVABLE)
             name: "Dividendos Empresa Familiar",
+            categoryId: catSalario.id,
             amount: 1500000,
             balanceType: BalanceType.RECEIVABLE,
             startsAt: "2025-01-01",
@@ -165,10 +198,21 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         {
             // Caso 9: Condomínio Residencial - Usado para testar status OVERDUE (Setembro sem pagamento)
             name: "Condomínio Edifício Solar das Flores",
+            categoryId: catMoradia.id,
             amount: 45000,
             startsAt: "2026-06-01",
             rules: [
                 { effectiveFrom: "2026-06-01", frequency: CycleFrequency.MONTHLY, closingDay: null, dueDay: 25 },
+            ],
+        },
+        {
+            // Caso 10: Academia & Bem-Estar - Usado para testar mudança de categoria no mesmo ciclo (ACCRUAL Saúde + ACCRUAL Lazer -> SETTLEMENT = multiple)
+            name: "Academia Smart Fit Club",
+            categoryId: catSaude.id,
+            amount: 14990,
+            startsAt: "2026-08-01",
+            rules: [
+                { effectiveFrom: "2026-08-01", frequency: CycleFrequency.MONTHLY, closingDay: null, dueDay: 15 },
             ],
         },
     ]);
@@ -176,6 +220,62 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
     // =========================================================================
     // 3. TRANSAÇÕES E CICLOS DE OBRIGAÇÕES (Ago a Out/2026)
     // =========================================================================
+
+    // Cenários de teste de carteira para categorias especiais (Split -> multiple, Fallbacks)
+    await space.addSplitDirectEntry({
+        balanceId: nubank.id,
+        splits: [
+            { categoryId: catAlimentacao.id, amount: 8000 },
+            { categoryId: catPets.id, amount: 4500 },
+        ],
+        description: "Mercado & Pet Shop Express (Split)",
+        direction: MovementDirection.DEBIT,
+        date: "2026-08-02T14:30:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catPets.id,
+        description: "Consulta Veterinária - Vacinação (Sem Appearance)",
+        amount: 18000,
+        direction: MovementDirection.DEBIT,
+        date: "2026-08-03T11:00:00Z",
+    });
+
+    await space.addDirectEntry({
+        balanceId: nubank.id,
+        counterpartBalanceId: catEducacao.id,
+        description: "Curso Online de TypeScript Avançado (Ícone Inválido)",
+        amount: 25000,
+        direction: MovementDirection.DEBIT,
+        date: "2026-08-04T16:15:00Z",
+    });
+
+    // Ciclo Academia Agosto: dois ACCRUAL com categorias diferentes na mesma competência + SETTLEMENT -> multiple
+    await space.addAccrual({
+        commitmentBalanceId: contratoAcademia.id,
+        categoryBalanceId: catSaude.id,
+        description: "Mensalidade Academia (Provisão Inicial - Saúde)",
+        amount: 9990,
+        dueDate: "2026-08-15T08:00:00Z",
+        competanceDate: "2026-08-15T00:00:00Z",
+    });
+    await space.addAccrual({
+        commitmentBalanceId: contratoAcademia.id,
+        categoryBalanceId: catLazer.id,
+        description: "Adicional Personal Trainer (Provisão Adicional - Lazer)",
+        amount: 5000,
+        dueDate: "2026-08-15T08:00:00Z",
+        competanceDate: "2026-08-15T00:00:00Z",
+    });
+    await space.addSettlement({
+        walletBalanceId: nubank.id,
+        commitmentBalanceId: contratoAcademia.id,
+        description: "Pagamento Academia Smart Fit (Agosto)",
+        amount: 14990,
+        dueDate: "2026-08-15T10:00:00Z",
+        competanceDate: "2026-08-15T00:00:00Z",
+    });
 
     // --- AGOSTO / 2026 ---
     await space.addDirectEntry({
@@ -258,6 +358,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         amount: 150000,
         date: "2026-08-15T15:00:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catLazer.id,
@@ -266,6 +367,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.DEBIT,
         date: "2026-08-18T20:30:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catTransporte.id,
@@ -283,6 +385,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.DEBIT,
         date: "2026-08-24T13:10:00Z",
     });
+
     await space.reverseEntry({
         originalEntryId: cobrancaDuplicadaAgo.id,
         balanceId: nubank.id,
@@ -292,6 +395,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         originalDirection: MovementDirection.DEBIT,
         date: "2026-08-25T10:00:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catAlimentacao.id,
@@ -310,6 +414,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.CREDIT,
         date: "2026-09-02T11:30:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catSalario.id,
@@ -390,6 +495,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         amount: 20000,
         date: "2026-09-07T16:20:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catAlimentacao.id,
@@ -398,6 +504,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.DEBIT,
         date: "2026-09-10T08:40:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catTransporte.id,
@@ -406,6 +513,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.DEBIT,
         date: "2026-09-12T22:10:00Z",
     });
+
     await space.addTransfer({
         fromBalanceId: itau.id,
         toBalanceId: nubank.id,
@@ -413,6 +521,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         amount: 50000,
         date: "2026-09-14T19:00:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catSaude.id,
@@ -421,6 +530,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.DEBIT,
         date: "2026-09-16T12:45:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catLazer.id,
@@ -429,6 +539,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.DEBIT,
         date: "2026-09-18T07:30:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catSalario.id,
@@ -437,6 +548,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.CREDIT,
         date: "2026-09-20T14:00:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catTransporte.id,
@@ -445,6 +557,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.DEBIT,
         date: "2026-09-22T17:35:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catSalario.id,
@@ -453,6 +566,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.CREDIT,
         date: "2026-09-24T08:00:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         description: "Ajuste de Conciliação Bancária",
@@ -461,6 +575,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         type: EntryType.ADJUSTMENT,
         date: "2026-09-25T18:00:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: nubank.id,
         counterpartBalanceId: catAlimentacao.id,
@@ -478,6 +593,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.DEBIT,
         date: "2026-09-28T16:20:00Z",
     });
+
     await space.reverseEntry({
         originalEntryId: compraFone.id,
         balanceId: nubank.id,
@@ -582,6 +698,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.DEBIT,
         date: "2026-10-03T19:45:00Z",
     });
+
     await space.addTransfer({
         fromBalanceId: nubank.id,
         toBalanceId: reservaSelic.id,
@@ -601,6 +718,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.CREDIT,
         date: "2026-09-30T09:00:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: carteiraFisica.id,
         counterpartBalanceId: catAlimentacao.id,
@@ -609,6 +727,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         direction: MovementDirection.DEBIT,
         date: "2026-09-13T10:30:00Z",
     });
+
     await space.addDirectEntry({
         balanceId: carteiraFisica.id,
         counterpartBalanceId: catTransporte.id,
@@ -621,7 +740,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
     // =========================================================================
     // 5. CARTÕES DE CRÉDITO (Com regras versionadas no Ultravioleta)
     // =========================================================================
-    await space.addCreditCards([
+    const [cartaoUltravioleta] = await space.addCreditCards([
         {
             name: "Nubank Ultravioleta Mastercard Black",
             limit: 3500000,
@@ -637,12 +756,34 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
                 { effectiveFrom: "2026-11-01", closingDay: 3, dueDay: 10 },  // Regra agendada (FUTURE)
             ],
             initialExpenses: [
-                { description: "Supermercado Pão de Açúcar", amount: 142580, date: "2026-09-30T19:45:00Z", categoryId: catAlimentacao.id },
-                { description: "Amazon Prime - Livros Técnicos", amount: 28900, date: "2026-10-02T14:10:00Z", categoryId: catLazer.id },
-                { description: "Droga Raia - Medicamentos & Vitaminas", amount: 6480, date: "2026-10-03T11:20:00Z", categoryId: catSaude.id },
-                { description: "Posto Ipiranga - Gasolina Aditivada", amount: 19500, date: "2026-10-04T16:45:00Z", categoryId: catTransporte.id },
-                { description: "Uber Viagens - Deslocamento Reunião", amount: 3890, date: "2026-10-05T09:15:00Z", categoryId: catTransporte.id },
-                { description: "Restaurante Coco Bambu - Jantar Família", amount: 24500, date: "2026-10-06T20:30:00Z", categoryId: catAlimentacao.id },
+                // Ciclo Julho/Agosto (29/07 a 28/08) - 13 despesas para garantir paginação (pageSize=10)
+                { description: "Café Especial Torra Clara", amount: 2800, date: "2026-07-29T09:00:00Z", categoryId: catAlimentacao.id },
+                { description: "Farmácia Panvel - Protetor Solar", amount: 7990, date: "2026-07-30T14:20:00Z", categoryId: catSaude.id },
+                { description: "Uber - Reunião Externa", amount: 2450, date: "2026-08-01T10:15:00Z", categoryId: catTransporte.id },
+                { description: "Livraria Cultura - Livro Clean Code", amount: 8900, date: "2026-08-03T16:30:00Z", categoryId: catEducacao.id },
+                { description: "Cinema Kinoplex - Ingresso IMAX", amount: 6500, date: "2026-08-05T20:00:00Z", categoryId: catLazer.id },
+                { description: "Almoço Executivo Bistrô", amount: 5400, date: "2026-08-07T12:45:00Z", categoryId: catAlimentacao.id },
+                { description: "Posto Shell - Abastecimento", amount: 22000, date: "2026-08-10T17:10:00Z", categoryId: catTransporte.id },
+                { description: "Ração Royal Canin Golden Retriever", amount: 31000, date: "2026-08-12T11:00:00Z", categoryId: catPets.id },
+                { description: "Assinatura Spotify Família", amount: 3490, date: "2026-08-15T08:00:00Z", categoryId: catAssinaturas.id },
+                { description: "iFood - Pizza Artesanal", amount: 8900, date: "2026-08-18T21:30:00Z", categoryId: catAlimentacao.id },
+                { description: "Drogaria São Paulo - Vitaminas", amount: 4500, date: "2026-08-20T15:40:00Z", categoryId: catSaude.id },
+                { description: "Estacionamento Shopping", amount: 1800, date: "2026-08-22T19:00:00Z", categoryId: catTransporte.id },
+                { description: "Padaria Artesanal Pão & Prosa", amount: 3250, date: "2026-08-25T08:30:00Z", categoryId: catAlimentacao.id },
+
+                // Ciclo Agosto/Setembro (29/08 a 28/09)
+                { description: "Supermercado Pão de Açúcar (Agosto)", amount: 135000, date: "2026-08-30T19:45:00Z", categoryId: catAlimentacao.id },
+                { description: "Posto Ipiranga - Gasolina Aditivada", amount: 19500, date: "2026-09-04T16:45:00Z", categoryId: catTransporte.id },
+                { description: "Uber Viagens - Deslocamento Reunião", amount: 3890, date: "2026-09-05T09:15:00Z", categoryId: catTransporte.id },
+                { description: "Restaurante Coco Bambu - Jantar Família", amount: 24500, date: "2026-09-12T20:30:00Z", categoryId: catAlimentacao.id },
+                { description: "Droga Raia - Medicamentos & Vitaminas", amount: 6480, date: "2026-09-18T11:20:00Z", categoryId: catSaude.id },
+                { description: "Amazon Prime - Livros Técnicos", amount: 28900, date: "2026-09-22T14:10:00Z", categoryId: catLazer.id },
+
+                // Ciclo Setembro/Outubro (29/09 a 28/10)
+                { description: "Supermercado Pão de Açúcar (Setembro)", amount: 142580, date: "2026-09-30T19:45:00Z", categoryId: catAlimentacao.id },
+                { description: "Amazon Prime - Kindle E-books", amount: 12900, date: "2026-10-02T14:10:00Z", categoryId: catLazer.id },
+                { description: "Droga Raia - Protetor Solar & Dermocosméticos", amount: 8480, date: "2026-10-03T11:20:00Z", categoryId: catSaude.id },
+                { description: "Posto Ipiranga - Abastecimento Outubro", amount: 21500, date: "2026-10-04T16:45:00Z", categoryId: catTransporte.id },
             ],
         },
         {
@@ -688,5 +829,67 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         },
     ]);
 
-    return { party, space, categories: { catMoradia, catAlimentacao, catLazer, catSaude }, agreements: { contratoAluguel, contratoEnergia, contratoInternet, contratoCondominio, contratoUnimed } };
+    // Despesa no cartão com múltiplas categorias (Split de cartão -> kind: multiple)
+    await space.addSplitDirectEntry({
+        balanceId: cartaoUltravioleta.id,
+        splits: [
+            { categoryId: catAlimentacao.id, amount: 9500 },
+            { categoryId: catLazer.id, amount: 6500 },
+        ],
+        description: "Empório Gourmet - Vinhos & Queijos (Split Cartão)",
+        direction: MovementDirection.DEBIT,
+        date: "2026-08-16T18:00:00Z",
+        keepPositiveOnDebit: true,
+    });
+
+    // Despesa no cartão com estorno subsequente (REVERSAL de cartão)
+    const compraCartaoEstornada = await space.addDirectEntry({
+        balanceId: cartaoUltravioleta.id,
+        counterpartBalanceId: catLazer.id,
+        description: "Ingresso Show Internacional - Lote Promocional",
+        amount: 32000,
+        direction: MovementDirection.DEBIT,
+        date: "2026-08-20T14:00:00Z",
+        keepPositiveOnDebit: true,
+    });
+
+    await space.reverseEntry({
+        originalEntryId: compraCartaoEstornada.id,
+        balanceId: cartaoUltravioleta.id,
+        counterpartBalanceId: catLazer.id,
+        description: "Estorno Ingresso Show - Cancelamento Evento",
+        amount: 32000,
+        originalDirection: MovementDirection.DEBIT,
+        date: "2026-08-21T10:00:00Z",
+    });
+
+    // Pagamentos de Fatura (SETTLEMENT de saldo CREDIT -> kind: credit-settlement)
+    // 1. Pagamento da Fatura de Julho/Agosto (Vencimento 05/09/2026)
+    await space.addSettlement({
+        walletBalanceId: nubank.id,
+        commitmentBalanceId: cartaoUltravioleta.id,
+        description: "Pagamento de Fatura Nubank Ultravioleta (Agosto)",
+        amount: 115000,
+        dueDate: "2026-09-05T10:00:00Z",
+        competanceDate: "2026-08-28T00:00:00Z",
+    });
+
+    // 2. Pagamento da Fatura de Agosto/Setembro (Vencimento 05/10/2026)
+    await space.addSettlement({
+        walletBalanceId: nubank.id,
+        commitmentBalanceId: cartaoUltravioleta.id,
+        description: "Pagamento de Fatura Nubank Ultravioleta (Setembro)",
+        amount: 218270,
+        dueDate: "2026-10-05T11:30:00Z",
+        competanceDate: "2026-09-28T00:00:00Z",
+    });
+
+    return {
+        party,
+        space,
+        wallets: { nubank, itau, reservaSelic, carteiraFisica, ricoCorretora, santanderAntigo },
+        cards: { cartaoUltravioleta },
+        categories: { catMoradia, catAlimentacao, catLazer, catSaude, catSalario, catTransporte, catAssinaturas, catPets, catEducacao },
+        agreements: { contratoAluguel, contratoEnergia, contratoInternet, contratoCondominio, contratoUnimed },
+    };
 }

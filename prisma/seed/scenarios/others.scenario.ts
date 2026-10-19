@@ -14,7 +14,8 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
     defaultContextName: "Finanças do Bruno",
   });
 
-  await bruno.space.addWallets([
+  const brunoCategories = await bruno.space.addDefaultCategories();
+  const [brunoInter, brunoPicPay] = await bruno.space.addWallets([
     { name: "Banco Inter", initialBalance: { amount: 320000, date: "2026-09-02T11:00:00Z" } },
     { name: "PicPay", initialBalance: { amount: 45000 } },
   ]);
@@ -47,7 +48,8 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
     defaultContextName: "Finanças da Carla",
   });
 
-  await carla.space.addWallets([
+  const carlaCategories = await carla.space.addDefaultCategories();
+  const [carlaSantander, carlaC6, carlaDinheiro] = await carla.space.addWallets([
     { name: "Conta Santander", initialBalance: { amount: 610000, date: "2026-09-12T16:20:00Z" } },
     { name: "C6 Bank", initialBalance: { amount: 125000, date: "2026-09-15T08:00:00Z" } },
     { name: "Dinheiro em Espécie" },
@@ -80,7 +82,8 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
     defaultContextName: "Finanças do Diego",
   });
 
-  await diego.space.addWallets([
+  const diegoCategories = await diego.space.addDefaultCategories();
+  const [diegoBradesco, diegoMercadoPago] = await diego.space.addWallets([
     { name: "Conta Bradesco", initialBalance: { amount: 185000, date: "2026-09-18T13:45:00Z" } },
     { name: "Mercado Pago", initialBalance: { amount: 78000, date: "2026-09-20T19:00:00Z" } },
   ]);
@@ -104,10 +107,32 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
     defaultContextName: "Finanças da Eduarda",
   });
 
-  await eduarda.space.addWallets([
+  const eduardaCategories = await eduarda.space.addDefaultCategories();
+  const [eduardaNubank, eduardaCaixa] = await eduarda.space.addWallets([
     { name: "Conta Nubank", initialBalance: { amount: 95000, date: "2026-09-22T10:10:00Z" } },
     { name: "Caixa Econômica", initialBalance: { amount: 210000, date: "2026-09-25T15:00:00Z" } },
   ]);
 
-  return { bruno, carla, diego, eduarda };
+  return {
+    bruno: {
+      ...bruno,
+      wallets: { inter: brunoInter, picPay: brunoPicPay },
+      categories: brunoCategories,
+    },
+    carla: {
+      ...carla,
+      wallets: { santander: carlaSantander, c6: carlaC6, dinheiro: carlaDinheiro },
+      categories: carlaCategories,
+    },
+    diego: {
+      ...diego,
+      wallets: { bradesco: diegoBradesco, mercadoPago: diegoMercadoPago },
+      categories: diegoCategories,
+    },
+    eduarda: {
+      ...eduarda,
+      wallets: { nubank: eduardaNubank, caixa: eduardaCaixa },
+      categories: eduardaCategories,
+    },
+  };
 }
