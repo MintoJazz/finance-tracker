@@ -15,7 +15,7 @@ import { restoreWalletAction } from "@/modules/account/ui/actions/restore-wallet
 
 export function useMobileWalletOverview(data: Page<WalletSummary>): MobileWalletOverviewProps {
     const { debouncedSearch, filterContext } = useOverviewFilters();
-    const { onAddClick, onDelete: _onDelete, ...routeActionsMenuContext } = useCrudModals<WalletSummary>();
+    const { onAddClick, onView, onEdit } = useCrudModals<WalletSummary>();
 
     const {
         items,
@@ -67,7 +67,12 @@ export function useMobileWalletOverview(data: Page<WalletSummary>): MobileWallet
         },
     });
 
-    const actionsMenuContext = { ...routeActionsMenuContext, onArchive, onRestore };
+    const actionsMenuContext = {
+        onView,
+        onEdit,
+        onArchive,
+        onRestore,
+    };
 
     return {
         items,

@@ -12,13 +12,12 @@ import { restoreCardAction } from "../../../actions/restore-card.action";
 
 export function useCardOverview(data: Page<CardSummary>): CardOverviewProps {
     const { filterContext } = useOverviewFilters();
-    const { onAddClick, onDelete: _onDelete, ...routeActionsMenuContext } =
-        useCrudModals<CardSummary>();
+    const { onAddClick, onView, onEdit } = useCrudModals<CardSummary>();
     const { paginationContext } = usePaginationQueryParams();
 
     const { archiveContext, restoreContext, onArchive, onRestore } =
         useArchiveRestore<CardSummary>({
-            find: (item) => data.data.find((c) => c.id === item.id), // (ou items.find no mobile)
+            find: (item) => data.data.find((c) => c.id === item.id),
             onArchiveConfirm: async (card) => {
                 const result = await archiveCardAction({ id: card.id });
                 if (!result.success) {
@@ -34,7 +33,8 @@ export function useCardOverview(data: Page<CardSummary>): CardOverviewProps {
         });
 
     const actionsMenuContext = {
-        ...routeActionsMenuContext,
+        onView,
+        onEdit,
         onArchive,
         onRestore,
     };

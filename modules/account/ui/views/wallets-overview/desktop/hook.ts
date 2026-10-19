@@ -12,7 +12,7 @@ import { restoreWalletAction } from "@/modules/account/ui/actions/restore-wallet
 
 export function useWalletOverview(data: Page<WalletSummary>): WalletOverviewProps {
     const { filterContext } = useOverviewFilters();
-    const { onAddClick, ...routeActionsMenuContext } = useCrudModals<WalletSummary>();
+    const { onAddClick, onView, onEdit } = useCrudModals<WalletSummary>();
     const { paginationContext } = usePaginationQueryParams();
 
     const { archiveContext, restoreContext, onArchive, onRestore } = useArchiveRestore<WalletSummary>({
@@ -32,7 +32,8 @@ export function useWalletOverview(data: Page<WalletSummary>): WalletOverviewProp
     });
 
     const actionsMenuContext = {
-        ...routeActionsMenuContext,
+        onView,
+        onEdit,
         onArchive,
         onRestore,
     };

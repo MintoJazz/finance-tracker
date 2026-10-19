@@ -16,8 +16,7 @@ export function useMobileCardOverview(
     data: Page<CardSummary>
 ): MobileCardOverviewProps {
     const { debouncedSearch, filterContext } = useOverviewFilters();
-    const { onAddClick, onDelete: _onDelete, ...routeActionsMenuContext } =
-        useCrudModals<CardSummary>();
+    const { onAddClick, onView, onEdit } = useCrudModals<CardSummary>();
 
     const {
         items,
@@ -73,7 +72,8 @@ export function useMobileCardOverview(
         });
 
     const actionsMenuContext = {
-        ...routeActionsMenuContext,
+        onView,
+        onEdit,
         onArchive,
         onRestore,
     };

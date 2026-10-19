@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { formatMoney } from "@/lib/formatters";
 import { CardSummary } from "@/modules/account/core/schemas/card.schema";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "cn";
