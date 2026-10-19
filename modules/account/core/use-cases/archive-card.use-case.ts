@@ -52,7 +52,10 @@ export class ArchiveCardUseCase {
                 return failure("Este cartão já está arquivado.");
             }
 
-            const archivedCard = await this.cardRepository.archive(data.id);
+            const archivedCard = await this.cardRepository.archive(
+                data.id,
+                session.contextId
+            );
             return success(archivedCard);
         } catch (error) {
             console.error("[ArchiveCardUseCase] Falha crítica:", error);

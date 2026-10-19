@@ -48,10 +48,14 @@ export class WalletPrismaRepository implements IWalletRepository {
         };
     }
 
-    async update(id: number, _contextId: number, data: UpdateWalletRepositoryDTO): Promise<{ id: number; name: string }> {
+    async update(id: number, contextId: number, data: UpdateWalletRepositoryDTO): Promise<{ id: number; name: string }> {
         const updated = await prisma.balance.update({
             where: {
-                id,
+                id_contextId_balanceType: {
+                    id,
+                    contextId,
+                    balanceType: "WALLET",
+                },
             },
             data: {
                 name: data.name,
@@ -65,10 +69,14 @@ export class WalletPrismaRepository implements IWalletRepository {
         return updated;
     }
 
-    async archive(id: number): Promise<{ id: number; name: string }> {
+    async archive(id: number, contextId: number): Promise<{ id: number; name: string }> {
         const archived = await prisma.balance.update({
             where: {
-                id,
+                id_contextId_balanceType: {
+                    id,
+                    contextId,
+                    balanceType: "WALLET",
+                },
             },
             data: {
                 removedAt: new Date(),
@@ -82,10 +90,14 @@ export class WalletPrismaRepository implements IWalletRepository {
         return archived;
     }
 
-    async restore(id: number): Promise<{ id: number; name: string }> {
+    async restore(id: number, contextId: number): Promise<{ id: number; name: string }> {
         const restored = await prisma.balance.update({
             where: {
-                id,
+                id_contextId_balanceType: {
+                    id,
+                    contextId,
+                    balanceType: "WALLET",
+                },
             },
             data: {
                 removedAt: null,

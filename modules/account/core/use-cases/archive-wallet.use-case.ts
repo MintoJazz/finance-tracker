@@ -38,7 +38,7 @@ export class ArchiveWalletUseCase {
                 return failure("Esta carteira já está arquivada.");
             }
 
-            const archivedWallet = await this.walletRepository.archive(data.id);
+            const archivedWallet = await this.walletRepository.archive(data.id, session.contextId);
 
             return success(archivedWallet);
         } catch (error) {

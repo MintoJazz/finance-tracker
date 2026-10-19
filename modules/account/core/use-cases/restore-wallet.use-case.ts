@@ -38,7 +38,7 @@ export class RestoreWalletUseCase {
                 return failure("Esta carteira não está arquivada.");
             }
 
-            const restoredWallet = await this.walletRepository.restore(data.id);
+            const restoredWallet = await this.walletRepository.restore(data.id, session.contextId);
 
             return success(restoredWallet);
         } catch (error) {

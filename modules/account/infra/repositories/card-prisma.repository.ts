@@ -79,13 +79,19 @@ export class CardPrismaRepository implements ICardRepository {
 
   async update(
     id: number,
-    _contextId: number,
+    contextId: number,
     data: UpdateCardRepositoryDTO
   ): Promise<{ id: number; name: string }> {
     return await prisma.$transaction(async (tx) => {
       // 1. Atualizar nome do cartão
       const updatedCard = await tx.balance.update({
-        where: { id },
+        where: {
+          id_contextId_balanceType: {
+            id,
+            contextId,
+            balanceType: "CREDIT",
+          },
+        },
         data: {
           name: data.name,
         },
@@ -174,9 +180,15 @@ export class CardPrismaRepository implements ICardRepository {
       })
     }
 
-  async archive(id: number): Promise<{ id: number; name: string }> {
+  async archive(id: number, contextId: number): Promise<{ id: number; name: string }> {
     const archived = await prisma.balance.update({
-      where: { id },
+      where: {
+        id_contextId_balanceType: {
+          id,
+          contextId,
+          balanceType: "CREDIT",
+        },
+      },
       data: {
         removedAt: new Date(),
       },
@@ -189,9 +201,15 @@ export class CardPrismaRepository implements ICardRepository {
     return archived
   }
 
-  async restore(id: number): Promise<{ id: number; name: string }> {
+  async restore(id: number, contextId: number): Promise<{ id: number; name: string }> {
     const restored = await prisma.balance.update({
-      where: { id },
+      where: {
+        id_contextId_balanceType: {
+          id,
+          contextId,
+          balanceType: "CREDIT",
+        },
+      },
       data: {
         removedAt: null,
       },

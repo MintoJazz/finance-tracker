@@ -52,7 +52,10 @@ export class RestoreCardUseCase {
                 return failure("Este cartão não está arquivado.");
             }
 
-            const restoredCard = await this.cardRepository.restore(data.id);
+            const restoredCard = await this.cardRepository.restore(
+                data.id,
+                session.contextId
+            );
             return success(restoredCard);
         } catch (error) {
             console.error("[RestoreCardUseCase] Falha crítica:", error);
