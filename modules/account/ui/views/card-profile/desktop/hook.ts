@@ -14,6 +14,8 @@ import { useArchiveRestore } from "@/hooks/use-archive-restore";
 import { CardActionContext } from "@/modules/account/ui/components/card-actions-drawer";
 import { useBreadcrumbLabel } from "@/components/header";
 import { MovementActionContext } from "@/modules/ledger/ui/components/wallet-movements-actions-menu";
+import { archiveCardAction } from "@/modules/account/ui/actions/archive-card.action";
+import { restoreCardAction } from "@/modules/account/ui/actions/restore-card.action";
 
 export function useCardProfileDesktop({
     cardId,
@@ -73,13 +75,17 @@ export function useCardProfileDesktop({
             find: (item) =>
                 cardSummaryItem?.id === item.id ? cardSummaryItem : undefined,
             onArchiveConfirm: async (card) => {
-                await new Promise((resolve) => setTimeout(resolve, 400));
-                console.log("[useCardProfileDesktop] Arquivar cartão (mock):", card.id);
+                const result = await archiveCardAction({ id: card.id });
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
                 await reloadProfile();
             },
             onRestoreConfirm: async (card) => {
-                await new Promise((resolve) => setTimeout(resolve, 400));
-                console.log("[useCardProfileDesktop] Desarquivar cartão (mock):", card.id);
+                const result = await restoreCardAction({ id: card.id });
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
                 await reloadProfile();
             },
         });
