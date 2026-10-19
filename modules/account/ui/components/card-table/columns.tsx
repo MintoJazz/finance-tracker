@@ -3,7 +3,7 @@ import { formatMoney } from "@/lib/formatters";
 import { CardSummary } from "@/modules/account/core/schemas/card.schema";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "cn";
-import BalanceAvatar from "../balance-avatar";
+import BalanceAvatar from "@/components/balance-avatar";
 import { AmountSpan } from "@/components/amount-span";
 
 export const CARD_COLUMNS: ColumnDef<CardSummary>[] = [

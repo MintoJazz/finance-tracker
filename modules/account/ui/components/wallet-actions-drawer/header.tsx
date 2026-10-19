@@ -6,7 +6,7 @@ import {
     EntityHeaderDescription,
 } from "@/components/entity-header";
 import { AmountSpan } from "@/components/amount-span";
-import BalanceAvatar from "../balance-avatar";
+import BalanceAvatar from "@/components/balance-avatar";
 import { WalletSummary } from "@/modules/account/core/schemas/wallet.schema";
 
 interface WalletActionsDrawerHeaderProps {

@@ -7,7 +7,7 @@ import {
 } from "@/components/entity-header";
 import { formatMoney } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
-import BalanceAvatar from "../balance-avatar";
+import BalanceAvatar from "@/components/balance-avatar";
 import { CardSummary } from "@/modules/account/core/schemas/card.schema";
 
 interface CardActionsDrawerHeaderProps {

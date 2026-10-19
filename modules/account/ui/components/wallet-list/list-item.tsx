@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/formatters";
 import { Calendar, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-import BalanceAvatar from "../balance-avatar";
+import BalanceAvatar from "@/components/balance-avatar";
 import {
     ListItem,
     ListItemHeader,

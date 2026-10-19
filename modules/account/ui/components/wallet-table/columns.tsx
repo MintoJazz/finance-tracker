@@ -4,7 +4,7 @@ import { formatDate } from "@/lib/formatters";
 import { WalletSummary } from "@/modules/account/core/schemas/wallet.schema";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "cn";
-import BalanceAvatar from "../balance-avatar";
+import BalanceAvatar from "@/components/balance-avatar";
 
 export const WALLET_COLUMNS: ColumnDef<WalletSummary>[] = [
     {
