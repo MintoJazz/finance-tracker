@@ -1,9 +1,9 @@
 import type { UseFormReturn } from "react-hook-form";
-import type { CreateWalletFormValues } from "@/modules/account/core/schemas/wallet.schema";
+import type { WalletFormValues } from "@/modules/account/core/schemas/wallet.schema";
 
 export interface WalletFormProps {
-    form: UseFormReturn<CreateWalletFormValues>;
-    onSubmit: (data: CreateWalletFormValues) => void;
+    form: UseFormReturn<WalletFormValues>;
+    onSubmit: (data: WalletFormValues) => void;
     onCancel: () => void;
     isSubmitting?: boolean;
     submitText?: string;

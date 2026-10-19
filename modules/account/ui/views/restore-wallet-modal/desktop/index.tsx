@@ -16,12 +16,14 @@ import type { RestoreWalletModalProps } from "../types";
 
 export default function RestoreWalletModalViewDesktop({
     isOpen,
+    entityName,
     walletName,
     isSubmitting,
     onConfirm,
     onClose,
     onOpenChangeComplete,
 }: RestoreWalletModalProps) {
+    const name = entityName ?? walletName;
     return (
         <AlertDialog
             open={isOpen}
@@ -38,7 +40,7 @@ export default function RestoreWalletModalViewDesktop({
                     <AlertDialogTitle>Desarquivar carteira</AlertDialogTitle>
                     <AlertDialogDescription>
                         Deseja reativar a carteira{" "}
-                        <strong className="font-medium text-foreground">{walletName}</strong>? Ela voltará a
+                        <strong className="font-medium text-foreground">{name}</strong>? Ela voltará a
                         aparecer nas suas listagens e resumos ativos.
                     </AlertDialogDescription>
                 </AlertDialogHeader>

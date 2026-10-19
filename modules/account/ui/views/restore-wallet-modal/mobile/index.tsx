@@ -14,12 +14,14 @@ import type { RestoreWalletModalProps } from "../types";
 
 export default function RestoreWalletModalViewMobile({
     isOpen,
+    entityName,
     walletName,
     isSubmitting,
     onConfirm,
     onClose,
     onOpenChangeComplete,
 }: RestoreWalletModalProps) {
+    const name = entityName ?? walletName;
     return (
         <Drawer
             open={isOpen}
@@ -37,7 +39,7 @@ export default function RestoreWalletModalViewMobile({
                     <DrawerTitle className="text-center">Desarquivar carteira</DrawerTitle>
                     <DrawerDescription className="text-center">
                         Deseja reativar a carteira{" "}
-                        <strong className="font-medium text-foreground">{walletName}</strong>? Ela voltará a
+                        <strong className="font-medium text-foreground">{name}</strong>? Ela voltará a
                         aparecer nas suas listagens e resumos ativos.
                     </DrawerDescription>
                 </DrawerHeader>

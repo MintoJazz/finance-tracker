@@ -75,6 +75,7 @@ export function useRestoreWalletModal(input: RestoreWalletModalInput): RestoreWa
 
     return {
         isOpen,
+        entityName: input.name,
         walletName: input.name,
         isSubmitting,
         onConfirm,

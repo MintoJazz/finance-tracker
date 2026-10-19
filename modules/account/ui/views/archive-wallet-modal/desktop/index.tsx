@@ -16,12 +16,14 @@ import type { ArchiveWalletModalProps } from "../types";
 
 export default function ArchiveWalletModalViewDesktop({
     isOpen,
+    entityName,
     walletName,
     isSubmitting,
     onConfirm,
     onClose,
     onOpenChangeComplete,
 }: ArchiveWalletModalProps) {
+    const name = entityName ?? walletName;
     return (
         <AlertDialog
             open={isOpen}
@@ -38,7 +40,7 @@ export default function ArchiveWalletModalViewDesktop({
                     <AlertDialogTitle>Arquivar carteira</AlertDialogTitle>
                     <AlertDialogDescription>
                         Tem certeza de que deseja arquivar a carteira{" "}
-                        <strong className="font-medium text-foreground">{walletName}</strong>? Suas
+                        <strong className="font-medium text-foreground">{name}</strong>? Suas
                         movimentações e saldo serão preservados, mas ela deixará de aparecer nas listagens ativas.
                     </AlertDialogDescription>
                 </AlertDialogHeader>

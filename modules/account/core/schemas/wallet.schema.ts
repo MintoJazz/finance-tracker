@@ -19,7 +19,7 @@ export const WalletSummarySchema = z.object({
 
 export type WalletSummary = z.infer<typeof WalletSummarySchema>;
 
-export const CreateWalletSchema = z.object({
+export const WalletFormSchema = z.object({
     name: z
         .string()
         .trim()
@@ -27,6 +27,9 @@ export const CreateWalletSchema = z.object({
         .max(50, "O nome deve ter no máximo 50 caracteres"),
 });
 
+export type WalletFormValues = z.infer<typeof WalletFormSchema>;
+
+export const CreateWalletSchema = WalletFormSchema;
 export type CreateWalletFormValues = z.infer<typeof CreateWalletSchema>;
 
 export const UpdateWalletSchema = z.object({

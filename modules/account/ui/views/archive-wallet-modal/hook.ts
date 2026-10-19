@@ -74,6 +74,7 @@ export function useArchiveWalletModal(input: ArchiveWalletModalInput): ArchiveWa
 
     return {
         isOpen,
+        entityName: input.name,
         walletName: input.name,
         isSubmitting,
         onConfirm,
