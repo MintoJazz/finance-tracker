@@ -57,7 +57,7 @@ export function useMobileCardOverview(
 
     const { archiveContext, restoreContext, onArchive, onRestore } =
         useArchiveRestore<CardSummary>({
-            find: (item) => data.data.find((c) => c.id === item.id), // (ou items.find no mobile)
+            find: (item) => items.find((c) => c.id === item.id),
             onArchiveConfirm: async (card) => {
                 const result = await archiveCardAction({ id: card.id });
                 if (!result.success) {
