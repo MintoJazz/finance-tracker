@@ -1,4 +1,3 @@
-// modules/account/ui/components/card-profile/skeletons/cycle-navigator-skeleton.tsx
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function CycleNavigatorSkeleton() {

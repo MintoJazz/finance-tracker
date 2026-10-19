@@ -1,4 +1,3 @@
-// modules/account/ui/components/card-profile/skeletons/profile-skeleton.tsx
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
