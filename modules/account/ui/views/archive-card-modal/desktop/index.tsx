@@ -16,7 +16,7 @@ import type { ArchiveCardModalProps } from "../types";
 
 export default function ArchiveCardModalViewDesktop({
     isOpen,
-    walletName,
+    entityName,
     isSubmitting,
     onConfirm,
     onClose,
@@ -38,7 +38,7 @@ export default function ArchiveCardModalViewDesktop({
                     <AlertDialogTitle>Arquivar cartão</AlertDialogTitle>
                     <AlertDialogDescription>
                         Tem certeza de que deseja arquivar o cartão{" "}
-                        <strong className="font-medium text-foreground">{walletName}</strong>? O
+                        <strong className="font-medium text-foreground">{entityName}</strong>? O
                         histórico de faturas e lançamentos será preservado, mas ele deixará de aparecer nas listagens ativas.
                     </AlertDialogDescription>
                 </AlertDialogHeader>

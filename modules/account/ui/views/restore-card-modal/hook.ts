@@ -80,7 +80,7 @@ export function useRestoreCardModal(
 
     return {
         isOpen,
-        walletName: input.name,
+        entityName: input.name,
         isSubmitting,
         onConfirm,
         onClose,

@@ -5,7 +5,7 @@ export interface ArchiveCardModalInput {
 
 export interface ArchiveCardModalProps {
     isOpen: boolean;
-    walletName: string;
+    entityName: string;
     isSubmitting: boolean;
     onConfirm: () => void;
     onClose: () => void;

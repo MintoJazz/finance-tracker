@@ -16,7 +16,7 @@ import type { RestoreCardModalProps } from "../types";
 
 export default function RestoreCardModalViewDesktop({
     isOpen,
-    walletName,
+    entityName,
     isSubmitting,
     onConfirm,
     onClose,
@@ -38,7 +38,7 @@ export default function RestoreCardModalViewDesktop({
                     <AlertDialogTitle>Desarquivar cartão</AlertDialogTitle>
                     <AlertDialogDescription>
                         Deseja reativar o cartão{" "}
-                        <strong className="font-medium text-foreground">{walletName}</strong>? Ele
+                        <strong className="font-medium text-foreground">{entityName}</strong>? Ele
                         voltará a aparecer nas suas listagens e resumos ativos.
                     </AlertDialogDescription>
                 </AlertDialogHeader>

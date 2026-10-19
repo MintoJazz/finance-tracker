@@ -16,6 +16,7 @@ export interface UseArchiveRestoreOptions<T> {
 export interface ArchiveRestoreModalContext {
     isOpen: boolean;
     walletName: string;
+    entityName: string;
     itemName: string;
     isSubmitting: boolean;
     onConfirm: () => Promise<void>;
@@ -156,6 +157,7 @@ export function useArchiveRestore<T extends { id: number; name?: string }>(
         () => ({
             isOpen: Boolean(archiveParam && archiveTarget),
             walletName: archiveTarget?.name ?? "",
+            entityName: archiveTarget?.name ?? "",
             itemName: archiveTarget?.name ?? "",
             isSubmitting: isSubmittingArchive,
             onConfirm: confirmArchive,
@@ -168,6 +170,7 @@ export function useArchiveRestore<T extends { id: number; name?: string }>(
         () => ({
             isOpen: Boolean(restoreParam && restoreTarget),
             walletName: restoreTarget?.name ?? "",
+            entityName: restoreTarget?.name ?? "",
             itemName: restoreTarget?.name ?? "",
             isSubmitting: isSubmittingRestore,
             onConfirm: confirmRestore,

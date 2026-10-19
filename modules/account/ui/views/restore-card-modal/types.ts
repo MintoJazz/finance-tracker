@@ -5,7 +5,7 @@ export interface RestoreCardModalInput {
 
 export interface RestoreCardModalProps {
     isOpen: boolean;
-    walletName: string;
+    entityName: string;
     isSubmitting: boolean;
     onConfirm: () => void;
     onClose: () => void;
