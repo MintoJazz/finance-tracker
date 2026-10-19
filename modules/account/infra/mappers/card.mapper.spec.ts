@@ -6,6 +6,7 @@ describe("CardMapper", () => {
     it("should calculate limit by summing all deltas in agreement.amountEntries", () => {
         const balance: BalanceWithCreditDetails = {
             id: 1,
+            parentId: null,
             contextId: 10,
             name: "Cartão Black",
             balanceType: "CREDIT",
@@ -77,6 +78,7 @@ describe("CardMapper", () => {
     it("should handle balance with no amountEntries as 0 limit", () => {
         const balance: BalanceWithCreditDetails = {
             id: 2,
+            parentId: null,
             contextId: 10,
             name: "Cartão Sem Limite",
             balanceType: "CREDIT",
@@ -104,6 +106,7 @@ describe("CardMapper", () => {
     it("should clamp limit and availableLimit to 0 if deltas sum to negative", () => {
         const balance: BalanceWithCreditDetails = {
             id: 3,
+            parentId: null,
             contextId: 10,
             name: "Cartão Delta Negativo",
             balanceType: "CREDIT",
