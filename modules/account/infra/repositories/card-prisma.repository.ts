@@ -6,11 +6,16 @@ import {
 } from "../../core/types/card-repository.interface"
 import { CardEntity } from "../../core/schemas/card.schema"
 
+function toCivilDateUtc(d = new Date()): Date {
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+}
+
 export class CardPrismaRepository implements ICardRepository {
   async create(
     data: CreateCardRepositoryDTO
   ): Promise<{ id: number; name: string }> {
     const now = new Date()
+    const todayUtc = toCivilDateUtc(now)
 
     const card = await prisma.balance.create({
       data: {
@@ -20,10 +25,10 @@ export class CardPrismaRepository implements ICardRepository {
         agreement: {
           create: {
             includeInProjection: true,
-            startsAt: now,
+            startsAt: todayUtc,
             rules: {
               create: {
-                effectiveFrom: now,
+                effectiveFrom: todayUtc,
                 frequency: "MONTHLY",
                 interval: 1,
                 closingDay: data.closingDay,
@@ -137,48 +142,47 @@ export class CardPrismaRepository implements ICardRepository {
       }
 
       // 3. Regras de Ciclo (CycleRule)
-      const today = new Date()
-      today.setUTCHours(0, 0, 0, 0)
-        const currentRule = agreement.rules[0]
-        const rulesChanged =
-          currentRule?.closingDay !== data.closingDay ||
-          currentRule?.dueDay !== data.dueDay
+      const today = toCivilDateUtc()
+      const currentRule = agreement.rules[0]
+      const rulesChanged =
+        currentRule?.closingDay !== data.closingDay ||
+        currentRule?.dueDay !== data.dueDay
 
-        if (rulesChanged) {
-          const todayRule = await tx.cycleRule.findUnique({
-            where: {
-              agreementId_effectiveFrom: {
-                agreementId: agreement.id,
-                effectiveFrom: today,
-              },
+      if (rulesChanged) {
+        const todayRule = await tx.cycleRule.findUnique({
+          where: {
+            agreementId_effectiveFrom: {
+              agreementId: agreement.id,
+              effectiveFrom: today,
+            },
+          },
+        })
+
+        if (todayRule) {
+          await tx.cycleRule.update({
+            where: { id: todayRule.id },
+            data: {
+              closingDay: data.closingDay,
+              dueDay: data.dueDay,
             },
           })
-
-          if (todayRule) {
-            await tx.cycleRule.update({
-              where: { id: todayRule.id },
-              data: {
-                closingDay: data.closingDay,
-                dueDay: data.dueDay,
-              },
-            })
-          } else {
-            await tx.cycleRule.create({
-              data: {
-                agreementId: agreement.id,
-                effectiveFrom: today,
-                frequency: "MONTHLY",
-                interval: 1,
-                closingDay: data.closingDay,
-                dueDay: data.dueDay,
-              },
-            })
-          }
+        } else {
+          await tx.cycleRule.create({
+            data: {
+              agreementId: agreement.id,
+              effectiveFrom: today,
+              frequency: "MONTHLY",
+              interval: 1,
+              closingDay: data.closingDay,
+              dueDay: data.dueDay,
+            },
+          })
         }
+      }
 
-        return updatedCard
-      })
-    }
+      return updatedCard
+    })
+  }
 
   async archive(id: number, contextId: number): Promise<{ id: number; name: string }> {
     const archived = await prisma.balance.update({
