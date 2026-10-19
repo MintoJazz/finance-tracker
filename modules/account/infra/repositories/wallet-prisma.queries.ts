@@ -105,12 +105,33 @@ export class WalletPrismaQueries implements IWalletQueries {
     private async sumAmountsByBalance(balanceIds: number[]): Promise<Map<number, number>> {
         if (balanceIds.length === 0) return new Map();
 
-        const sums = await prisma.movement.groupBy({
-            by: ["balanceId"],
-            where: { balanceId: { in: balanceIds } },
-            _sum: { amount: true },
+        const movements = await prisma.movement.findMany({
+            where: {
+                balanceId: { in: balanceIds },
+                entry: {
+                    reversedBy: null,
+                    reversesEntryId: null,
+                },
+            },
+            select: {
+                balanceId: true,
+                amount: true,
+                direction: true,
+            },
         });
 
-        return new Map(sums.map((s) => [s.balanceId as number, s._sum.amount ?? 0]));
+        const resultMap = new Map<number, number>();
+        for (const id of balanceIds) {
+            resultMap.set(id, 0);
+        }
+
+        for (const m of movements) {
+            const current = resultMap.get(m.balanceId) ?? 0;
+            const magnitude = Math.abs(m.amount);
+            const delta = m.direction === "CREDIT" ? magnitude : -magnitude;
+            resultMap.set(m.balanceId, current + delta);
+        }
+
+        return resultMap;
     }
 }
