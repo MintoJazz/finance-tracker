@@ -38,15 +38,13 @@ export function useCreateContractModal(
   const navigateBack = useCallback(() => {
     if (!hasNavigatedRef.current) {
       hasNavigatedRef.current = true;
-      router.back();
+      router.replace("/contracts");
     }
   }, [router]);
 
   const onClose = useCallback(() => {
     setIsOpen(false);
-    setTimeout(() => {
-      navigateBack();
-    }, 300);
+    navigateBack();
   }, [navigateBack]);
 
   const onOpenChangeComplete = useCallback(
@@ -80,7 +78,6 @@ export function useCreateContractModal(
         description: `O contrato "${data.name}" foi criado com sucesso.`,
       });
 
-      router.refresh();
       onClose();
     } catch (error) {
       setIsSubmitting(false);
