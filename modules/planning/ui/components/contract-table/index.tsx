@@ -33,6 +33,7 @@ export function ContractTable({ data, actionContext, paginationContext }: Contra
       pageIndex={paginationContext?.pageIndex}
       onPageChange={paginationContext?.setPage}
       onPageSizeChange={paginationContext?.setPageSize}
+      pageSize={paginationContext?.pageSize}
       enablePagination={!!paginationContext}
       showHeader={false}
     />

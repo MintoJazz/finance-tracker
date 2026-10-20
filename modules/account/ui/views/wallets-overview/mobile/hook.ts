@@ -17,13 +17,9 @@ export function useMobileWalletOverview(data: Page<WalletSummary>): MobileWallet
     const { debouncedSearch, filterContext } = useOverviewFilters();
     const { onAddClick, onView, onEdit } = useCrudModals<WalletSummary>();
 
-    const {
-        items,
-        total,
-        hasMore,
-        isLoadingMore,
-        loadMore,
-        sentinelRef,
+    const { 
+        pageCount, pageIndex,  setItems, items,
+        ...infiniteScroll
     } = useInfiniteScroll({
         data,
         fetchNextPage: async (pageRequest) => {
@@ -76,11 +72,7 @@ export function useMobileWalletOverview(data: Page<WalletSummary>): MobileWallet
 
     return {
         items,
-        total,
-        hasMore,
-        isLoadingMore,
-        loadMore,
-        sentinelRef,
+        ...infiniteScroll,
         actionsMenuContext,
         filterContext,
         onAddClick,

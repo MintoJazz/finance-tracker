@@ -17,6 +17,7 @@ export class ContractPrismaQueries implements IContractQueries {
             contextId,
             balanceType: { in: ["PAYABLE", "RECEIVABLE"] },
             removedAt: showArchived ? undefined : null,
+            agreement: { isNot: null },
         };
 
         if (type && type !== "ALL") {
