@@ -6,7 +6,6 @@ interface Props {
   searchParams: Promise<{
     search?: string;
     type?: string;
-    showArchived?: string;
     page?: string;
     pageSize?: string;
   }>;

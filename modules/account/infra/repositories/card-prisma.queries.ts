@@ -47,13 +47,13 @@ export class CardPrismaQueries implements ICardQueries {
         pageRequest: PageRequest,
         filter?: BaseFilter
     ): Promise<Page<CardSummary>> {
-        const { search, showArchived } = filter ?? {};
+        const { search, archivedOnly } = filter ?? {};
         const include = CardPrismaQueries.includeDetails;
 
         const where: BalanceWhereInput = {
             contextId,
             balanceType: "CREDIT",
-            removedAt: showArchived ? undefined : null,
+            removedAt: archivedOnly ? { not: null } : null,
         };
 
         if (search) {

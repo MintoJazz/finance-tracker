@@ -16,10 +16,10 @@ export default async function Page(props: Props) {
     if (!session) redirect("/login");
 
     const searchParams = await props.searchParams;
-    const { page, pageSize, search, showArchived } = searchParams;
+    const { page, pageSize, search } = searchParams;
 
     const pageRequest: PageRequest = { page, pageSize };
-    const filter = BaseFilterSchema.parse({ search, showArchived });
+    const filter = BaseFilterSchema.parse({ search });
 
     const useCase = AccountFactory.makeGetContextWalletsUseCase();
     const { success, data, error } = await useCase.execute({ session, pageRequest, filter });

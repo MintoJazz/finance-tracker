@@ -11,12 +11,12 @@ export class ContractPrismaQueries implements IContractQueries {
         pageRequest: PageRequest,
         filter?: ContractFilter
     ): Promise<{ page: Page<ContractSummaryItem>; counts: ContractTypeCounts }> {
-        const { search, type, showArchived } = filter ?? {};
+        const { search, type, archivedOnly } = filter ?? {};
 
         const where: BalanceWhereInput = {
             contextId,
             balanceType: { in: ["PAYABLE", "RECEIVABLE"] },
-            removedAt: showArchived ? undefined : null,
+            removedAt: archivedOnly ? { not: null } : null,
             agreement: { isNot: null },
         };
 

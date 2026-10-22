@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,12 +8,10 @@ import {
     InputGroupAddon,
     InputGroupInput,
 } from "@/components/ui/input-group";
-import { Loader2, Plus, Search } from "lucide-react";
+import { Archive, Loader2, Plus, Search } from "lucide-react";
 import CardList from "../../../components/card-list";
 import { MobileCardOverviewProps } from "../types";
-import { IncludeArchivedToggle } from "@/components/include-archived-toggle";
 import { ArchiveCardModalViewMobile } from "../../archive-card-modal";
-import { RestoreCardModalViewMobile } from "../../restore-card-modal";
 
 export default function CardsOverviewViewMobile({
     items,
@@ -24,9 +23,8 @@ export default function CardsOverviewViewMobile({
     filterContext,
     onAddClick,
     archiveContext,
-    restoreContext,
 }: MobileCardOverviewProps) {
-    const { searchProps, showArchived } = filterContext;
+    const { searchProps } = filterContext;
 
     return (
         <div className="flex w-full flex-col gap-4 py-4 pb-12">
@@ -37,10 +35,21 @@ export default function CardsOverviewViewMobile({
                         {total}
                     </Badge>
                 </div>
-                <Button size="sm" onClick={onAddClick} className="gap-1.5">
-                    <Plus className="size-4" />
-                    Novo
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="icon-sm"
+                        render={<Link href="/cards/archived" />}
+                        className="gap-1.5 px-2.5"
+                    >
+                        <Archive className="size-4" />
+                        <span className="sr-only sm:not-sr-only">Arquivados</span>
+                    </Button>
+                    <Button size="sm" onClick={onAddClick} className="gap-1.5">
+                        <Plus className="size-4" />
+                        Novo
+                    </Button>
+                </div>
             </header>
 
             <div className="flex flex-col gap-2.5 px-4">
@@ -53,12 +62,7 @@ export default function CardsOverviewViewMobile({
                         placeholder="Buscar por nome"
                     />
                 </InputGroup>
-                <div className="flex items-center justify-between">
-                    <IncludeArchivedToggle
-                        {...showArchived}
-                        className="text-xs"
-                        iconClassName="size-3.5"
-                    />
+                <div className="flex items-center justify-end">
                     <span className="text-xs text-muted-foreground tabular-nums">
                         {items.length} de {total}
                     </span>
@@ -91,7 +95,6 @@ export default function CardsOverviewViewMobile({
             )}
 
             <ArchiveCardModalViewMobile {...archiveContext} />
-            <RestoreCardModalViewMobile {...restoreContext} />
         </div>
     );
 }

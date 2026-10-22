@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Search } from "lucide-react";
+import { Archive, Plus, Search } from "lucide-react";
 import {
     InputGroup,
     InputGroupAddon,
@@ -10,9 +11,7 @@ import {
 } from "@/components/ui/input-group";
 import WalletTable from "../../../components/wallet-table";
 import { WalletOverviewProps } from "../types";
-import { IncludeArchivedToggle } from "@/components/include-archived-toggle";
 import { ArchiveWalletModalViewDesktop } from "../../archive-wallet-modal";
-import { RestoreWalletModalViewDesktop } from "../../restore-wallet-modal";
 
 export default function WalletsOverviewViewDesktop({
     data,
@@ -21,9 +20,8 @@ export default function WalletsOverviewViewDesktop({
     onAddClick,
     paginationContext,
     archiveContext,
-    restoreContext,
 }: WalletOverviewProps) {
-    const { searchProps, showArchived } = filterContext;
+    const { searchProps } = filterContext;
 
     return (
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 md:p-8">
@@ -34,10 +32,19 @@ export default function WalletsOverviewViewDesktop({
                         {data.total}
                     </Badge>
                 </div>
-                <Button size="sm" onClick={onAddClick}>
-                    <Plus data-icon="inline-start" />
-                    Nova carteira
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="icon-sm"
+                        render={<Link href="/wallets/archived" />}
+                    >
+                        <Archive className="size-4" />
+                    </Button>
+                    <Button size="sm" onClick={onAddClick}>
+                        <Plus data-icon="inline-start" />
+                        Nova carteira
+                    </Button>
+                </div>
             </header>
 
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -50,12 +57,6 @@ export default function WalletsOverviewViewDesktop({
                         placeholder="Buscar por nome"
                     />
                 </InputGroup>
-                <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-                    <IncludeArchivedToggle
-                        {...showArchived}
-                        label="Incluir arquivadas"
-                    />
-                </div>
             </div>
 
             <WalletTable
@@ -69,7 +70,6 @@ export default function WalletsOverviewViewDesktop({
             </p>
 
             <ArchiveWalletModalViewDesktop {...archiveContext} />
-            <RestoreWalletModalViewDesktop {...restoreContext} />
         </div>
     );
 }

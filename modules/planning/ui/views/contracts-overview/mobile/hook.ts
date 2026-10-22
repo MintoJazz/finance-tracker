@@ -9,7 +9,6 @@ import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { getContractsOverviewAction } from "../../../actions/get-contracts-overview.action";
 import { toggleContractProjectionAction } from "../../../actions/toggle-contract-projection.action";
 import { archiveContractAction } from "../../../actions/archive-contract.action";
-import { restoreContractAction } from "../../../actions/restore-contract.action";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
 import { useTransition, useMemo, useCallback } from "react";
@@ -38,7 +37,6 @@ export function useMobileContractsOverview(data: { page: Page<ContractSummaryIte
       const result = await getContractsOverviewAction(1, { // contextId mocked as 1
         search: debouncedSearch || undefined,
         type: type as "ALL" | "PAYABLE" | "RECEIVABLE",
-        showArchived: baseFilterContext.showArchived.pressed,
         page: pageRequest.page,
         pageSize: pageRequest.pageSize,
       });
@@ -93,15 +91,11 @@ export function useMobileContractsOverview(data: { page: Page<ContractSummaryIte
       });
   }, [router]);
 
-  const { archiveContext, restoreContext, onArchive, onRestore } = useArchiveRestore<ContractSummaryItem>({
+  const { archiveContext, onArchive } = useArchiveRestore<ContractSummaryItem>({
     find: (item) => data.page.data.find((c) => c.id === item.id) || items.find((c) => c.id === item.id),
     entityName: "Contrato",
     onArchiveConfirm: async (contract) => {
       const result = await archiveContractAction(contract.id);
-      if (!result.success) throw new Error(result.error);
-    },
-    onRestoreConfirm: async (contract) => {
-      const result = await restoreContractAction(contract.id);
       if (!result.success) throw new Error(result.error);
     },
   });
@@ -126,8 +120,7 @@ export function useMobileContractsOverview(data: { page: Page<ContractSummaryIte
       );
     },
     onArchive,
-    onRestore,
-  }), [handleAction, onArchive, onRestore, router]);
+  }), [handleAction, onArchive, router]);
 
   const filterContext = {
     ...baseFilterContext,
@@ -146,6 +139,5 @@ export function useMobileContractsOverview(data: { page: Page<ContractSummaryIte
     filterContext,
     onAddClick,
     archiveContext,
-    restoreContext,
   };
 }

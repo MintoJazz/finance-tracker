@@ -10,7 +10,6 @@ import { getCardsAction } from "@/modules/account/ui/actions/get-cards.action";
 import { toast } from "@/components/ui/toast";
 import { useArchiveRestore } from "@/hooks/use-archive-restore";
 import { archiveCardAction } from "../../../actions/archive-card.action";
-import { restoreCardAction } from "../../../actions/restore-card.action";
 
 export function useMobileCardOverview(
     data: Page<CardSummary>
@@ -32,7 +31,6 @@ export function useMobileCardOverview(
                 pageRequest,
                 filter: {
                     search: debouncedSearch || undefined,
-                    showArchived: filterContext.showArchived.pressed,
                 },
             });
 
@@ -54,17 +52,11 @@ export function useMobileCardOverview(
         },
     });
 
-    const { archiveContext, restoreContext, onArchive, onRestore } =
+    const { archiveContext, onArchive } =
         useArchiveRestore<CardSummary>({
             find: (item) => items.find((c) => c.id === item.id),
             onArchiveConfirm: async (card) => {
                 const result = await archiveCardAction({ id: card.id });
-                if (!result.success) {
-                    throw new Error(result.error);
-                }
-            },
-            onRestoreConfirm: async (card) => {
-                const result = await restoreCardAction({ id: card.id });
                 if (!result.success) {
                     throw new Error(result.error);
                 }
@@ -75,7 +67,6 @@ export function useMobileCardOverview(
         onView,
         onEdit,
         onArchive,
-        onRestore,
     };
 
     return {
@@ -89,6 +80,5 @@ export function useMobileCardOverview(
         filterContext,
         onAddClick,
         archiveContext,
-        restoreContext,
     };
 }

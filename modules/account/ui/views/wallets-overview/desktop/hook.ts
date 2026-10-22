@@ -8,23 +8,16 @@ import { useCrudModals } from "@/hooks/use-crud-modals";
 import { usePaginationQueryParams } from "@/hooks/use-pagination-query-params";
 import { useArchiveRestore } from "@/hooks/use-archive-restore";
 import { archiveWalletAction } from "@/modules/account/ui/actions/archive-wallet.action";
-import { restoreWalletAction } from "@/modules/account/ui/actions/restore-wallet.action";
 
 export function useWalletOverview(data: Page<WalletSummary>): WalletOverviewProps {
     const { filterContext } = useOverviewFilters();
     const { onAddClick, onView, onEdit } = useCrudModals<WalletSummary>();
     const { paginationContext } = usePaginationQueryParams();
 
-    const { archiveContext, restoreContext, onArchive, onRestore } = useArchiveRestore<WalletSummary>({
+    const { archiveContext, onArchive } = useArchiveRestore<WalletSummary>({
         find: (item) => data.data.find((w) => w.id === item.id),
         onArchiveConfirm: async (wallet) => {
             const result = await archiveWalletAction({ id: wallet.id });
-            if (!result.success) {
-                throw new Error(result.error);
-            }
-        },
-        onRestoreConfirm: async (wallet) => {
-            const result = await restoreWalletAction({ id: wallet.id });
             if (!result.success) {
                 throw new Error(result.error);
             }
@@ -35,7 +28,6 @@ export function useWalletOverview(data: Page<WalletSummary>): WalletOverviewProp
         onView,
         onEdit,
         onArchive,
-        onRestore,
     };
 
     return {
@@ -45,6 +37,5 @@ export function useWalletOverview(data: Page<WalletSummary>): WalletOverviewProp
         filterContext,
         paginationContext,
         archiveContext,
-        restoreContext,
     };
 }

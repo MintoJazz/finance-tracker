@@ -9,7 +9,6 @@ interface Props {
     searchParams: Promise<{
         search?: string;
         type?: string;
-        showArchived?: string;
         page?: string;
         pageSize?: string;
     }>;
@@ -23,7 +22,6 @@ export default async function ContractsPage(props: Props) {
 
     const search = searchParams.search || "";
     const type = (searchParams.type === "PAYABLE" || searchParams.type === "RECEIVABLE") ? searchParams.type as "PAYABLE" | "RECEIVABLE" : "ALL";
-    const showArchived = searchParams.showArchived === "true";
     const page = searchParams.page ? Number.parseInt(searchParams.page, 10) : 1;
     const pageSize = searchParams.pageSize ? Number.parseInt(searchParams.pageSize, 10) : 10;
 
@@ -33,7 +31,6 @@ export default async function ContractsPage(props: Props) {
         data = await getContractsOverviewAction(1, {
             search,
             type,
-            showArchived,
             page,
             pageSize
         });

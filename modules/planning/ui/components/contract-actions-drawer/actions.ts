@@ -1,12 +1,11 @@
 import { RowAction } from "@/types/actions.types";
 import { ContractSummaryItem } from "../../../core/schemas/contract.schema";
-import { Edit, Archive, RefreshCcw, PauseCircle, PlayCircle } from "lucide-react";
+import { Edit, Archive, PauseCircle, PlayCircle } from "lucide-react";
 
 export interface ContractActionContext {
   onEdit: (contract: ContractSummaryItem) => void;
   onToggleProjection: (contract: ContractSummaryItem) => void;
   onArchive: (contract: ContractSummaryItem) => void;
-  onRestore: (contract: ContractSummaryItem) => void;
 }
 
 export const CONTRACT_ACTIONS: RowAction<ContractSummaryItem, ContractActionContext>[] = [
@@ -37,12 +36,5 @@ export const CONTRACT_ACTIONS: RowAction<ContractSummaryItem, ContractActionCont
     variant: "destructive",
     onClick: (row, context) => context?.onArchive(row.original),
     hidden: (row) => row.original.isArchived,
-  },
-  {
-    id: "restore",
-    label: "Desarquivar",
-    icon: RefreshCcw,
-    onClick: (row, context) => context?.onRestore(row.original),
-    hidden: (row) => !row.original.isArchived,
   },
 ];

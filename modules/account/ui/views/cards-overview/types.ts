@@ -1,12 +1,10 @@
 import { Page } from "@/types/pagination.types";
 import { CardSummary } from "@/modules/account/core/schemas/card.schema";
 import { ArchiveCardModalProps } from "../archive-card-modal/types";
-import { RestoreCardModalProps } from "../restore-card-modal/types";
 import { CardActionContext } from "../../components/card-actions-drawer";
 
 export interface FilterContext {
     searchProps: { value: string; onValueChange: (val: string) => void };
-    showArchived: { pressed: boolean; onPressedChange: (val: boolean) => void };
 }
 
 export interface PaginationContext {
@@ -21,7 +19,6 @@ export interface CardOverviewProps {
     filterContext: FilterContext;
     paginationContext: PaginationContext;
     archiveContext: ArchiveCardModalProps;
-    restoreContext: RestoreCardModalProps;
 }
 
 export interface MobileCardOverviewProps {
@@ -35,5 +32,4 @@ export interface MobileCardOverviewProps {
     onAddClick: () => void;
     filterContext: FilterContext;
     archiveContext: ArchiveCardModalProps;
-    restoreContext: RestoreCardModalProps;
 }

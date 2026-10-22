@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Search } from "lucide-react";
+import { Archive, Plus, Search } from "lucide-react";
 import {
     InputGroup,
     InputGroupAddon,
@@ -10,9 +11,7 @@ import {
 } from "@/components/ui/input-group";
 import CardTable from "../../../components/card-table";
 import { CardOverviewProps } from "../types";
-import { IncludeArchivedToggle } from "@/components/include-archived-toggle";
 import { ArchiveCardModalViewDesktop } from "../../archive-card-modal";
-import { RestoreCardModalViewDesktop } from "../../restore-card-modal";
 
 export default function CardsOverviewViewDesktop({
     data,
@@ -21,9 +20,8 @@ export default function CardsOverviewViewDesktop({
     onAddClick,
     paginationContext,
     archiveContext,
-    restoreContext,
 }: CardOverviewProps) {
-    const { searchProps, showArchived } = filterContext;
+    const { searchProps } = filterContext;
 
     return (
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 md:p-8">
@@ -34,10 +32,19 @@ export default function CardsOverviewViewDesktop({
                         {data.total}
                     </Badge>
                 </div>
-                <Button size="sm" onClick={onAddClick}>
-                    <Plus data-icon="inline-start" />
-                    Novo cartão
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="icon-sm"
+                        render={<Link href="/cards/archived" />}
+                    >
+                        <Archive className="size-4" />
+                    </Button>
+                    <Button size="sm" onClick={onAddClick}>
+                        <Plus data-icon="inline-start" />
+                        Novo cartão
+                    </Button>
+                </div>
             </header>
 
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -50,9 +57,6 @@ export default function CardsOverviewViewDesktop({
                         placeholder="Buscar por nome"
                     />
                 </InputGroup>
-                <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-                    <IncludeArchivedToggle {...showArchived} />
-                </div>
             </div>
 
             <CardTable
@@ -66,7 +70,6 @@ export default function CardsOverviewViewDesktop({
             </p>
 
             <ArchiveCardModalViewDesktop {...archiveContext} />
-            <RestoreCardModalViewDesktop {...restoreContext} />
         </div>
     );
 }

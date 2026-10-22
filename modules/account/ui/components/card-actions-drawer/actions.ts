@@ -1,12 +1,11 @@
 import { RowAction } from "@/types/actions.types";
 import { CardSummary } from "@/modules/account/core/schemas/card.schema";
-import { Edit, Archive, RefreshCcw, Eye } from "lucide-react";
+import { Edit, Archive, Eye } from "lucide-react";
 
 export interface CardActionContext {
     onView?: (card: CardSummary) => void;
     onEdit: (card: CardSummary) => void;
     onArchive: (card: CardSummary) => void;
-    onRestore: (card: CardSummary) => void;
 }
 
 export const CARD_VIEW_ACTION_ID = "view";
@@ -32,13 +31,6 @@ export const CARD_ACTIONS: RowAction<CardSummary, CardActionContext>[] = [
         variant: "destructive",
         onClick: (row, context) => context?.onArchive(row.original),
         hidden: (row) => row.original.isArchived,
-    },
-    {
-        id: "restore",
-        label: "Desarquivar",
-        icon: RefreshCcw,
-        onClick: (row, context) => context?.onRestore(row.original),
-        hidden: (row) => !row.original.isArchived,
     },
 ];
 

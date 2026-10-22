@@ -7,7 +7,6 @@ import { Page } from "@/types/pagination.types";
 import { ContractSummaryItem, ContractTypeCounts } from "../../../../core/schemas/contract.schema";
 import { usePaginationQueryParams } from "@/hooks/use-pagination-query-params";
 import { archiveContractAction } from "../../../actions/archive-contract.action";
-import { restoreContractAction } from "../../../actions/restore-contract.action";
 import { toggleContractProjectionAction } from "../../../actions/toggle-contract-projection.action";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
@@ -65,15 +64,11 @@ export function useContractsOverview(data: { page: Page<ContractSummaryItem>; co
       });
   };
 
-  const { archiveContext, restoreContext, onArchive, onRestore } = useArchiveRestore<ContractSummaryItem>({
+  const { archiveContext, onArchive } = useArchiveRestore<ContractSummaryItem>({
     find: (item) => data.page.data.find((c) => c.id === item.id),
     entityName: "Contrato",
     onArchiveConfirm: async (contract) => {
       const result = await archiveContractAction(contract.id);
-      if (!result.success) throw new Error(result.error);
-    },
-    onRestoreConfirm: async (contract) => {
-      const result = await restoreContractAction(contract.id);
       if (!result.success) throw new Error(result.error);
     },
   });
@@ -98,7 +93,6 @@ export function useContractsOverview(data: { page: Page<ContractSummaryItem>; co
       );
     },
     onArchive,
-    onRestore,
   };
 
   const filterContext = {
@@ -114,6 +108,5 @@ export function useContractsOverview(data: { page: Page<ContractSummaryItem>; co
     filterContext,
     paginationContext,
     archiveContext,
-    restoreContext,
   };
 }

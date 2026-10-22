@@ -5,7 +5,6 @@ import { ArchiveRestoreModalContext } from "@/hooks/use-archive-restore";
 
 export interface FilterContext {
   searchProps: { value: string; onValueChange: (val: string) => void };
-  showArchived: { pressed: boolean; onPressedChange: (val: boolean) => void };
   typeProps: { value: string; onValueChange: (val: string) => void };
 }
 
@@ -22,7 +21,6 @@ export interface ContractsOverviewProps {
   filterContext: FilterContext;
   paginationContext: PaginationContext;
   archiveContext: ArchiveRestoreModalContext;
-  restoreContext: ArchiveRestoreModalContext;
 }
 
 export interface MobileContractsOverviewProps {
@@ -37,5 +35,4 @@ export interface MobileContractsOverviewProps {
   onAddClick: () => void;
   filterContext: FilterContext;
   archiveContext: ArchiveRestoreModalContext;
-  restoreContext: ArchiveRestoreModalContext;
 }

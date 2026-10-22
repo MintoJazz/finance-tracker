@@ -29,7 +29,7 @@ export type ContractTypeCounts = z.infer<typeof ContractTypeCountsSchema>;
 export const ContractFiltersSchema = z.object({
   search: z.string().optional(),
   type: z.enum(["ALL", "PAYABLE", "RECEIVABLE"]).optional(),
-  showArchived: z.boolean().optional(),
+  archivedOnly: z.boolean().optional(),
   page: z.number().int().positive().optional(),
   pageSize: z.number().int().positive().optional(),
 });

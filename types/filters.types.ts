@@ -6,8 +6,8 @@ export const stringBoolean = z.preprocess((val) => {
 }, z.boolean().optional());
 
 export const BaseFilterSchema = z.object({
-    showArchived: stringBoolean,
     search: z.string().optional(),
+    archivedOnly: z.boolean().optional(),
 });
 
 export type BaseFilter = z.infer<typeof BaseFilterSchema>;

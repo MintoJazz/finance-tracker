@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Search } from "lucide-react";
+import { Archive, Plus, Search } from "lucide-react";
 import {
   InputGroup,
   InputGroupAddon,
@@ -12,12 +13,9 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContractTable } from "../../../components/contract-table";
 import { ContractsOverviewProps } from "../types";
-import { IncludeArchivedToggle } from "@/components/include-archived-toggle";
 import { ArchiveContractModalConfig } from "../../archive-contract-modal";
-import { RestoreContractModalConfig } from "../../restore-contract-modal";
 
 const ArchiveContractModal = ArchiveContractModalConfig.views.desktop.View;
-const RestoreContractModal = RestoreContractModalConfig.views.desktop.View;
 
 export default function ContractsOverviewViewDesktop({
   data,
@@ -27,9 +25,8 @@ export default function ContractsOverviewViewDesktop({
   onAddClick,
   paginationContext,
   archiveContext,
-  restoreContext,
 }: ContractsOverviewProps) {
-  const { searchProps, showArchived, typeProps } = filterContext;
+  const { searchProps, typeProps } = filterContext;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 md:p-8">
@@ -40,10 +37,19 @@ export default function ContractsOverviewViewDesktop({
             {data.total}
           </Badge>
         </div>
-        <Button size="sm" onClick={onAddClick}>
-          <Plus data-icon="inline-start" />
-          Novo contrato
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon-sm"
+            render={<Link href="/contracts/archived" />}
+          >
+            <Archive className="size-4" />
+          </Button>
+          <Button size="sm" onClick={onAddClick}>
+            <Plus data-icon="inline-start" />
+            Novo contrato
+          </Button>
+        </div>
       </header>
 
       <div className="flex flex-col gap-4">
@@ -57,10 +63,6 @@ export default function ContractsOverviewViewDesktop({
               placeholder="Buscar contrato..."
             />
           </InputGroup>
-          
-          <div className="flex items-center">
-            <IncludeArchivedToggle {...showArchived} />
-          </div>
         </div>
 
         <Tabs
@@ -94,7 +96,6 @@ export default function ContractsOverviewViewDesktop({
       </p>
 
       <ArchiveContractModal {...archiveContext} />
-      <RestoreContractModal {...restoreContext} />
     </div>
   );
 }

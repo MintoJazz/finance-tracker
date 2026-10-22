@@ -30,12 +30,12 @@ export class WalletPrismaQueries implements IWalletQueries {
         pageRequest: PageRequest,
         filter?: BaseFilter
     ): Promise<Page<WalletSummary>> {
-        const { search, showArchived } = filter ?? {};
+        const { search, archivedOnly } = filter ?? {};
         const include = WalletPrismaQueries.includeLastActivity;
         const where: BalanceWhereInput = {
             contextId,
             balanceType: "WALLET",
-            removedAt: showArchived ? undefined : null,
+            removedAt: archivedOnly ? { not: null } : null,
         };
 
         if (search) {

@@ -15,10 +15,10 @@ export default async function CardsPage(props: Props) {
     const session = await SessionHandler.getSession();
     if (!session) redirect("/login");
 
-    const { page, pageSize, search, showArchived } = await props.searchParams;
+    const { page, pageSize, search } = await props.searchParams;
 
     const pageRequest: PageRequest = { page, pageSize };
-    const filter = BaseFilterSchema.parse({ search, showArchived });
+    const filter = BaseFilterSchema.parse({ search });
 
     const useCase = AccountFactory.makeGetContextCardsUseCase();
     const { success, data, error } = await useCase.execute({ session, pageRequest, filter });

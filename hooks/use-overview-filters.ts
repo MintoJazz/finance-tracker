@@ -15,11 +15,6 @@ export function useOverviewFilters() {
         onValueChange: setSearch,
     };
 
-    const showArchived = {
-        pressed: getParam("showArchived") === "true",
-        onPressedChange: (value: boolean) => setParam("showArchived", String(value)),
-    };
-
     useEffect(() => {
         if (debouncedSearch !== getParam("search")) {
             setParam("search", debouncedSearch);
@@ -30,7 +25,6 @@ export function useOverviewFilters() {
         debouncedSearch,
         filterContext: {
             searchProps,
-            showArchived,
         },
     };
 }

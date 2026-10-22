@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,17 +10,14 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Archive, Plus, Search, Loader2 } from "lucide-react";
 import { ContractList } from "../../../components/contract-list";
 import { MobileContractsOverviewProps } from "../types";
-import { IncludeArchivedToggle } from "@/components/include-archived-toggle";
 import { ContractActionsDrawer } from "../../../components/contract-actions-drawer";
 import { ContractSummaryItem } from "../../../../core/schemas/contract.schema";
 import { ArchiveContractModalConfig } from "../../archive-contract-modal";
-import { RestoreContractModalConfig } from "../../restore-contract-modal";
 
 const ArchiveContractModal = ArchiveContractModalConfig.views.mobile.View;
-const RestoreContractModal = RestoreContractModalConfig.views.mobile.View;
 
 export default function ContractsOverviewViewMobile({
   items,
@@ -32,9 +30,8 @@ export default function ContractsOverviewViewMobile({
   filterContext,
   onAddClick,
   archiveContext,
-  restoreContext,
 }: MobileContractsOverviewProps) {
-  const { searchProps, showArchived, typeProps } = filterContext;
+  const { searchProps, typeProps } = filterContext;
   
   const [actionsOpen, setActionsOpen] = React.useState(false);
   const [selectedContract, setSelectedContract] = React.useState<ContractSummaryItem | null>(null);
@@ -60,10 +57,21 @@ export default function ContractsOverviewViewMobile({
             {total}
           </Badge>
         </div>
-        <Button size="sm" onClick={onAddClick} className="gap-1.5">
-          <Plus className="size-4" />
-          Novo
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon-sm"
+            render={<Link href="/contracts/archived" />}
+            className="gap-1.5 px-2.5"
+          >
+            <Archive className="size-4" />
+            <span className="sr-only sm:not-sr-only">Arquivadas</span>
+          </Button>
+          <Button size="sm" onClick={onAddClick} className="gap-1.5">
+            <Plus className="size-4" />
+            Novo
+          </Button>
+        </div>
       </header>
 
       <div className="flex flex-col gap-4 px-4">
@@ -78,12 +86,7 @@ export default function ContractsOverviewViewMobile({
             />
           </InputGroup>
 
-          <div className="flex items-center justify-between">
-            <IncludeArchivedToggle
-              {...showArchived}
-              className="text-xs"
-              iconClassName="size-3.5"
-            />
+          <div className="flex items-center justify-end">
             <span className="text-xs text-muted-foreground tabular-nums">
               {items.length} de {total}
             </span>
@@ -138,7 +141,6 @@ export default function ContractsOverviewViewMobile({
       />
 
       <ArchiveContractModal {...archiveContext} />
-      <RestoreContractModal {...restoreContext} />
     </div>
   );
 }
