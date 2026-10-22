@@ -15,6 +15,7 @@ import type {
   WizardProps,
   WizardStep,
 } from "./types"
+import { flattenFormFields } from "@/types/form.types"
 
 const WizardContext = createContext<WizardContextValue<any> | null>(null)
 
@@ -147,7 +148,7 @@ export function Wizard<TData = any>({
 
       for (const step of inactiveSteps) {
         if ("fields" in step && Array.isArray(step.fields)) {
-          for (const field of step.fields) {
+          for (const field of flattenFormFields(step.fields)) {
             delete (cleaned as any)[field.name]
           }
         }

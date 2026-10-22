@@ -77,58 +77,43 @@ export const contractFormFields: FormField<ContractFormValues>[] = [
     ),
   },
   {
-    name: "frequency",
-    label: "Frequência",
-    description: "Periodicidade de repetição das cobranças.",
-    children: (_ctx, field) => (
-      <Select
-        value={field.value}
-        onValueChange={(val) => {
-          if (val) field.onChange(val);
-        }}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Selecione a frequência" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="WEEKLY">Semanal</SelectItem>
-          <SelectItem value="MONTHLY">Mensal</SelectItem>
-          <SelectItem value="YEARLY">Anual</SelectItem>
-        </SelectContent>
-      </Select>
-    ),
-  },
-  {
-    name: "validity",
-    label: "Período de vigência",
-    description: "Data de início e término (opcional para contratos indeterminados).",
-    children: (_ctx, field) => (
-      <DateRangePicker
-        value={field.value as DateRange | undefined}
-        onChange={(range) => field.onChange(range)}
-        placeholder="Selecione o período de vigência..."
-        className="h-9 text-sm"
-      />
-    ),
-  },
-  {
-    name: "dueDay",
-    label: "Dia de vencimento",
-    description: "Dia do mês em que vence a parcela (1 a 31).",
-    children: (_ctx, field) => (
-      <Input
-        type="number"
-        min={1}
-        max={31}
-        placeholder="Ex: 10"
-        value={typeof field.value === "number" ? field.value : ""}
-        onChange={(e) => {
-          const val = e.target.value;
-          field.onChange(val === "" ? 0 : Number(val));
-        }}
-        className="font-mono tabular-nums"
-      />
-    ),
+    row: [
+      {
+        name: "frequency",
+        label: "Frequência",
+        description: "Periodicidade das cobranças.",
+        children: (_ctx, field) => (
+          <Select
+            value={field.value}
+            onValueChange={(val) => {
+              if (val) field.onChange(val);
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecione a frequência" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="WEEKLY">Semanal</SelectItem>
+              <SelectItem value="MONTHLY">Mensal</SelectItem>
+              <SelectItem value="YEARLY">Anual</SelectItem>
+            </SelectContent>
+          </Select>
+        ),
+      },
+      {
+        name: "validity",
+        label: "Período de vigência",
+        description: "Data de início e término.",
+        children: (_ctx, field) => (
+          <DateRangePicker
+            value={field.value as DateRange | undefined}
+            onChange={(range) => field.onChange(range)}
+            placeholder="Selecione o período de vigência..."
+            className="h-9 text-sm"
+          />
+        ),
+      },
+    ],
   },
   {
     name: "hasCustomClosingDay",
@@ -142,23 +127,46 @@ export const contractFormFields: FormField<ContractFormValues>[] = [
     ),
   },
   {
-    name: "closingDay",
-    label: "Dia de fechamento",
-    description: "Dia do mês em que a fatura fecha (1 a 31).",
-    hidden: (values) => !values?.hasCustomClosingDay,
-    children: (_ctx, field) => (
-      <Input
-        type="number"
-        min={1}
-        max={31}
-        placeholder="Ex: 5"
-        value={typeof field.value === "number" ? field.value : ""}
-        onChange={(e) => {
-          const val = e.target.value;
-          field.onChange(val === "" ? null : Number(val));
-        }}
-        className="font-mono tabular-nums"
-      />
-    ),
+    row: [
+      {
+        name: "dueDay",
+        label: "Dia de vencimento",
+        description: "Dia do mês em que vence a parcela (1 a 31).",
+        children: (_ctx, field) => (
+          <Input
+            type="number"
+            min={1}
+            max={31}
+            placeholder="Ex: 10"
+            value={typeof field.value === "number" ? field.value : ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              field.onChange(val === "" ? 0 : Number(val));
+            }}
+            className="font-mono tabular-nums"
+          />
+        ),
+      },
+      {
+        name: "closingDay",
+        label: "Dia de fechamento",
+        description: "Dia do mês em que a fatura fecha (1 a 31).",
+        hidden: (values) => !values?.hasCustomClosingDay,
+        children: (_ctx, field) => (
+          <Input
+            type="number"
+            min={1}
+            max={31}
+            placeholder="Ex: 5"
+            value={typeof field.value === "number" ? field.value : ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              field.onChange(val === "" ? null : Number(val));
+            }}
+            className="font-mono tabular-nums"
+          />
+        ),
+      },
+    ],
   },
 ];

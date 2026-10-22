@@ -4,6 +4,7 @@ import * as React from "react"
 import { Pencil } from "lucide-react"
 
 import { formatDateToPTBR } from "@/components/form/date-picker/utils"
+import { flattenFormFields } from "@/types/form.types"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { CustomStepProps, FieldsStep } from "../core"
@@ -77,7 +78,7 @@ export function ReviewStep<TData = any>({
     <div className={cn("space-y-4", className)}>
       {fieldSteps.map((step) => {
         // Filtra campos visíveis (não ocultos pelos dados atuais)
-        const visibleFields = step.fields.filter(
+        const visibleFields = flattenFormFields(step.fields).filter(
           (field) => !field.hidden?.(data as any, step.context)
         )
 

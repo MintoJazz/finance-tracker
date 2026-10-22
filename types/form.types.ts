@@ -9,7 +9,7 @@ import type {
 } from "react-hook-form"
 import type { FieldLayoutProps } from "@/components/form/field-layouts"
 
-export interface FormField<
+export interface FormFieldItem<
   TForm extends FieldValues = FieldValues,
   TContext = void,
 > {
@@ -36,6 +36,54 @@ export interface FormField<
         context: TContext,
         field: ControllerRenderProps<TForm, Path<TForm>>
       ) => ReactNode)
+}
+
+export interface FormFieldRow<
+  TForm extends FieldValues = FieldValues,
+  TContext = void,
+> {
+  /** Lista de campos a serem exibidos nesta linha */
+  row: FormFieldItem<TForm, TContext>[]
+  /** Classes CSS adicionais para o container do grid da linha */
+  className?: string
+  /** Oculta a linha inteira dinamicamente com base nos valores atuais do form ou no contexto */
+  hidden?: (values: TForm, context: TContext) => boolean
+}
+
+export type FormField<
+  TForm extends FieldValues = FieldValues,
+  TContext = void,
+> = FormFieldItem<TForm, TContext> | FormFieldRow<TForm, TContext>
+
+/**
+ * Type guard para verificar se um campo é uma linha de campos (FormFieldRow).
+ */
+export function isFormFieldRow<
+  TForm extends FieldValues = FieldValues,
+  TContext = void,
+>(
+  field: FormField<TForm, TContext>
+): field is FormFieldRow<TForm, TContext> {
+  return (
+    typeof field === "object" &&
+    field !== null &&
+    "row" in field &&
+    Array.isArray((field as FormFieldRow<TForm, TContext>).row)
+  )
+}
+
+/**
+ * Achata uma lista de campos (desaninhando FormFieldRow em uma lista linear de FormFieldItem).
+ */
+export function flattenFormFields<
+  TForm extends FieldValues = FieldValues,
+  TContext = void,
+>(
+  fields: FormField<TForm, TContext>[]
+): FormFieldItem<TForm, TContext>[] {
+  return fields.flatMap((item) =>
+    isFormFieldRow(item) ? item.row : [item]
+  )
 }
 
 type ContextProp<TContext> = [TContext] extends [void]

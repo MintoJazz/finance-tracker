@@ -4,12 +4,12 @@ import { useId } from "react"
 import { useController, useFormContext, type FieldValues } from "react-hook-form"
 import { Slot } from "@radix-ui/react-slot"
 import { VerticalLayout } from "@/components/form/field-layouts"
-import type { FormField } from "@/types/form.types"
+import type { FormFieldItem } from "@/types/form.types"
 
-interface ControlledFieldProps<
+export interface ControlledFieldProps<
   TForm extends FieldValues = FieldValues,
   TContext = void,
-> extends FormField<TForm, TContext> {
+> extends FormFieldItem<TForm, TContext> {
   context?: TContext
 }
 

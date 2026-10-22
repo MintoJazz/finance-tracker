@@ -39,4 +39,17 @@ export {
   type BadgeCarouselProps,
   type CarouselOption,
 } from "@/components/form/carousel"
-export { DataForm, ObjectForm, DataFormFields } from "@/components/form/data-form"
+export {
+  DataForm,
+  ObjectForm,
+  DataFormFields,
+  DataFormRow,
+} from "@/components/form/data-form"
+export {
+  isFormFieldRow,
+  flattenFormFields,
+  type FormField,
+  type FormFieldItem,
+  type FormFieldRow,
+  type DataFormProps,
+} from "@/types/form.types"
