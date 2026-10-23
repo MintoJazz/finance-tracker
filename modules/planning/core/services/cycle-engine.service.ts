@@ -164,6 +164,7 @@ export class CycleEngineService {
                 let recognizedAmount = 0;
                 let paidAmount = 0;
                 let totalEntriesCount = 0;
+                let latestSettlementDate: Date | null = null;
 
                 for (const entry of entries) {
                     totalEntriesCount += entry.count;
@@ -194,6 +195,9 @@ export class CycleEngineService {
                         // Pagamentos possuem direção oposta à que aumenta a obrigação;
                         // logo, 'signed' é negativo para pagamento normal (-signed é positivo)
                         paidAmount += -signed;
+                        if (!latestSettlementDate || isAfter(entry.referenceDate, latestSettlementDate)) {
+                            latestSettlementDate = entry.referenceDate;
+                        }
                     }
                 }
 
@@ -233,10 +237,8 @@ export class CycleEngineService {
                     continue;
                 }
 
-                const kind: "ACTUAL" | "PROJECTED" =
-                    totalEntriesCount > 0 ? "ACTUAL" : "PROJECTED";
-
                 const status = this.calculateStatus(
+                    totalEntriesCount,
                     totalAmount,
                     paidAmount,
                     remainingAmount,
@@ -247,10 +249,11 @@ export class CycleEngineService {
                 );
 
                 const item: CommitmentCycleItem = {
+                    cycleKey: boundaries.cycleKey,
+                    agreementId: source.agreementId,
                     balanceId: source.balanceId,
                     balanceName: source.balanceName,
                     balanceType: source.balanceType === "CREDIT" ? "CREDIT" : "COMMITMENT",
-                    kind,
                     label: boundaries.label,
                     from: format(boundaries.beginsAt, "yyyy-MM-dd"),
                     to: format(boundaries.endsAt, "yyyy-MM-dd"),
@@ -260,6 +263,8 @@ export class CycleEngineService {
                     paidAmount,
                     remainingAmount,
                     status,
+                    movementsCount: totalEntriesCount,
+                    settlementDate: status === "PAID" ? latestSettlementDate : null,
                 };
 
                 result.push(item);
@@ -328,6 +333,7 @@ export class CycleEngineService {
                 overdueAmount += cycle.remainingAmount;
                 overdueCount += 1;
             } else if (
+                cycle.status === "PROJECTED" ||
                 cycle.status === "OPEN" ||
                 cycle.status === "PENDING" ||
                 cycle.status === "PARTIAL"
@@ -367,6 +373,7 @@ export class CycleEngineService {
      * Máquina de estados para definição de status do ciclo.
      */
     private calculateStatus(
+        totalEntriesCount: number,
         totalAmount: number,
         paidAmount: number,
         remainingAmount: number,
@@ -375,6 +382,11 @@ export class CycleEngineService {
         endsAt: Date,
         today: Date
     ): CommitmentCycleStatusEnum {
+        // 0. Ciclo puramente projetado/estimado sem lançamentos consolidados
+        if (totalEntriesCount === 0) {
+            return "PROJECTED";
+        }
+
         const cycleDue = startOfDay(dueDate);
         const cycleEnd = startOfDay(endsAt);
 

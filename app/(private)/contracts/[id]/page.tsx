@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ViewContainer } from "@/components/adaptive";
 import { ErrorView } from "@/components/error-view";
 import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
-import { ContractProfileMockService } from "@/modules/planning/infra/mock/contract-profile.mock";
+import { PlanningFactory } from "@/modules/planning/infra/factories/planning.factory";
 import { ContractProfileAdaptiveConfig } from "@/modules/planning/ui/views/contract-profile";
 
 interface ContractProfilePageProps {
@@ -25,7 +25,24 @@ export default async function ContractProfilePage(props: ContractProfilePageProp
         );
     }
 
-    const profileResult = await ContractProfileMockService.getProfileById(contractId);
+    const getProfileUseCase = PlanningFactory.makeGetContractProfileUseCase();
+    const getCyclesUseCase = PlanningFactory.makeGetContractCyclesUseCase();
+
+    const [profileResult, cyclesResult] = await Promise.all([
+        getProfileUseCase.execute({ session, contractId }),
+        getCyclesUseCase.execute({
+            session,
+            contractId,
+            pageRequest: {
+                page: 1,
+                pageSize: 10,
+            },
+            filter: {
+                includeProjected: true,
+            },
+        }),
+    ]);
+
     if (!profileResult.success || !profileResult.data) {
         return (
             <ErrorView
@@ -36,14 +53,6 @@ export default async function ContractProfilePage(props: ContractProfilePageProp
     }
 
     const profile = profileResult.data;
-
-    const cyclesResult = await ContractProfileMockService.getCycles({
-        contractId,
-        pageRequest: {
-            page: 1,
-            pageSize: 10,
-        },
-    });
 
     return (
         <ViewContainer

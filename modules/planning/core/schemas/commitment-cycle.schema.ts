@@ -16,11 +16,12 @@ export const CommitmentSourceTypeEnumSchema = z.enum([
 export type CommitmentSourceTypeEnum = z.infer<typeof CommitmentSourceTypeEnumSchema>;
 
 export const CommitmentCycleStatusEnumSchema = z.enum([
-    "OPEN",      // Ciclo/Fatura em aberto ou previsto
-    "PENDING",   // Fechado / Provisionado aguardando pagamento no prazo
-    "PARTIAL",   // Pago parcialmente
-    "OVERDUE",   // Vencido (dueDate < hoje e remainingAmount > 0)
-    "PAID",      // Quitado integralmente
+    "PROJECTED",
+    "OPEN",
+    "PENDING",
+    "PARTIAL",
+    "OVERDUE",
+    "PAID",
 ]);
 
 export type CommitmentCycleStatusEnum = z.infer<typeof CommitmentCycleStatusEnumSchema>;
@@ -29,7 +30,6 @@ export const CommitmentCycleItemSchema = z.object({
     balanceId: z.number().int().positive(),
     balanceName: z.string().min(1),
     balanceType: CommitmentSourceTypeEnumSchema,
-    kind: CommitmentCycleKindEnumSchema.default("ACTUAL"),
 
     // Janela do ciclo gerada pela Engine
     label: z.string().min(1),        // Ex: "Outubro 2026"
@@ -44,6 +44,10 @@ export const CommitmentCycleItemSchema = z.object({
     remainingAmount: z.number().int().nonnegative(),
 
     status: CommitmentCycleStatusEnumSchema,
+    cycleKey: z.string().optional(),
+    agreementId: z.number().int().positive().optional(),
+    movementsCount: z.number().int().nonnegative().optional(),
+    settlementDate: z.date().nullable().optional(),
 });
 
 export type CommitmentCycleItem = z.infer<typeof CommitmentCycleItemSchema>;

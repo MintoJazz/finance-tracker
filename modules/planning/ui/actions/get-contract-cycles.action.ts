@@ -7,7 +7,7 @@ import {
     GetContractCyclesDTO,
     GetContractCyclesDTOSchema,
 } from "../../core/schemas/contract-cycle.schema";
-import { ContractProfileMockService } from "../../infra/mock/contract-profile.mock";
+import { PlanningFactory } from "../../infra/factories/planning.factory";
 import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
 
 export async function getContractCyclesAction(
@@ -23,5 +23,11 @@ export async function getContractCyclesAction(
         );
     }
 
-    return ContractProfileMockService.getCycles(parsed.data);
+    const useCase = PlanningFactory.makeGetContractCyclesUseCase();
+    return useCase.execute({
+        session,
+        contractId: parsed.data.contractId,
+        pageRequest: parsed.data.pageRequest,
+        filter: parsed.data.filter,
+    });
 }

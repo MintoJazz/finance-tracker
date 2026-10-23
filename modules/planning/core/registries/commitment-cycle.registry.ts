@@ -12,6 +12,11 @@ export const COMMITMENT_STATUS_REGISTRY: Record<
     CommitmentCycleStatusEnum,
     CommitmentStatusMeta
 > = {
+    PROJECTED: {
+        label: "Projetado",
+        badgeClassName:
+            "text-indigo-700 dark:text-indigo-400",
+    },
     OVERDUE: {
         label: "Vencido",
         badgeClassName:

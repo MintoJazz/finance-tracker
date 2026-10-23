@@ -7,10 +7,13 @@ import { IAgreementDetailQueries } from "../../core/types/agreement-detail-queri
 import { IContractQueries } from "../../core/types/contract-queries.interface";
 import { IContractRepository } from "../../core/types/contract-repository.interface";
 import { ICycleEntriesQueries } from "../../core/types/cycle-entries-queries.interface";
+import { IContractProfileQueries } from "../../core/types/contract-profile-queries.interface";
 import { IPlanningAccessProvider } from "../../core/types/space-access-provider.interface";
 import { CreateContractUseCase } from "../../core/use-cases/create-contract.use-case";
 import { ArchiveContractUseCase } from "../../core/use-cases/archive-contract.use-case";
 import { GetAgreementDetailUseCase } from "../../core/use-cases/get-agreement-detail.use-case";
+import { GetContractCyclesUseCase } from "../../core/use-cases/get-contract-cycles.use-case";
+import { GetContractProfileUseCase } from "../../core/use-cases/get-contract-profile.use-case";
 import { GetContextContractsUseCase } from "../../core/use-cases/get-context-contracts.use-case";
 import { GetCycleEntriesUseCase } from "../../core/use-cases/get-cycle-entries.use-case";
 import { RestoreContractUseCase } from "../../core/use-cases/restore-contract.use-case";
@@ -19,6 +22,7 @@ import { PlanningSpaceAccessAdapter } from "../adapters/planning-space-access.ad
 import { AgreementDetailPrismaQueries } from "../repositories/agreement-detail-prisma.queries";
 import { ContractPrismaQueries } from "../repositories/contract-prisma.queries";
 import { ContractPrismaRepository } from "../repositories/contract-prisma.repository";
+import { ContractProfilePrismaQueries } from "../repositories/contract-profile-prisma.queries";
 import { CycleEntriesPrismaQueries } from "../repositories/cycle-entries-prisma.queries";
 
 export class PlanningFactory {
@@ -39,6 +43,8 @@ export class PlanningFactory {
 
     private static readonly agreementDetailQueries: IAgreementDetailQueries =
         new AgreementDetailPrismaQueries();
+    private static readonly contractProfileQueries: IContractProfileQueries =
+        new ContractProfilePrismaQueries();
     private static readonly cycleEntriesQueries: ICycleEntriesQueries =
         new CycleEntriesPrismaQueries();
     private static readonly cycleEngineService = new CycleEngineService();
@@ -72,6 +78,21 @@ export class PlanningFactory {
         new RestoreContractUseCase(
             this.contractRepository,
             this.spaceAccessProvider
+        );
+
+    // Contract Profile & Cycles
+    public static readonly makeGetContractProfileUseCase = () =>
+        new GetContractProfileUseCase(
+            this.contractProfileQueries,
+            this.planningAccessProvider,
+            this.cycleEngineService
+        );
+
+    public static readonly makeGetContractCyclesUseCase = () =>
+        new GetContractCyclesUseCase(
+            this.contractProfileQueries,
+            this.planningAccessProvider,
+            this.cycleEngineService
         );
 
     // Agreement Detail & Drill-down

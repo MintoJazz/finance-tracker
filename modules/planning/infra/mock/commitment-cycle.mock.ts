@@ -220,7 +220,6 @@ const RAW_MOCK_COMMITMENT_CYCLES: Omit<CommitmentCycleItem, "kind">[] = [
 const MOCK_COMMITMENT_CYCLES: CommitmentCycleItem[] = RAW_MOCK_COMMITMENT_CYCLES.map(
     (item) => ({
         ...item,
-        kind: "ACTUAL",
     })
 );
 

@@ -31,6 +31,7 @@ const PERIOD_PRESET_OPTIONS: CarouselOption<PeriodPresetKey>[] = [
 ];
 
 const STATUS_OPTIONS: CarouselOption<CommitmentCycleStatusEnum>[] = [
+    { value: "PROJECTED", label: "Projetado" },
     { value: "OVERDUE", label: "Vencido" },
     { value: "PENDING", label: "A pagar" },
     { value: "PARTIAL", label: "Parcial" },

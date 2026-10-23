@@ -5,7 +5,7 @@ import {
     ContractProfile,
     GetContractProfileSchema,
 } from "../../core/schemas/contract-profile.schema";
-import { ContractProfileMockService } from "../../infra/mock/contract-profile.mock";
+import { PlanningFactory } from "../../infra/factories/planning.factory";
 import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
 
 export async function getContractProfileAction(
@@ -21,5 +21,9 @@ export async function getContractProfileAction(
         );
     }
 
-    return ContractProfileMockService.getProfileById(parsed.data.id);
+    const useCase = PlanningFactory.makeGetContractProfileUseCase();
+    return useCase.execute({
+        session,
+        contractId: parsed.data.id,
+    });
 }
