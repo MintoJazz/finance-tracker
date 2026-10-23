@@ -3,8 +3,6 @@ import {
   MONTH_NAMES,
   FREQUENCY_LABELS,
   type ContractFrequencyType,
-  type FrequencyScheduleInput,
-  type FrequencyClosingInput,
   getFrequencyTheme,
   formatFrequencyDueDay,
   formatFrequencyClosingDay,

@@ -57,6 +57,16 @@ export const routes = defineRoutes({
     pattern: "/contracts",
     label: "Contratos",
   },
+  contractProfile: {
+    pattern: "/contracts/[id]",
+    label: () => "",
+    parent: "contracts",
+  },
+  contractEdit: {
+    pattern: "/contracts/[id]/edit",
+    label: "Editar",
+    parent: "contractProfile",
+  },
 })
 
 export type RouteKey = keyof typeof routes

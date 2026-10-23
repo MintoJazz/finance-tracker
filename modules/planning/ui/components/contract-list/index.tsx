@@ -7,6 +7,7 @@ interface ContractListProps {
   items: ContractSummaryItem[];
   onActionClick: (contract: ContractSummaryItem) => void;
   onToggleProjection: (contract: ContractSummaryItem) => void;
+  onSelect?: (contract: ContractSummaryItem) => void;
   className?: string;
 }
 
@@ -14,6 +15,7 @@ export function ContractList({
   items,
   onActionClick,
   onToggleProjection,
+  onSelect,
   className
 }: ContractListProps) {
   if (items.length === 0) {
@@ -30,6 +32,7 @@ export function ContractList({
         <ContractListItem
           key={item.id}
           contract={item}
+          onSelect={() => onSelect?.(item)}
           onOpenActions={() => onActionClick(item)}
           onToggleProjection={onToggleProjection}
         />

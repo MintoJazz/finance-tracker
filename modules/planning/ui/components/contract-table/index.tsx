@@ -10,6 +10,7 @@ import { CONTRACT_ACTIONS, ContractActionContext } from "../contract-actions-dra
 interface ContractTableProps {
   data: Page<ContractSummaryItem>;
   actionContext: ContractActionContext;
+  onRowClick?: (contract: ContractSummaryItem) => void;
   paginationContext?: {
     pageIndex: number;
     pageSize: number;
@@ -19,7 +20,7 @@ interface ContractTableProps {
   };
 }
 
-export function ContractTable({ data, actionContext, paginationContext }: ContractTableProps) {
+export function ContractTable({ data, actionContext, paginationContext, onRowClick }: ContractTableProps) {
   const columns = useMemo(() => getContractColumns(actionContext), [actionContext]);
 
   return (
@@ -36,6 +37,7 @@ export function ContractTable({ data, actionContext, paginationContext }: Contra
       pageSize={paginationContext?.pageSize}
       enablePagination={!!paginationContext}
       showHeader={false}
+      onRowClick={onRowClick ? (row) => onRowClick(row.original) : undefined}
     />
   );
 }

@@ -1,0 +1,130 @@
+"use client";
+
+import { ColumnDef } from "@tanstack/react-table";
+import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { AmountSpan } from "@/components/amount-span";
+import { formatDate, formatMoney } from "@/lib/formatters";
+import { cn } from "@/lib/utils";
+import {
+    ContractCycleItem,
+    ContractCycleStatusEnum,
+} from "../../../../core/schemas/contract-cycle.schema";
+
+export const CYCLE_STATUS_CONFIG: Record<
+    ContractCycleStatusEnum,
+    {
+        label: string;
+        icon: typeof CheckCircle2;
+        iconClassName: string;
+    }
+> = {
+    PAID: {
+        label: "Pago",
+        icon: CheckCircle2,
+        iconClassName: "text-emerald-600 dark:text-emerald-400",
+    },
+    PARTIAL: {
+        label: "Parcial",
+        icon: Clock,
+        iconClassName: "text-amber-600 dark:text-amber-400",
+    },
+    OVERDUE: {
+        label: "Vencido",
+        icon: AlertTriangle,
+        iconClassName: "text-rose-600 dark:text-rose-400",
+    },
+    PENDING: {
+        label: "Pendente",
+        icon: Clock,
+        iconClassName: "text-sky-600 dark:text-sky-400",
+    },
+    OPEN: {
+        label: "Em aberto",
+        icon: Clock,
+        iconClassName: "text-muted-foreground",
+    },
+};
+
+export const CONTRACT_CYCLE_COLUMNS: ColumnDef<ContractCycleItem>[] = [
+    {
+        accessorKey: "label",
+        header: "Competência",
+        cell: ({ row }) => {
+            const cycle = row.original;
+            const isProjected = cycle.kind === "PROJECTED";
+            return (
+                <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-medium text-sm text-foreground truncate">
+                            {cycle.label}
+                        </span>
+                        {isProjected && (
+                            <Badge
+                                variant="outline"
+                                className="border-dashed border-indigo-500/40 text-indigo-700 dark:text-indigo-300 bg-indigo-500/5 text-[10px] py-0 px-1.5 h-4 font-normal shrink-0"
+                            >
+                                Projetado
+                            </Badge>
+                        )}
+                    </div>
+                    <span className="text-xs text-muted-foreground truncate">
+                        {formatDate(new Date(cycle.from))} a {formatDate(new Date(cycle.to))}
+                    </span>
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => {
+            const cycle = row.original;
+            const config = CYCLE_STATUS_CONFIG[cycle.status] ?? {
+                label: cycle.status,
+                icon: Clock,
+                iconClassName: "text-muted-foreground",
+            };
+            const StatusIcon = config.icon;
+
+            const dueDate = new Date(cycle.dueDate);
+            const isPast =
+                cycle.status === "OVERDUE" ||
+                dueDate.getTime() < new Date().setHours(0, 0, 0, 0);
+            const dueText = isPast
+                ? `Venceu em ${formatDate(dueDate)}`
+                : `Vence em ${formatDate(dueDate)}`;
+
+            return (
+                <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1.5 text-sm font-medium">
+                        <StatusIcon className={cn("size-3.5 shrink-0", config.iconClassName)} />
+                        <span className={cn("truncate", config.iconClassName)}>
+                            {config.label}
+                        </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground truncate">
+                        {dueText}
+                    </span>
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: "totalAmount",
+        header: () => <div className="text-right">Valor</div>,
+        cell: ({ row }) => {
+            const cycle = row.original;
+            return (
+                <div className="flex flex-col items-end">
+                    <span className="font-medium font-mono tabular-nums text-sm">
+                        <AmountSpan amount={cycle.totalAmount} />
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate">
+                        {(cycle.paidAmount > 0) && `Pago: ${formatMoney(cycle.paidAmount)}`}
+                    </span>
+                </div>
+            );
+        },
+    },
+];

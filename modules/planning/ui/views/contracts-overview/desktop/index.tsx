@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Archive, Plus, Search } from "lucide-react";
@@ -26,6 +27,7 @@ export default function ContractsOverviewViewDesktop({
   paginationContext,
   archiveContext,
 }: ContractsOverviewProps) {
+  const router = useRouter();
   const { searchProps, typeProps } = filterContext;
 
   return (
@@ -81,6 +83,7 @@ export default function ContractsOverviewViewDesktop({
         <ContractTable
           data={data}
           actionContext={actionsMenuContext}
+          onRowClick={(contract) => router.push(`/contracts/${contract.id}`)}
           paginationContext={{
             pageIndex: data.pageIndex,
             pageSize: data.pageSize,

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +32,7 @@ export default function ContractsOverviewViewMobile({
   onAddClick,
   archiveContext,
 }: MobileContractsOverviewProps) {
+  const router = useRouter();
   const { searchProps, typeProps } = filterContext;
   
   const [actionsOpen, setActionsOpen] = React.useState(false);
@@ -101,6 +103,7 @@ export default function ContractsOverviewViewMobile({
 
       <ContractList
         items={items}
+        onSelect={(contract) => router.push(`/contracts/${contract.id}`)}
         onActionClick={handleActionClick}
         onToggleProjection={actionsMenuContext.onToggleProjection}
       />
