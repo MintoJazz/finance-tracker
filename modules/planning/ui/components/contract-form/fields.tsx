@@ -12,15 +12,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { ContractCycleField } from "./cycle-fields";
 import type { DateRange } from "react-day-picker";
 import type { FormField } from "@/types/form.types";
-import type { ContractFormValues } from "../../../core/schemas/contract-form.schema";
+import type {
+  ContractFormValues,
+  ContractScheduleValues,
+} from "../../../core/schemas/contract-form.schema";
+
+const FREQUENCY_ITEMS: Record<string, string> = {
+  WEEKLY: "Semanal",
+  MONTHLY: "Mensal",
+  YEARLY: "Anual",
+};
 
 export const contractFormFields: FormField<ContractFormValues>[] = [
   {
     name: "type",
     label: "Natureza do contrato",
-    description: "Indica se o contrato é uma despesa a pagar ou uma receita recorrente.",
     children: (_ctx, field) => (
       <div className="grid grid-cols-2 gap-2 pt-0.5">
         <button
@@ -55,7 +64,6 @@ export const contractFormFields: FormField<ContractFormValues>[] = [
   {
     name: "name",
     label: "Nome do contrato",
-    description: "Ex: Aluguel Residencial, Internet Fibra, Salário Mensal...",
     children: (
       <Input
         placeholder="Digite o nome do contrato"
@@ -68,7 +76,6 @@ export const contractFormFields: FormField<ContractFormValues>[] = [
   {
     name: "value",
     label: "Valor recorrente",
-    description: "Valor previsto para cada cobrança ou recebimento.",
     children: (
       <MoneyInput
         placeholder="R$ 0,00"
@@ -81,16 +88,20 @@ export const contractFormFields: FormField<ContractFormValues>[] = [
       {
         name: "frequency",
         label: "Frequência",
-        description: "Periodicidade das cobranças.",
         children: (_ctx, field) => (
           <Select
             value={field.value}
+            items={FREQUENCY_ITEMS}
             onValueChange={(val) => {
               if (val) field.onChange(val);
             }}
           >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione a frequência" />
+            <SelectTrigger className="w-full h-9">
+              <SelectValue placeholder="Selecione a frequência">
+                {field.value && typeof field.value === "string" && FREQUENCY_ITEMS[field.value]
+                  ? FREQUENCY_ITEMS[field.value]
+                  : "Selecione a frequência"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="WEEKLY">Semanal</SelectItem>
@@ -103,7 +114,6 @@ export const contractFormFields: FormField<ContractFormValues>[] = [
       {
         name: "validity",
         label: "Período de vigência",
-        description: "Data de início e término.",
         children: (_ctx, field) => (
           <DateRangePicker
             value={field.value as DateRange | undefined}
@@ -127,46 +137,12 @@ export const contractFormFields: FormField<ContractFormValues>[] = [
     ),
   },
   {
-    row: [
-      {
-        name: "dueDay",
-        label: "Dia de vencimento",
-        description: "Dia do mês em que vence a parcela (1 a 31).",
-        children: (_ctx, field) => (
-          <Input
-            type="number"
-            min={1}
-            max={31}
-            placeholder="Ex: 10"
-            value={typeof field.value === "number" ? field.value : ""}
-            onChange={(e) => {
-              const val = e.target.value;
-              field.onChange(val === "" ? 0 : Number(val));
-            }}
-            className="font-mono tabular-nums"
-          />
-        ),
-      },
-      {
-        name: "closingDay",
-        label: "Dia de fechamento",
-        description: "Dia do mês em que a fatura fecha (1 a 31).",
-        hidden: (values) => !values?.hasCustomClosingDay,
-        children: (_ctx, field) => (
-          <Input
-            type="number"
-            min={1}
-            max={31}
-            placeholder="Ex: 5"
-            value={typeof field.value === "number" ? field.value : ""}
-            onChange={(e) => {
-              const val = e.target.value;
-              field.onChange(val === "" ? null : Number(val));
-            }}
-            className="font-mono tabular-nums"
-          />
-        ),
-      },
-    ],
+    name: "schedule",
+    children: (_ctx, field) => (
+      <ContractCycleField
+        value={field.value as ContractScheduleValues | undefined}
+        onChange={(val) => field.onChange(val)}
+      />
+    ),
   },
 ];

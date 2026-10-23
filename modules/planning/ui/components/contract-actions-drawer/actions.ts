@@ -1,20 +1,13 @@
 import { RowAction } from "@/types/actions.types";
 import { ContractSummaryItem } from "../../../core/schemas/contract.schema";
-import { Edit, Archive, PauseCircle, PlayCircle } from "lucide-react";
+import { Archive, PauseCircle, PlayCircle } from "lucide-react";
 
 export interface ContractActionContext {
-  onEdit: (contract: ContractSummaryItem) => void;
   onToggleProjection: (contract: ContractSummaryItem) => void;
   onArchive: (contract: ContractSummaryItem) => void;
 }
 
 export const CONTRACT_ACTIONS: RowAction<ContractSummaryItem, ContractActionContext>[] = [
-  {
-    id: "edit",
-    label: "Editar",
-    icon: Edit,
-    onClick: (row, context) => context?.onEdit(row.original),
-  },
   {
     id: "pause",
     label: "Pausar",

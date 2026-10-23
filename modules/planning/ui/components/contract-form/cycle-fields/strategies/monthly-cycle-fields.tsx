@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Label } from "@/components/ui/label";
+import { FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
 import type { CycleFieldProps } from "../types";
 
 export function MonthlyCycleFields({
@@ -31,25 +30,24 @@ export function MonthlyCycleFields({
     });
   };
 
-  // Na frequência mensal, ambos os campos ficam lado a lado no desktop e no mobile
+  // Quando não há fechamento customizado, ocupa 100% da largura. Com fechamento, 2 colunas.
   const containerClass = !hasCustomClosingDay
-    ? "flex flex-col gap-1.5"
-    : "grid grid-cols-2 gap-3 sm:gap-4 items-start";
+    ? "w-full"
+    : "grid grid-cols-2 gap-3 sm:gap-4 items-start w-full";
 
   return (
     <div className={containerClass}>
-      <div className="flex flex-col gap-1.5 min-w-0">
-        <Label className="text-xs font-medium text-foreground">
-          Dia de vencimento
-        </Label>
+      <div className="flex flex-col gap-1 w-full min-w-0">
+        <FieldLabel htmlFor="cycle-due-day">Dia de vencimento</FieldLabel>
         <Input
+          id="cycle-due-day"
           type="number"
           min={1}
           max={31}
           placeholder="Ex: 10"
           value={typeof dueDay === "number" && dueDay > 0 ? dueDay : ""}
           onChange={handleDueDayChange}
-          className="font-mono tabular-nums h-9"
+          className="font-mono tabular-nums h-9 w-full"
         />
         {errors?.dueDay && (
           <FieldError errors={[errors.dueDay]} className="text-xs mt-1" />
@@ -57,18 +55,17 @@ export function MonthlyCycleFields({
       </div>
 
       {hasCustomClosingDay && (
-        <div className="flex flex-col gap-1.5 min-w-0">
-          <Label className="text-xs font-medium text-foreground">
-            Dia de fechamento
-          </Label>
+        <div className="flex flex-col gap-1 w-full min-w-0">
+          <FieldLabel htmlFor="cycle-closing-day">Dia de fechamento</FieldLabel>
           <Input
+            id="cycle-closing-day"
             type="number"
             min={1}
             max={31}
             placeholder="Ex: 5"
             value={typeof closingDay === "number" && closingDay > 0 ? closingDay : ""}
             onChange={handleClosingDayChange}
-            className="font-mono tabular-nums h-9"
+            className="font-mono tabular-nums h-9 w-full"
           />
           {errors?.closingDay && (
             <FieldError errors={[errors.closingDay]} className="text-xs mt-1" />

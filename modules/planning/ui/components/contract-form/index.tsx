@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import type { ContractFormProps } from "./types";
 import { contractFormFields } from "./fields";
+import { DialogFooter } from "@/components/ui/dialog";
 
 export function ContractForm({
   form,
@@ -21,9 +22,9 @@ export function ContractForm({
       form={form}
       fields={contractFormFields}
       onSubmit={onSubmit}
-      contentClassName="space-y-4"
       footer={
-        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t border-border mt-4">
+        <DialogFooter 
+        >
           <Button
             type="button"
             variant="outline"
@@ -42,7 +43,7 @@ export function ContractForm({
             )}
             {isSubmitting ? submitLoadingText : submitText}
           </Button>
-        </div>
+        </DialogFooter>
       }
     />
   );

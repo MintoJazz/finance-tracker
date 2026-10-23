@@ -11,6 +11,7 @@ export const ContractSummaryItemSchema = z.object({
   value: z.number().int().nonnegative(), // in cents
   frequency: z.enum(["WEEKLY", "MONTHLY", "YEARLY"]),
   dueDay: z.number().int(),
+  dueMonth: z.number().int().min(1).max(12).nullable().optional(),
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   includeInProjection: z.boolean(),

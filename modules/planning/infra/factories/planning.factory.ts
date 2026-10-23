@@ -8,6 +8,7 @@ import { IContractQueries } from "../../core/types/contract-queries.interface";
 import { IContractRepository } from "../../core/types/contract-repository.interface";
 import { ICycleEntriesQueries } from "../../core/types/cycle-entries-queries.interface";
 import { IPlanningAccessProvider } from "../../core/types/space-access-provider.interface";
+import { CreateContractUseCase } from "../../core/use-cases/create-contract.use-case";
 import { ArchiveContractUseCase } from "../../core/use-cases/archive-contract.use-case";
 import { GetAgreementDetailUseCase } from "../../core/use-cases/get-agreement-detail.use-case";
 import { GetContextContractsUseCase } from "../../core/use-cases/get-context-contracts.use-case";
@@ -43,6 +44,12 @@ export class PlanningFactory {
     private static readonly cycleEngineService = new CycleEngineService();
 
     // Contracts
+    public static readonly makeCreateContractUseCase = () =>
+        new CreateContractUseCase(
+            this.contractRepository,
+            this.spaceAccessProvider
+        );
+
     public static readonly makeGetContextContractsUseCase = () =>
         new GetContextContractsUseCase(
             this.contractQueries,

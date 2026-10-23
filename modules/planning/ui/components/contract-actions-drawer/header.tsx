@@ -9,6 +9,11 @@ import { AmountSpan } from "@/components/amount-span";
 import { BalanceAvatar } from "@/components/balance-avatar";
 import { ContractSummaryItem } from "../../../core/schemas/contract.schema";
 
+import {
+  formatContractDueDay,
+  FREQUENCY_LABELS,
+} from "../../formatters/contract-schedule.formatter";
+
 interface ContractActionsDrawerHeaderProps {
     contract: ContractSummaryItem;
 }
@@ -16,15 +21,10 @@ interface ContractActionsDrawerHeaderProps {
 export function ContractActionsDrawerHeader({
     contract,
 }: ContractActionsDrawerHeaderProps) {
-    const { name, value, type, frequency, dueDay, isArchived } = contract;
+    const { name, value, type, frequency, isArchived } = contract;
     const isPayable = type === "PAYABLE";
 
-    const frequencyLabel =
-        frequency === "MONTHLY"
-            ? "Mensal"
-            : frequency === "WEEKLY"
-            ? "Semanal"
-            : "Anual";
+    const frequencyLabel = FREQUENCY_LABELS[frequency] || frequency;
 
     return (
         <EntityHeader>
@@ -47,7 +47,7 @@ export function ContractActionsDrawerHeader({
                         <>
                             <span>{frequencyLabel}</span>
                             <span>•</span>
-                            <span>Dia {dueDay}</span>
+                            <span>{formatContractDueDay(contract)}</span>
                         </>
                     )}
                 </EntityHeaderDescription>

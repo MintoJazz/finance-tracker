@@ -74,22 +74,21 @@ export function useContractsOverview(data: { page: Page<ContractSummaryItem>; co
   });
 
   const actionsMenuContext = {
-    onEdit: (contract: ContractSummaryItem) => {
-      router.push(`/contracts/${contract.id}/edit`);
-    },
     onToggleProjection: (contract: ContractSummaryItem) => {
       if (contract.isArchived) {
-        console.warn(`[ContractsOverview] Tentativa de ativar/pausar o contrato arquivado: ${contract.id}`);
         toast.add({
           type: "error",
           title: "Ação não permitida",
-          description: "Não é possível ativar um contrato arquivado.",
+          description: "Não é possível alterar a projeção de um contrato arquivado.",
         });
         return;
       }
+      const nextState = !contract.includeInProjection;
       handleAction(
-        toggleContractProjectionAction(contract.id, contract.includeInProjection),
-        contract.includeInProjection ? "Contrato ativado com sucesso." : "Contrato pausado com sucesso."
+        toggleContractProjectionAction(contract.id, nextState),
+        nextState
+          ? "Contrato incluído na projeção com sucesso."
+          : "Contrato pausado da projeção com sucesso."
       );
     },
     onArchive,

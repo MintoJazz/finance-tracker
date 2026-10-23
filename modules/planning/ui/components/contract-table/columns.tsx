@@ -5,10 +5,13 @@ import { ContractSummaryItem } from "../../../core/schemas/contract.schema";
 import { AmountSpan } from "@/components/amount-span";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { ContractActionContext, CONTRACT_ACTIONS } from "../contract-actions-drawer";
-import { DataTableRowActions } from "@/components/data-table";
-import { CheckCircle2, CircleDashed, PauseCircle, PlayCircle } from "lucide-react";
+import { ContractActionContext } from "../contract-actions-drawer";
+import { PauseCircle, PlayCircle } from "lucide-react";
 import { cn } from "cn";
+import {
+  formatContractDueDay,
+  FREQUENCY_LABELS,
+} from "../../formatters/contract-schedule.formatter";
 
 export function getContractColumns(
   actionContext: ContractActionContext
@@ -39,7 +42,7 @@ export function getContractColumns(
               )}
               onClick={(e) => {
                 e.stopPropagation();
-                actionContext.onToggleProjection({ ...row.original, includeInProjection: !includeInProjection });
+                actionContext.onToggleProjection(row.original);
               }}
             >
               {includeInProjection ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}
@@ -63,16 +66,11 @@ export function getContractColumns(
       accessorKey: "frequency",
       header: "Frequência",
       cell: ({ row }) => {
-        const freqMap: Record<string, string> = {
-          WEEKLY: "Semanal",
-          MONTHLY: "Mensal",
-          YEARLY: "Anual",
-        };
         const freq = row.original.frequency;
         return (
           <div className="flex flex-col">
-            <span className="text-sm font-medium">{freqMap[freq] || freq}</span>
-            <span className="text-xs text-muted-foreground">Dia {row.original.dueDay}</span>
+            <span className="text-sm font-medium">{FREQUENCY_LABELS[freq] || freq}</span>
+            <span className="text-xs text-muted-foreground">{formatContractDueDay(row.original)}</span>
           </div>
         );
       },

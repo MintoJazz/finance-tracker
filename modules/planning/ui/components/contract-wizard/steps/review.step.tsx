@@ -12,6 +12,11 @@ import {
   type CustomStepProps,
   type WizardStep,
 } from "@/components/wizard";
+import {
+  formatContractDueDay,
+  WEEKDAY_LABELS,
+  MONTH_NAMES,
+} from "../../../formatters/contract-schedule.formatter";
 import type { ContractFormValues } from "../../../../core/schemas/contract-form.schema";
 
 const FREQUENCY_LABELS: Record<string, string> = {
@@ -36,6 +41,30 @@ export function ContractReviewContent({
       : startDateStr
         ? `A partir de ${startDateStr}`
         : "Indeterminado";
+
+  const dueDayFormatted = formatContractDueDay({
+    frequency: data.frequency ?? "MONTHLY",
+    dueDay: data.schedule?.dueDay ?? 1,
+    dueMonth: data.schedule?.dueMonth,
+  });
+
+  const getClosingText = () => {
+    if (!data.hasCustomClosingDay || !data.schedule?.closingDay) return null;
+    const closing = data.schedule.closingDay;
+    if (data.frequency === "WEEKLY") {
+      const dayName = WEEKDAY_LABELS[closing];
+      const targetStr = dayName ? `na ${dayName.toLowerCase()}` : `dia ${closing}`;
+      return `· Fecha ${targetStr}`;
+    }
+    if (data.frequency === "YEARLY") {
+      const month = data.schedule.closingMonth;
+      const monthName = month ? MONTH_NAMES[month] : null;
+      return monthName ? `· Fecha em ${closing} de ${monthName}` : `· Fecha dia ${closing}`;
+    }
+    return `· Fecha dia ${closing}`;
+  };
+
+  const closingText = getClosingText();
 
   return (
     <div className="space-y-2 py-0.5">
@@ -88,11 +117,9 @@ export function ContractReviewContent({
         {/* Linha 3: Vencimento & Fechamento */}
         <WizardReviewRow stepId="schedule">
           <div className="flex items-center gap-1.5 text-[11px] min-w-0 text-foreground">
-            <span className="font-medium">Vence dia {data.dueDay ?? 1}</span>
-            {data.hasCustomClosingDay && data.closingDay ? (
-              <span className="text-muted-foreground">
-                · Fecha dia {data.closingDay}
-              </span>
+            <span className="font-medium">Vence: {dueDayFormatted}</span>
+            {closingText ? (
+              <span className="text-muted-foreground">{closingText}</span>
             ) : null}
           </div>
         </WizardReviewRow>

@@ -41,13 +41,6 @@ export default function ContractsOverviewViewMobile({
     setActionsOpen(true);
   };
 
-  const handleToggleProjection = (id: number, checked: boolean) => {
-    const contract = items.find((c) => c.id === id);
-    if (contract) {
-      actionsMenuContext.onToggleProjection({ ...contract, includeInProjection: checked });
-    }
-  };
-
   return (
     <div className="flex w-full flex-col gap-4 py-4 pb-12">
       <header className="flex items-center justify-between gap-2 px-4">
@@ -109,7 +102,7 @@ export default function ContractsOverviewViewMobile({
       <ContractList
         items={items}
         onActionClick={handleActionClick}
-        onToggleProjection={handleToggleProjection}
+        onToggleProjection={actionsMenuContext.onToggleProjection}
       />
 
       {hasMore && (

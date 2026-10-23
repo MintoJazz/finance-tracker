@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Label } from "@/components/ui/label";
-import { FieldError } from "@/components/ui/field";
+import { FieldLabel, FieldError } from "@/components/ui/field";
 import { AnnualDateSelector } from "../annual-date-selector";
 import type { CycleFieldProps } from "../types";
 
@@ -34,18 +33,17 @@ export function YearlyCycleFields({
     });
   };
 
-  // Na frequência anual, os seletores de dia e mês também ficam lado a lado
+  // Quando não há fechamento customizado, ocupa 100% da largura. Com fechamento, 2 colunas.
   const containerClass = !hasCustomClosingDay
-    ? "flex flex-col gap-1.5"
-    : "grid grid-cols-2 gap-3 sm:gap-4 items-start";
+    ? "w-full"
+    : "grid grid-cols-2 gap-3 sm:gap-4 items-start w-full";
 
   return (
     <div className={containerClass}>
-      <div className="flex flex-col gap-1.5 min-w-0">
-        <Label className="text-xs font-medium text-foreground">
-          Data de vencimento (dia e mês)
-        </Label>
+      <div className="flex flex-col gap-1 w-full min-w-0">
+        <FieldLabel htmlFor="cycle-due-annual">Data de vencimento (dia e mês)</FieldLabel>
         <AnnualDateSelector
+          id="cycle-due-annual"
           day={dueDay}
           month={dueMonth}
           onChange={handleDueDateChange}
@@ -57,11 +55,10 @@ export function YearlyCycleFields({
       </div>
 
       {hasCustomClosingDay && (
-        <div className="flex flex-col gap-1.5 min-w-0">
-          <Label className="text-xs font-medium text-foreground">
-            Data de fechamento (dia e mês)
-          </Label>
+        <div className="flex flex-col gap-1 w-full min-w-0">
+          <FieldLabel htmlFor="cycle-closing-annual">Data de fechamento (dia e mês)</FieldLabel>
           <AnnualDateSelector
+            id="cycle-closing-annual"
             day={closingDay}
             month={closingMonth}
             onChange={handleClosingDateChange}

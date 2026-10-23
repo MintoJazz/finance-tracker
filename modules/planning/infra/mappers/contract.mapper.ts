@@ -14,6 +14,7 @@ type RawContractBalance = {
         rules: {
             frequency: string;
             dueDay: number;
+            effectiveFrom?: Date;
         }[];
         amountEntries?: {
             amount: number;
@@ -34,6 +35,9 @@ export class ContractMapper {
             agreement.amountEntries?.reduce((sum, e) => sum + e.amount, 0) ?? 0
         );
 
+        const effectiveDate = currentRule?.effectiveFrom ?? agreement.startsAt;
+        const dueMonth = effectiveDate ? new Date(effectiveDate).getMonth() + 1 : null;
+
         return {
             id: agreement.id,
             balanceId: balance.id,
@@ -42,6 +46,7 @@ export class ContractMapper {
             value,
             frequency: (currentRule?.frequency as "WEEKLY" | "MONTHLY" | "YEARLY") ?? "MONTHLY",
             dueDay: currentRule?.dueDay ?? 1,
+            dueMonth,
             startsAt: agreement.startsAt,
             endsAt: agreement.endsAt,
             includeInProjection: agreement.includeInProjection,

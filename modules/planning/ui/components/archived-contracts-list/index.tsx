@@ -6,7 +6,7 @@ import { ContractSummaryItem } from "@/modules/planning/core/schemas/contract.sc
 import { Card } from "@/components/ui/card";
 import { ListItem, ListItemActions } from "@/components/list-item";
 import { Button } from "@/components/ui/button";
-import { Archive, ArchiveRestore, FileText, Loader2 } from "lucide-react";
+import { Archive, ArchiveRestore, Loader2 } from "lucide-react";
 import { restoreContractAction } from "@/modules/planning/ui/actions/restore-contract.action";
 import { toast } from "@/components/ui/toast";
 

@@ -69,7 +69,7 @@ export function WeekdaySelector({
       >
         <SelectTrigger id={id} className={cn("w-full h-9", className)}>
           <SelectValue placeholder={placeholder}>
-            {(val) => (val ? WEEKDAY_ITEMS[String(val)] ?? String(val) : placeholder)}
+            {WEEKDAY_ITEMS[String(currentValue)] ?? placeholder}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
@@ -89,7 +89,7 @@ export function WeekdaySelector({
     <div
       data-vaul-no-drag=""
       className={cn(
-        "w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden touch-pan-x py-0.5",
+        "w-full overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden touch-pan-x py-0.5",
         className
       )}
     >
@@ -108,7 +108,7 @@ export function WeekdaySelector({
           <ToggleGroupItem
             key={day.value}
             value={String(day.value)}
-            className="flex-1 shrink-0 min-w-[40px] px-2 h-8.5 text-xs font-medium cursor-pointer"
+            className="flex-1 shrink-0 min-w-10 px-2 h-8.5 text-xs font-medium cursor-pointer"
             aria-label={day.full}
           >
             {day.short}

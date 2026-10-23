@@ -6,7 +6,7 @@ import { cn } from "cn";
 interface ContractListProps {
   items: ContractSummaryItem[];
   onActionClick: (contract: ContractSummaryItem) => void;
-  onToggleProjection: (id: number, checked: boolean) => void;
+  onToggleProjection: (contract: ContractSummaryItem) => void;
   className?: string;
 }
 

@@ -24,50 +24,159 @@ export const contractValuesStepSchema = z.object({
     .int("Valor inválido")
     .nonnegative("O valor não pode ser negativo"),
   frequency: ContractFrequencyEnumSchema,
-  validity: z
-    .object({
-      from: z.date({ message: "Data de início é obrigatória" }),
-      to: z.date().optional(),
-    }),
+  validity: z.object({
+    from: z.date({ message: "Data de início é obrigatória" }),
+    to: z.date().optional(),
+  }),
 });
 export type ContractValuesStepValues = z.infer<typeof contractValuesStepSchema>;
 
-// Passo 3: Prazos & Vencimento (Campos digitáveis)
+// Sub-schema de Prazos do Contrato
+export const ContractScheduleSchema = z.object({
+  dueDay: z
+    .number({ message: "Informe um dia válido" })
+    .int("O dia deve ser um número inteiro"),
+  closingDay: z
+    .number({ message: "Informe um dia válido" })
+    .int("O dia deve ser um número inteiro")
+    .optional()
+    .nullable(),
+  dueMonth: z.number().int().min(1).max(12).optional().nullable(),
+  closingMonth: z.number().int().min(1).max(12).optional().nullable(),
+});
+export type ContractScheduleValues = z.infer<typeof ContractScheduleSchema>;
+
+interface ScheduleValidationData {
+  frequency?: ContractFrequencyEnum;
+  hasCustomClosingDay: boolean;
+  schedule: ContractScheduleValues;
+}
+
+function validateWeeklySchedule(
+  data: ScheduleValidationData,
+  ctx: z.RefinementCtx
+) {
+  const { dueDay, closingDay } = data.schedule;
+  if (dueDay < 1 || dueDay > 7) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Selecione um dia da semana válido (Segunda a Domingo)",
+      path: ["schedule", "dueDay"],
+    });
+  }
+
+  if (data.hasCustomClosingDay) {
+    if (closingDay === undefined || closingDay === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Informe o dia da semana de fechamento",
+        path: ["schedule", "closingDay"],
+      });
+    } else if (closingDay < 1 || closingDay > 7) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Selecione um dia da semana de fechamento válido",
+        path: ["schedule", "closingDay"],
+      });
+    }
+  }
+}
+
+function validateMonthlySchedule(
+  data: ScheduleValidationData,
+  ctx: z.RefinementCtx
+) {
+  const { dueDay, closingDay } = data.schedule;
+  if (dueDay < 1 || dueDay > 31) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "O dia de vencimento deve ser entre 1 e 31",
+      path: ["schedule", "dueDay"],
+    });
+  }
+
+  if (data.hasCustomClosingDay) {
+    if (closingDay === undefined || closingDay === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Informe o dia de fechamento",
+        path: ["schedule", "closingDay"],
+      });
+    } else if (closingDay < 1 || closingDay > 31) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "O dia de fechamento deve ser entre 1 e 31",
+        path: ["schedule", "closingDay"],
+      });
+    }
+  }
+}
+
+function validateYearlySchedule(
+  data: ScheduleValidationData,
+  ctx: z.RefinementCtx
+) {
+  const { dueDay, dueMonth, closingDay, closingMonth } = data.schedule;
+  if (dueDay < 1 || dueDay > 31) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "O dia de vencimento deve ser entre 1 e 31",
+      path: ["schedule", "dueDay"],
+    });
+  }
+
+  if (!dueMonth || dueMonth < 1 || dueMonth > 12) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Selecione o mês de vencimento",
+      path: ["schedule", "dueMonth"],
+    });
+  }
+
+  if (data.hasCustomClosingDay) {
+    if (closingDay === undefined || closingDay === null || closingDay < 1 || closingDay > 31) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Informe um dia de fechamento válido (1 a 31)",
+        path: ["schedule", "closingDay"],
+      });
+    }
+    if (!closingMonth || closingMonth < 1 || closingMonth > 12) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Informe o mês de fechamento",
+        path: ["schedule", "closingMonth"],
+      });
+    }
+  }
+}
+
+function applyScheduleValidation(
+  data: ScheduleValidationData,
+  ctx: z.RefinementCtx
+) {
+  const freq = data.frequency ?? "MONTHLY";
+  if (freq === "WEEKLY") {
+    validateWeeklySchedule(data, ctx);
+  } else if (freq === "YEARLY") {
+    validateYearlySchedule(data, ctx);
+  } else {
+    validateMonthlySchedule(data, ctx);
+  }
+}
+
+// Passo 3: Prazos & Vencimento (Wizard Step)
 export const contractScheduleStepSchema = z
   .object({
-    dueDay: z
-      .number({ message: "Informe um dia válido" })
-      .int("O dia deve ser um número inteiro")
-      .min(1, "O dia deve ser entre 1 e 31")
-      .max(31, "O dia deve ser entre 1 e 31"),
+    frequency: ContractFrequencyEnumSchema.optional(),
     hasCustomClosingDay: z.boolean(),
-    closingDay: z
-      .number({ message: "Informe um dia válido" })
-      .int("O dia deve ser um número inteiro")
-      .min(1, "O dia deve ser entre 1 e 31")
-      .max(31, "O dia deve ser entre 1 e 31")
-      .optional()
-      .nullable(),
+    schedule: ContractScheduleSchema,
   })
-  .refine(
-    (data) => {
-      if (data.hasCustomClosingDay) {
-        return (
-          data.closingDay !== undefined &&
-          data.closingDay !== null &&
-          !Number.isNaN(data.closingDay)
-        );
-      }
-      return true;
-    },
-    {
-      message: "Informe o dia de fechamento",
-      path: ["closingDay"],
-    }
-  );
+  .superRefine(applyScheduleValidation);
+
 export type ContractScheduleStepValues = z.infer<typeof contractScheduleStepSchema>;
 
-// Schema Completo
+// Schema Completo do Formulário
 export const ContractFormSchema = z
   .object({
     type: ContractTypeEnumSchema,
@@ -77,42 +186,15 @@ export const ContractFormSchema = z
       .int("Valor inválido")
       .nonnegative("O valor não pode ser negativo"),
     frequency: ContractFrequencyEnumSchema,
-    validity: z
-      .object({
-        from: z.date({ message: "Data de início é obrigatória" }),
-        to: z.date().optional(),
-      }),
-    dueDay: z
-      .number({ message: "Informe um dia válido" })
-      .int("O dia deve ser um número inteiro")
-      .min(1, "O dia deve ser entre 1 e 31")
-      .max(31, "O dia deve ser entre 1 e 31"),
+    validity: z.object({
+      from: z.date({ message: "Data de início é obrigatória" }),
+      to: z.date().optional(),
+    }),
+    schedule: ContractScheduleSchema,
     hasCustomClosingDay: z.boolean(),
-    closingDay: z
-      .number({ message: "Informe um dia válido" })
-      .int("O dia deve ser um número inteiro")
-      .min(1, "O dia deve ser entre 1 e 31")
-      .max(31, "O dia deve ser entre 1 e 31")
-      .optional()
-      .nullable(),
     includeInProjection: z.boolean(),
   })
-  .refine(
-    (data) => {
-      if (data.hasCustomClosingDay) {
-        return (
-          data.closingDay !== undefined &&
-          data.closingDay !== null &&
-          !Number.isNaN(data.closingDay)
-        );
-      }
-      return true;
-    },
-    {
-      message: "Informe o dia de fechamento",
-      path: ["closingDay"],
-    }
-  );
+  .superRefine(applyScheduleValidation);
 
 export type ContractFormValues = z.infer<typeof ContractFormSchema>;
 
@@ -125,8 +207,12 @@ export const DEFAULT_CONTRACT_FORM_VALUES: ContractFormValues = {
     from: new Date(),
     to: undefined,
   },
-  dueDay: 10,
+  schedule: {
+    dueDay: 10,
+    closingDay: null,
+    dueMonth: null,
+    closingMonth: null,
+  },
   hasCustomClosingDay: false,
-  closingDay: null,
   includeInProjection: true,
 };

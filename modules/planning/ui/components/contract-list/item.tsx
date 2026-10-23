@@ -3,8 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AmountSpan } from "@/components/amount-span";
 import { format } from "date-fns";
-import { MoreHorizontal, CalendarClock, ArrowDownRight, ArrowUpRight, CheckCircle2, CircleDashed, PlayCircle, PauseCircle } from "lucide-react";
+import { MoreHorizontal, CalendarClock, ArrowDownRight, ArrowUpRight, PlayCircle, PauseCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatContractSchedule } from "../../formatters/contract-schedule.formatter";
 import {
     ListItem,
     ListItemHeader,
@@ -23,7 +24,7 @@ interface Props {
   contract: ContractSummaryItem;
   onOpenActions: () => void;
   onSelect?: () => void;
-  onToggleProjection: (id: number, checked: boolean) => void;
+  onToggleProjection: (contract: ContractSummaryItem) => void;
   className?: string;
 }
 
@@ -34,17 +35,8 @@ export function ContractListItem({
   onToggleProjection,
   className,
 }: Props) {
-  const { id, name, isArchived, type, value, frequency, dueDay, startsAt, endsAt, includeInProjection } = contract;
+  const { name, isArchived, type, value, startsAt, endsAt, includeInProjection } = contract;
   const isPayable = type === "PAYABLE";
-
-  const getFrequencyText = (freq: string, day: number) => {
-    const freqMap: Record<string, string> = {
-      WEEKLY: "Semanal",
-      MONTHLY: "Mensal",
-      YEARLY: "Anual",
-    };
-    return `${freqMap[freq] || freq} • Dia ${day}`;
-  };
 
   const getDurationText = (start: Date, end: Date | null) => {
     const startStr = format(start, "dd/MM/yyyy");
@@ -68,7 +60,7 @@ export function ContractListItem({
             )}
             onClick={(e) => {
               e.stopPropagation();
-              onToggleProjection(id, !includeInProjection);
+              onToggleProjection(contract);
             }}
           >
             {includeInProjection ? <PlayCircle className="h-5 w-5" /> : <PauseCircle className="h-5 w-5" />}
@@ -114,7 +106,7 @@ export function ContractListItem({
       <ListItemFooter>
         <ListItemFooterLeft>
           <ListItemFooterInfo icon={CalendarClock} className={cn(isArchived && "text-muted-foreground")}>
-            {getFrequencyText(frequency, dueDay)}
+            {formatContractSchedule(contract)}
           </ListItemFooterInfo>
           <ListItemFooterInfo icon={isPayable ? ArrowDownRight : ArrowUpRight} className={cn(isPayable ? "text-rose-500" : "text-emerald-500", isArchived && "text-muted-foreground opacity-70")}>
             {isPayable ? "Saída" : "Entrada"}
