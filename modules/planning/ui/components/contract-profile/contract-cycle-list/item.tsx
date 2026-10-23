@@ -38,7 +38,7 @@ export function ContractCycleListItem({
     onOpenActions,
     className,
 }: ContractCycleListItemProps) {
-    const isProjected = cycle.kind === "PROJECTED";
+    const isProjected = cycle.status === "PROJECTED";
     const statusConfig = CYCLE_STATUS_CONFIG[cycle.status] ?? {
         label: cycle.status,
         icon: Calendar,

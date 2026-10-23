@@ -21,6 +21,7 @@ interface ContractCycleFiltersFormProps {
 }
 
 const STATUS_OPTIONS: { status: ContractCycleStatusEnum; label: string }[] = [
+    { status: "PROJECTED", label: "Projetados" },
     { status: "PAID", label: "Pagos" },
     { status: "PENDING", label: "Pendentes" },
     { status: "OVERDUE", label: "Vencidos" },

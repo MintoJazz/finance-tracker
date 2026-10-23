@@ -15,14 +15,15 @@ export const CONTRACT_CYCLE_ACTIONS: RowAction<ContractCycleItem, ContractCycleA
         label: "Consolidar",
         icon: CheckCircle2,
         onClick: (row, context) => context?.onConsolidate(row.original),
-        hidden: (row) => row.original.kind !== "PROJECTED",
+        hidden: (row) => row.original.status !== "PROJECTED",
     },
     {
         id: "settle",
         label: "Liquidar",
         icon: Receipt,
         onClick: (row, context) => context?.onSettle(row.original),
-        hidden: (row) => row.original.kind !== "CONSOLIDATED" || row.original.status === "PAID",
+        hidden: (row) =>
+            row.original.status === "PROJECTED" || row.original.status === "PAID",
     },
     {
         id: "adjust-value",
@@ -38,6 +39,6 @@ export const CONTRACT_CYCLE_ACTIONS: RowAction<ContractCycleItem, ContractCycleA
         variant: "destructive",
         separatorBefore: true,
         onClick: (row, context) => context?.onDiscard(row.original),
-        hidden: (row) => row.original.kind !== "PROJECTED",
+        hidden: (row) => row.original.status !== "PROJECTED",
     },
 ];

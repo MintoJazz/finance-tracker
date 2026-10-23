@@ -17,7 +17,6 @@ const MOCK_CYCLES_BY_CONTRACT: Record<number, ContractCycleItem[]> = {
             from: "2026-06-01",
             to: "2026-06-30",
             dueDate: new Date("2026-06-05T12:00:00.000Z"),
-            kind: "CONSOLIDATED",
             status: "PAID",
             totalAmount: 150000,
             paidAmount: 150000,
@@ -32,7 +31,6 @@ const MOCK_CYCLES_BY_CONTRACT: Record<number, ContractCycleItem[]> = {
             from: "2026-07-01",
             to: "2026-07-31",
             dueDate: new Date("2026-07-05T12:00:00.000Z"),
-            kind: "CONSOLIDATED",
             status: "PAID",
             totalAmount: 150000,
             paidAmount: 150000,
@@ -47,7 +45,6 @@ const MOCK_CYCLES_BY_CONTRACT: Record<number, ContractCycleItem[]> = {
             from: "2026-08-01",
             to: "2026-08-31",
             dueDate: new Date("2026-08-05T12:00:00.000Z"),
-            kind: "CONSOLIDATED",
             status: "PAID",
             totalAmount: 150000,
             paidAmount: 150000,
@@ -62,7 +59,6 @@ const MOCK_CYCLES_BY_CONTRACT: Record<number, ContractCycleItem[]> = {
             from: "2026-09-01",
             to: "2026-09-30",
             dueDate: new Date("2026-09-05T12:00:00.000Z"),
-            kind: "CONSOLIDATED",
             status: "PAID",
             totalAmount: 150000,
             paidAmount: 150000,
@@ -78,7 +74,6 @@ const MOCK_CYCLES_BY_CONTRACT: Record<number, ContractCycleItem[]> = {
             from: "2026-10-01",
             to: "2026-10-31",
             dueDate: new Date("2026-10-05T12:00:00.000Z"),
-            kind: "CONSOLIDATED",
             status: "OVERDUE",
             totalAmount: 150000,
             paidAmount: 50000,
@@ -94,8 +89,7 @@ const MOCK_CYCLES_BY_CONTRACT: Record<number, ContractCycleItem[]> = {
             from: "2026-11-01",
             to: "2026-11-30",
             dueDate: new Date("2026-11-05T12:00:00.000Z"),
-            kind: "PROJECTED",
-            status: "OPEN",
+            status: "PROJECTED",
             totalAmount: 150000,
             paidAmount: 0,
             remainingAmount: 150000,
@@ -109,8 +103,7 @@ const MOCK_CYCLES_BY_CONTRACT: Record<number, ContractCycleItem[]> = {
             from: "2026-12-01",
             to: "2026-12-31",
             dueDate: new Date("2026-12-05T12:00:00.000Z"),
-            kind: "PROJECTED",
-            status: "OPEN",
+            status: "PROJECTED",
             totalAmount: 150000,
             paidAmount: 0,
             remainingAmount: 150000,
@@ -124,8 +117,7 @@ const MOCK_CYCLES_BY_CONTRACT: Record<number, ContractCycleItem[]> = {
             from: "2027-01-01",
             to: "2027-01-31",
             dueDate: new Date("2027-01-05T12:00:00.000Z"),
-            kind: "PROJECTED",
-            status: "OPEN",
+            status: "PROJECTED",
             totalAmount: 150000,
             paidAmount: 0,
             remainingAmount: 150000,
@@ -139,8 +131,7 @@ const MOCK_CYCLES_BY_CONTRACT: Record<number, ContractCycleItem[]> = {
             from: "2027-02-01",
             to: "2027-02-28",
             dueDate: new Date("2027-02-05T12:00:00.000Z"),
-            kind: "PROJECTED",
-            status: "OPEN",
+            status: "PROJECTED",
             totalAmount: 150000,
             paidAmount: 0,
             remainingAmount: 150000,
@@ -154,8 +145,7 @@ const MOCK_CYCLES_BY_CONTRACT: Record<number, ContractCycleItem[]> = {
             from: "2027-03-01",
             to: "2027-03-31",
             dueDate: new Date("2027-03-05T12:00:00.000Z"),
-            kind: "PROJECTED",
-            status: "OPEN",
+            status: "PROJECTED",
             totalAmount: 150000,
             paidAmount: 0,
             remainingAmount: 150000,
@@ -167,13 +157,13 @@ const MOCK_CYCLES_BY_CONTRACT: Record<number, ContractCycleItem[]> = {
 
 function generateFallbackCycles(contractId: number, baseValue: number, dueDay: number): ContractCycleItem[] {
     const months = [
-        { label: "Julho 2026", from: "2026-07-01", to: "2026-07-31", due: `2026-07-${String(dueDay).padStart(2, "0")}`, kind: "CONSOLIDATED" as const, status: "PAID" as const, paid: baseValue },
-        { label: "Agosto 2026", from: "2026-08-01", to: "2026-08-31", due: `2026-08-${String(dueDay).padStart(2, "0")}`, kind: "CONSOLIDATED" as const, status: "PAID" as const, paid: baseValue },
-        { label: "Setembro 2026", from: "2026-09-01", to: "2026-09-30", due: `2026-09-${String(dueDay).padStart(2, "0")}`, kind: "CONSOLIDATED" as const, status: "PAID" as const, paid: baseValue },
-        { label: "Outubro 2026", from: "2026-10-01", to: "2026-10-31", due: `2026-10-${String(dueDay).padStart(2, "0")}`, kind: "CONSOLIDATED" as const, status: "PENDING" as const, paid: 0 },
-        { label: "Novembro 2026", from: "2026-11-01", to: "2026-11-30", due: `2026-11-${String(dueDay).padStart(2, "0")}`, kind: "PROJECTED" as const, status: "OPEN" as const, paid: 0 },
-        { label: "Dezembro 2026", from: "2026-12-01", to: "2026-12-31", due: `2026-12-${String(dueDay).padStart(2, "0")}`, kind: "PROJECTED" as const, status: "OPEN" as const, paid: 0 },
-        { label: "Janeiro 2027", from: "2027-01-01", to: "2027-01-31", due: `2027-01-${String(dueDay).padStart(2, "0")}`, kind: "PROJECTED" as const, status: "OPEN" as const, paid: 0 },
+        { label: "Julho 2026", from: "2026-07-01", to: "2026-07-31", due: `2026-07-${String(dueDay).padStart(2, "0")}`, status: "PAID" as const, paid: baseValue },
+        { label: "Agosto 2026", from: "2026-08-01", to: "2026-08-31", due: `2026-08-${String(dueDay).padStart(2, "0")}`, status: "PAID" as const, paid: baseValue },
+        { label: "Setembro 2026", from: "2026-09-01", to: "2026-09-30", due: `2026-09-${String(dueDay).padStart(2, "0")}`, status: "PAID" as const, paid: baseValue },
+        { label: "Outubro 2026", from: "2026-10-01", to: "2026-10-31", due: `2026-10-${String(dueDay).padStart(2, "0")}`, status: "PENDING" as const, paid: 0 },
+        { label: "Novembro 2026", from: "2026-11-01", to: "2026-11-30", due: `2026-11-${String(dueDay).padStart(2, "0")}`, status: "PROJECTED" as const, paid: 0 },
+        { label: "Dezembro 2026", from: "2026-12-01", to: "2026-12-31", due: `2026-12-${String(dueDay).padStart(2, "0")}`, status: "PROJECTED" as const, paid: 0 },
+        { label: "Janeiro 2027", from: "2027-01-01", to: "2027-01-31", due: `2027-01-${String(dueDay).padStart(2, "0")}`, status: "PROJECTED" as const, paid: 0 },
     ];
 
     return months.map((m) => ({
@@ -183,12 +173,11 @@ function generateFallbackCycles(contractId: number, baseValue: number, dueDay: n
         from: m.from,
         to: m.to,
         dueDate: new Date(`${m.due}T12:00:00.000Z`),
-        kind: m.kind,
         status: m.status,
         totalAmount: baseValue,
         paidAmount: m.paid,
         remainingAmount: baseValue - m.paid,
-        movementsCount: m.kind === "CONSOLIDATED" ? 1 : 0,
+        movementsCount: m.status !== "PROJECTED" ? 1 : 0,
         settlementDate: m.status === "PAID" ? new Date(`${m.due}T10:00:00.000Z`) : null,
     }));
 }
@@ -206,7 +195,7 @@ function calculateSummary(cycles: ContractCycleItem[]) {
     const now = new Date();
 
     for (const c of cycles) {
-        if (c.kind === "CONSOLIDATED") {
+        if (c.status !== "PROJECTED") {
             consolidatedCount++;
             totalPaid += c.paidAmount;
             totalPending += c.remainingAmount;
@@ -300,7 +289,7 @@ export class ContractProfileMockService {
 
         if (filter) {
             if (filter.includeProjected === false) {
-                filtered = filtered.filter((c) => c.kind !== "PROJECTED");
+                filtered = filtered.filter((c) => c.status !== "PROJECTED");
             }
 
             if (filter.q && filter.q.trim().length > 0) {

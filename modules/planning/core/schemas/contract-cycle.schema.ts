@@ -1,13 +1,7 @@
 import z from "zod";
 
-export const ContractCycleKindEnumSchema = z.enum([
-    "CONSOLIDATED", // Ciclo com lançamentos reais já apurados
-    "PROJECTED",    // Ciclo gerado por estimativa/recorrência da regra sem lançamentos
-]);
-
-export type ContractCycleKindEnum = z.infer<typeof ContractCycleKindEnumSchema>;
-
 export const ContractCycleStatusEnumSchema = z.enum([
+    "PROJECTED", // Fase zero: ciclo puramente projetado/estimado sem lançamentos consolidados
     "OPEN",      // Em aberto / previsto
     "PENDING",   // Fechado/provisionado aguardando quitação no prazo
     "PARTIAL",   // Quitado parcialmente
@@ -25,8 +19,7 @@ export const ContractCycleItemSchema = z.object({
     to: z.string().min(1),                 // Data final da competência (YYYY-MM-DD)
     closingDate: z.date().optional(),       // Data de fechamento do ciclo
     dueDate: z.date(),                     // Data de vencimento do ciclo
-    kind: ContractCycleKindEnumSchema,     // CONSOLIDATED | PROJECTED
-    status: ContractCycleStatusEnumSchema, // OPEN | PENDING | PARTIAL | OVERDUE | PAID
+    status: ContractCycleStatusEnumSchema, // PROJECTED | OPEN | PENDING | PARTIAL | OVERDUE | PAID
     
     // Valores monetários em centavos
     totalAmount: z.number().int().nonnegative(),     // Valor total/previsto da obrigação

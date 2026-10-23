@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AmountSpan } from "@/components/amount-span";
 import { formatDate, formatMoney } from "@/lib/formatters";
@@ -15,10 +15,15 @@ export const CYCLE_STATUS_CONFIG: Record<
     ContractCycleStatusEnum,
     {
         label: string;
-        icon: typeof CheckCircle2;
+        icon: typeof CheckCircle2 | typeof Sparkles;
         iconClassName: string;
     }
 > = {
+    PROJECTED: {
+        label: "Projetado",
+        icon: Sparkles,
+        iconClassName: "text-indigo-600 dark:text-indigo-400",
+    },
     PAID: {
         label: "Pago",
         icon: CheckCircle2,
@@ -52,7 +57,7 @@ export const CONTRACT_CYCLE_COLUMNS: ColumnDef<ContractCycleItem>[] = [
         header: "Competência",
         cell: ({ row }) => {
             const cycle = row.original;
-            const isProjected = cycle.kind === "PROJECTED";
+            const isProjected = cycle.status === "PROJECTED";
             return (
                 <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-2 min-w-0">
