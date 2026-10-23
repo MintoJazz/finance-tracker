@@ -35,6 +35,7 @@ export const CommitmentCycleItemSchema = z.object({
     label: z.string().min(1),        // Ex: "Outubro 2026"
     from: z.string().min(1),         // YYYY-MM-DD (Início da competência)
     to: z.string().min(1),           // YYYY-MM-DD (Fim da competência)
+    closingDate: z.date().optional(), // Data de fechamento do ciclo
     dueDate: z.date(),               // Data de vencimento do ciclo
 
     // Valores em centavos

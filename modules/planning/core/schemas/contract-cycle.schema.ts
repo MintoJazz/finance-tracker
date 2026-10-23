@@ -23,6 +23,7 @@ export const ContractCycleItemSchema = z.object({
     label: z.string().min(1),              // Ex: "Outubro 2026"
     from: z.string().min(1),               // Data inicial da competência (YYYY-MM-DD)
     to: z.string().min(1),                 // Data final da competência (YYYY-MM-DD)
+    closingDate: z.date().optional(),       // Data de fechamento do ciclo
     dueDate: z.date(),                     // Data de vencimento do ciclo
     kind: ContractCycleKindEnumSchema,     // CONSOLIDATED | PROJECTED
     status: ContractCycleStatusEnumSchema, // OPEN | PENDING | PARTIAL | OVERDUE | PAID

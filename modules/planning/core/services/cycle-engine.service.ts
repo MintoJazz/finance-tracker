@@ -6,7 +6,15 @@
  * - Instante atual (`now`) é parâmetro obrigatório (sem `new Date()` interno).
  * - Todas as datas manipuladas são datas civis (`startOfDay`).
  */
-import { format, isAfter, isBefore, startOfDay } from "date-fns";
+import {
+    format,
+    isAfter,
+    isBefore,
+    startOfDay,
+    startOfMonth,
+    startOfWeek,
+    startOfYear,
+} from "date-fns";
 import {
     CommitmentCycleFilters,
     CommitmentCycleItem,
@@ -97,9 +105,14 @@ export class CycleEngineService {
 
                     const ruleStart = startOfDay(rule.effectiveFrom);
                     const ruleEnd = nextRule ? startOfDay(nextRule.effectiveFrom) : null;
+                    const currentPeriodStart = this.resolveCurrentPeriodStart(rule.frequency, today);
 
-                    // Itera períodos começando alguns ciclos antes da janela para capturar vencimentos deslocados
-                    let cursor = strategy.stepCycle(winFrom, -2, rule.interval);
+                    // Projeções iniciam a partir do período corrente em diante (sem projetar meses retroativos passados)
+                    const effectiveProjectionStart = isAfter(winFrom, currentPeriodStart)
+                        ? winFrom
+                        : currentPeriodStart;
+
+                    let cursor = strategy.stepCycle(effectiveProjectionStart, -1, rule.interval);
                     const maxCursor = strategy.stepCycle(winTo, 2, rule.interval);
 
                     while (!isAfter(cursor, maxCursor)) {
@@ -121,7 +134,10 @@ export class CycleEngineService {
                             !isBefore(boundaries.dueDate, winFrom) &&
                             !isAfter(boundaries.dueDate, winTo);
 
-                        if (belongsToThisRule && withinAgreement && dueDateInWindow) {
+                        // Ciclos puramente projetados não devem pertencer a períodos anteriores ao período corrente
+                        const isNotPastPeriod = !isBefore(boundaries.dueDate, currentPeriodStart);
+
+                        if (belongsToThisRule && withinAgreement && dueDateInWindow && isNotPastPeriod) {
                             if (!bucketsByKey.has(boundaries.cycleKey)) {
                                 bucketsByKey.set(boundaries.cycleKey, {
                                     boundaries,
@@ -211,6 +227,12 @@ export class CycleEngineService {
                     continue;
                 }
 
+                // Ciclos projetados (sem lançamentos reais) devem ser apenas do período corrente ou futuros
+                const currentPeriodStart = this.resolveCurrentPeriodStart(bucket.rule.frequency, today);
+                if (totalEntriesCount === 0 && isBefore(boundaries.dueDate, currentPeriodStart)) {
+                    continue;
+                }
+
                 const kind: "ACTUAL" | "PROJECTED" =
                     totalEntriesCount > 0 ? "ACTUAL" : "PROJECTED";
 
@@ -232,6 +254,7 @@ export class CycleEngineService {
                     label: boundaries.label,
                     from: format(boundaries.beginsAt, "yyyy-MM-dd"),
                     to: format(boundaries.endsAt, "yyyy-MM-dd"),
+                    closingDate: boundaries.closingDate ?? boundaries.dueDate,
                     dueDate: boundaries.dueDate,
                     totalAmount,
                     paidAmount,
@@ -381,5 +404,23 @@ export class CycleEngineService {
 
         // 5. Em aberto
         return "OPEN";
+    }
+
+    /**
+     * Determina o início do período corrente com base na frequência da regra de ciclo.
+     */
+    private resolveCurrentPeriodStart(
+        frequency: "MONTHLY" | "WEEKLY" | "YEARLY",
+        today: Date
+    ): Date {
+        switch (frequency) {
+            case "WEEKLY":
+                return startOfWeek(today, { weekStartsOn: 1 });
+            case "YEARLY":
+                return startOfYear(today);
+            case "MONTHLY":
+            default:
+                return startOfMonth(today);
+        }
     }
 }

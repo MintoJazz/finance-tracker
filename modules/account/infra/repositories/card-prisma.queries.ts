@@ -134,7 +134,7 @@ export class CardPrismaQueries implements ICardQueries {
             id: card.id,
             name: card.name,
             limit,
-            closingDay: currentRule?.closingDay ?? 1,
+            closingDay: currentRule?.closingDay ?? currentRule?.dueDay ?? 1,
             dueDay: currentRule?.dueDay ?? 10,
         };
     }

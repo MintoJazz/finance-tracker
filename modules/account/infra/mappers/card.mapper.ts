@@ -30,7 +30,7 @@ export class CardMapper {
 
         // Regra de ciclo vigente mais recente
         const currentRule = balance.agreement?.rules?.[0];
-        const closingDay = currentRule?.closingDay ?? 1;
+        const closingDay = currentRule?.closingDay ?? currentRule?.dueDay ?? 1;
         const dueDay = currentRule?.dueDay ?? 10;
 
         return {

@@ -43,6 +43,7 @@ export interface CyclePeriodBoundaries {
     cycleKey: string;
     beginsAt: Date;
     endsAt: Date;
+    closingDate: Date;
     dueDate: Date;
     label: string;
 }
@@ -131,10 +132,13 @@ class MonthlyCycleStrategy implements ICycleFrequencyStrategy {
         const dueClamped = Math.min(Math.max(1, rule.dueDay), dueDaysInMonth);
         const dueDate = startOfDay(setDate(dueMonth, dueClamped));
 
-        // 4. cycleKey: YYYY-MM do primeiro mês do bloco
+        // 4. closingDate (com fallback para dueDate se closingDay for nulo)
+        const closingDate = rule.closingDay !== null ? endsAt : dueDate;
+
+        // 5. cycleKey: YYYY-MM do primeiro mês do bloco
         const cycleKey = format(blockStartMonth, "yyyy-MM");
 
-        // 5. label: Mês do bloco inicial (pt-BR capitalizado) + ano de dueDate
+        // 6. label: Mês do bloco inicial (pt-BR capitalizado) + ano de dueDate
         const monthName = PT_BR_MONTHS[blockStartMonth.getMonth()];
         const label = `${monthName} ${dueDate.getFullYear()}`;
 
@@ -142,6 +146,7 @@ class MonthlyCycleStrategy implements ICycleFrequencyStrategy {
             cycleKey,
             beginsAt,
             endsAt,
+            closingDate,
             dueDate,
             label,
         };
@@ -183,6 +188,15 @@ class WeeklyCycleStrategy implements ICycleFrequencyStrategy {
         const clampedDueDay = Math.min(Math.max(1, rule.dueDay), 7);
         const dueDate = startOfDay(addDays(beginsAt, clampedDueDay - 1));
 
+        // Fallback de closingDate para dueDate quando closingDay for nulo
+        let closingDate: Date;
+        if (rule.closingDay !== null) {
+            const clampedClosingDay = Math.min(Math.max(1, rule.closingDay), 7);
+            closingDate = startOfDay(addDays(beginsAt, clampedClosingDay - 1));
+        } else {
+            closingDate = dueDate;
+        }
+
         const cycleKey = format(blockStartWeek, "yyyy-'W'II");
         const weekNumber = format(blockStartWeek, "II");
         const label = `Semana ${weekNumber}, ${blockStartWeek.getFullYear()}`;
@@ -191,6 +205,7 @@ class WeeklyCycleStrategy implements ICycleFrequencyStrategy {
             cycleKey,
             beginsAt,
             endsAt,
+            closingDate,
             dueDate,
             label,
         };
@@ -235,6 +250,15 @@ class YearlyCycleStrategy implements ICycleFrequencyStrategy {
         const clampedDay = Math.min(Math.max(1, rule.dueDay), daysInDueMonth);
         const dueDate = startOfDay(new Date(targetYear, ruleMonth, clampedDay));
 
+        // Fallback de closingDate para dueDate quando closingDay for nulo
+        let closingDate: Date;
+        if (rule.closingDay !== null) {
+            const clampedClosingDay = Math.min(Math.max(1, rule.closingDay), daysInDueMonth);
+            closingDate = startOfDay(new Date(targetYear, ruleMonth, clampedClosingDay));
+        } else {
+            closingDate = dueDate;
+        }
+
         const cycleKey = format(blockStartYear, "yyyy");
         const label = `Ano ${blockStartYear.getFullYear()}`;
 
@@ -242,6 +266,7 @@ class YearlyCycleStrategy implements ICycleFrequencyStrategy {
             cycleKey,
             beginsAt,
             endsAt,
+            closingDate,
             dueDate,
             label,
         };
