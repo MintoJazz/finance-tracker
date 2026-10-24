@@ -25,6 +25,7 @@ export function ArchivedPageLayout({
           <Button
             variant="ghost"
             size="icon-sm"
+            nativeButton={false}
             render={<Link href={backHref} />}
           >
             <ArrowLeft className="size-4" />

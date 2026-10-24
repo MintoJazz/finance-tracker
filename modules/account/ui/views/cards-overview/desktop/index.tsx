@@ -36,6 +36,7 @@ export default function CardsOverviewViewDesktop({
                     <Button
                         variant="outline"
                         size="icon-sm"
+                        nativeButton={false}
                         render={<Link href="/cards/archived" />}
                     >
                         <Archive className="size-4" />

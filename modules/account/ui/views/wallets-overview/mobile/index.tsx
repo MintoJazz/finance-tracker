@@ -39,6 +39,7 @@ export default function WalletsOverviewViewMobile({
                     <Button
                         variant="outline"
                         size="icon-sm"
+                        nativeButton={false}
                         render={<Link href="/wallets/archived" />}
                         className="gap-1.5 px-2.5"
                     >

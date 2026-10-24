@@ -59,6 +59,7 @@ export function ErrorView({
                     </Button>
                     {isAuthError && (
                         <Button
+                            nativeButton={false}
                             render={<Link href="/login" />}
                             size="sm"
                             className="gap-1.5"

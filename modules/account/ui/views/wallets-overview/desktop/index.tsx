@@ -36,6 +36,7 @@ export default function WalletsOverviewViewDesktop({
                     <Button
                         variant="outline"
                         size="icon-sm"
+                        nativeButton={false}
                         render={<Link href="/wallets/archived" />}
                     >
                         <Archive className="size-4" />
