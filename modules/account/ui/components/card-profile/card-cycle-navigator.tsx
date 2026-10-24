@@ -11,7 +11,7 @@ import {
 } from "@/modules/account/core/schemas/card-profile.schema";
 
 const CYCLE_STATUS_CONFIG: Record<
-    CardCycleStatusEnum,
+    string,
     { label: string; className: string }
 > = {
     OPEN: {
@@ -20,6 +20,11 @@ const CYCLE_STATUS_CONFIG: Record<
             "border-blue-500/30 text-blue-700 dark:text-blue-400 bg-blue-500/10",
     },
     CLOSED: {
+        label: "Fechada",
+        className:
+            "border-amber-500/30 text-amber-700 dark:text-amber-400 bg-amber-500/10",
+    },
+    PENDING: {
         label: "Fechada",
         className:
             "border-amber-500/30 text-amber-700 dark:text-amber-400 bg-amber-500/10",
@@ -38,6 +43,16 @@ const CYCLE_STATUS_CONFIG: Record<
         label: "Futura",
         className:
             "border-border text-muted-foreground bg-muted/40",
+    },
+    PROJECTED: {
+        label: "Projetada",
+        className:
+            "border-border text-muted-foreground bg-muted/40",
+    },
+    PARTIAL: {
+        label: "Parcial",
+        className:
+            "border-amber-500/30 text-amber-700 dark:text-amber-400 bg-amber-500/10",
     },
 };
 
@@ -65,7 +80,10 @@ export function CardCycleNavigator({
     onNext,
     className,
 }: CardCycleNavigatorProps) {
-    const statusConfig = CYCLE_STATUS_CONFIG[activeCycle.status];
+    const statusConfig = CYCLE_STATUS_CONFIG[activeCycle.status] ?? {
+        label: activeCycle.status,
+        className: "border-border text-muted-foreground bg-muted/40",
+    };
 
     return (
         <div

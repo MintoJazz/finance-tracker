@@ -5,8 +5,8 @@ import {
     CardProfile,
     GetCardProfileSchema,
 } from "../../core/schemas/card-profile.schema";
-import { CardProfileMockService } from "../../infra/mock/card-profile.mock";
 import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
+import { AccountFactory } from "../../infra/factories/account.factory";
 
 export async function getCardProfileAction(
     id: number
@@ -21,6 +21,9 @@ export async function getCardProfileAction(
         );
     }
 
-    // Fase mockada: delega ao serviço de mock (com guarda de sessão ativa)
-    return CardProfileMockService.getProfileById(parsed.data.id);
+    const useCase = AccountFactory.makeGetCardProfileUseCase();
+    return await useCase.execute({
+        session,
+        cardId: parsed.data.id,
+    });
 }

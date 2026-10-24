@@ -2,8 +2,8 @@ import { ViewContainer } from "@/components/adaptive";
 import { ErrorView } from "@/components/error-view";
 import { CardProfileAdaptiveConfig } from "@/modules/account/ui/views/card-profile";
 import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
-import { CardProfileMockService } from "@/modules/account/infra/mock/card-profile.mock";
-import { CardMovementMockService } from "@/modules/ledger/infra/mock/card-movement.mock";
+import { AccountFactory } from "@/modules/account/infra/factories/account.factory";
+import { LedgerFactory } from "@/modules/ledger/infra/factories/ledger.factory";
 import { redirect } from "next/navigation";
 
 interface CardProfilePageProps {
@@ -26,7 +26,12 @@ export default async function CardProfilePage(props: CardProfilePageProps) {
         );
     }
 
-    const profileResult = await CardProfileMockService.getProfileById(cardId);
+    const profileUseCase = AccountFactory.makeGetCardProfileUseCase();
+    const profileResult = await profileUseCase.execute({
+        session,
+        cardId,
+    });
+
     if (!profileResult.success || !profileResult.data) {
         return (
             <ErrorView
@@ -39,7 +44,9 @@ export default async function CardProfilePage(props: CardProfilePageProps) {
     const profile = profileResult.data;
     const activeCycle = profile.cycles.find((c) => c.status === "OPEN") ?? profile.cycles.at(-1);
 
-    const movementsResult = await CardMovementMockService.getMovements({
+    const movementsUseCase = LedgerFactory.makeGetWalletMovementsUseCase();
+    const movementsResult = await movementsUseCase.execute({
+        session,
         walletId: cardId,
         pageRequest: { page: 1, pageSize: 10 },
         filter: activeCycle ? { from: activeCycle.from, to: activeCycle.to } : {},

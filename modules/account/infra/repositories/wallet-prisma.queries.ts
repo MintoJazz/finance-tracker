@@ -75,7 +75,8 @@ export class WalletPrismaQueries implements IWalletQueries {
             where: {
                 id,
                 contextId,
-                balanceType: "WALLET",
+                balanceType: { in: ["WALLET", "CREDIT"] },
+                removedAt: null,
             },
             select: {
                 id: true,

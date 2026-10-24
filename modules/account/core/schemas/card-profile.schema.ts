@@ -1,11 +1,14 @@
 import z from "zod";
 
 export const CardCycleStatusEnumSchema = z.enum([
-    "OPEN",     // Fatura atual em aberto
-    "CLOSED",   // Fechada, aguardando pagamento
-    "PAID",     // Paga
-    "OVERDUE",  // Vencida
-    "FUTURE",   // Próximas faturas (parcelamentos/projeção)
+    "OPEN",      // Fatura atual em aberto
+    "CLOSED",    // Fechada, aguardando pagamento
+    "PAID",      // Paga
+    "OVERDUE",   // Vencida
+    "FUTURE",    // Próximas faturas (parcelamentos/projeção)
+    "PROJECTED", // Projetada
+    "PENDING",   // Aguardando pagamento
+    "PARTIAL",   // Parcialmente paga
 ]);
 
 export type CardCycleStatusEnum = z.infer<typeof CardCycleStatusEnumSchema>;

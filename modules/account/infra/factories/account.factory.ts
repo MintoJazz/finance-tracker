@@ -13,6 +13,7 @@ import { UpdateCardUseCase } from "../../core/use-cases/update-card.use-case"
 import { ArchiveCardUseCase } from "../../core/use-cases/archive-card.use-case"
 import { RestoreCardUseCase } from "../../core/use-cases/restore-card.use-case"
 import { GetCardByIdUseCase } from "../../core/use-cases/get-card-by-id.use-case"
+import { GetCardProfileUseCase } from "../../core/use-cases/get-card-profile.use-case"
 import { WalletPrismaQueries } from "../repositories/wallet-prisma.queries"
 import { WalletPrismaRepository } from "../repositories/wallet-prisma.repository"
 import { CardPrismaQueries } from "../repositories/card-prisma.queries"
@@ -23,6 +24,8 @@ import { ICardQueries } from "@/modules/account/core/types/card-queries.interfac
 import { ICardRepository } from "@/modules/account/core/types/card-repository.interface"
 import { IContextMemberRepository } from "@/modules/space/core/types/context-member-repository.interface"
 import { PrismaContextMembersRepository } from "@/modules/space/infra/repositories/context-members-prisma.repository"
+import { CycleEngineService } from "@/modules/planning/core/services/cycle-engine.service"
+import { ContractProfilePrismaQueries } from "@/modules/planning/infra/repositories/contract-profile-prisma.queries"
 
 export class AccountFactory {
   private static readonly walletQueries: IWalletQueries =
@@ -37,6 +40,8 @@ export class AccountFactory {
 
   private static readonly spaceAccessProvider: ISpaceAccessProvider =
     new GetSpaceAccessUseCase(this.memberRepository)
+  private static readonly cycleEngineService = new CycleEngineService()
+  private static readonly contractProfileQueries = new ContractProfilePrismaQueries()
 
   // Wallets
   public static readonly makeGetContextWalletsUseCase = () =>
@@ -67,4 +72,11 @@ export class AccountFactory {
     new RestoreCardUseCase(this.cardRepository, this.spaceAccessProvider)
   public static readonly makeGetCardByIdUseCase = () =>
     new GetCardByIdUseCase(this.cardQueries, this.spaceAccessProvider)
+  public static readonly makeGetCardProfileUseCase = () =>
+    new GetCardProfileUseCase(
+      this.cardQueries,
+      this.spaceAccessProvider,
+      this.cycleEngineService,
+      this.contractProfileQueries
+    )
 }
