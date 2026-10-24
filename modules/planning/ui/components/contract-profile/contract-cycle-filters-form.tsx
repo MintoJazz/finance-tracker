@@ -11,6 +11,7 @@ import {
     ContractCycleFilters,
     ContractCycleStatusEnum,
 } from "../../../core/schemas/contract-cycle.schema";
+import { BadgeCarousel, BadgeCarouselContent, BadgeCarouselControls } from "@/components/form";
 
 interface ContractCycleFiltersFormProps {
     values: ContractCycleFilters;
@@ -35,58 +36,34 @@ export function ContractCycleFiltersForm({
     className,
     hideResetButton = false,
 }: ContractCycleFiltersFormProps) {
-    const handleStatusToggle = (selected: string[]) => {
-        if (!selected || selected.length === 0 || selected.includes("ALL")) {
-            onChange({ statuses: undefined });
-            return;
-        }
-        const filtered = selected.filter(
-            (s): s is ContractCycleStatusEnum => s !== "ALL"
-        );
-        onChange({ statuses: filtered.length > 0 ? filtered : undefined });
-    };
-
     const hasActiveFilters = Boolean(
         (values.q && values.q.trim().length > 0) ||
         (values.statuses && values.statuses.length > 0) ||
         values.includeProjected === false
     );
 
-    const activeStatusValues =
-        values.statuses && values.statuses.length > 0
-            ? values.statuses
-            : ["ALL"];
-
     return (
         <div className={cn("flex flex-col gap-4 text-sm", className)}>
             {/* 1. Status do Ciclo */}
-            <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-muted-foreground">
-                    Status do Ciclo
-                </span>
-                <ToggleGroup
-                    variant="outline"
-                    value={activeStatusValues}
-                    onValueChange={handleStatusToggle}
-                    className="justify-start gap-1 flex-wrap"
-                >
-                    <ToggleGroupItem
-                        value="ALL"
-                        className="text-xs h-7 px-2.5 rounded-lg data-[state=on]:bg-accent data-[state=on]:font-semibold"
-                    >
-                        Todos
-                    </ToggleGroupItem>
-                    {STATUS_OPTIONS.map((opt) => (
-                        <ToggleGroupItem
-                            key={opt.status}
-                            value={opt.status}
-                            className="text-xs h-7 px-2.5 rounded-lg data-[state=on]:bg-accent data-[state=on]:font-semibold"
-                        >
-                            {opt.label}
-                        </ToggleGroupItem>
-                    ))}
-                </ToggleGroup>
-            </div>
+            <BadgeCarousel<ContractCycleStatusEnum>
+                options={STATUS_OPTIONS.map((opt) => ({
+                    value: opt.status,
+                    label: opt.label,
+                }))}
+                value={values.statuses}
+                onChange={(types) =>
+                    onChange({ statuses: types && types.length > 0 ? types : undefined })
+                }
+                multiple
+            >
+                <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">
+                        Status do Ciclo
+                    </span>
+                    <BadgeCarouselControls className="hidden md:flex" />
+                </div>
+                <BadgeCarouselContent />
+            </BadgeCarousel>
 
             {/* 2. Toggle Ciclos Projetados */}
             <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 p-2.5">

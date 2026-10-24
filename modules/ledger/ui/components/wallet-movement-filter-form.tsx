@@ -13,6 +13,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import { WalletMovementType, WalletMovementFilters } from "../../core/schemas/wallet-movement.schema";
+import { MOVEMENT_DIRECTION_THEMES } from "../themes/movement-direction";
 
 const MOVEMENT_TYPE_OPTIONS: { type: WalletMovementType; label: string }[] = [
     { type: "INCOME", label: "Receita" },
@@ -83,17 +84,11 @@ export function WalletMovementFilterForm({
                         handleDirectionChange(next);
                     }}
                     className="w-full grid grid-cols-3"
-                >
-                    <ToggleGroupItem value="ALL" className="text-xs h-7 justify-center">
-                        Todas
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="CREDIT" className="text-xs h-7 justify-center">
-                        Entradas
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="DEBIT" className="text-xs h-7 justify-center">
-                        Saídas
-                    </ToggleGroupItem>
-                </ToggleGroup>
+                >{
+                    Object.entries(MOVEMENT_DIRECTION_THEMES).map(([key, { label }]) => <ToggleGroupItem key={key} value={key} className="text-xs h-7 justify-center">
+                        {label}
+                    </ToggleGroupItem>)
+                }</ToggleGroup>
             </div>
 
             {/* 3. Período (Data Inicial e Final) - oculto quando controlado por fatura */}

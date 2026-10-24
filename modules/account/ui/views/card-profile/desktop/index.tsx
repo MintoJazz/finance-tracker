@@ -227,19 +227,6 @@ export default function CardProfileViewDesktop({
                                 <CardQuickActions
                                     card={profile}
                                     cardActionsContext={cardActionsContext}
-                                    onAdjustLimitClick={() =>
-                                        cardActionsContext.onEdit({
-                                            id: profile.id,
-                                            name: profile.name,
-                                            limit: profile.limit,
-                                            usedLimit: profile.usedLimit,
-                                            availableLimit: profile.availableLimit,
-                                            closingDay: profile.closingDay,
-                                            dueDay: profile.dueDay,
-                                            lastActivityAt: null,
-                                            isArchived: profile.isArchived,
-                                        })
-                                    }
                                 />
                             </ProfileCardContent>
 

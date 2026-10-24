@@ -1,4 +1,5 @@
-import { RowAction } from "@/types/actions.types";
+import { actionsToCatalog } from "@/components/actions/catalog";
+import { RowAction, ActionCatalog } from "@/types/actions.types";
 import { ContractSummaryItem } from "../../../core/schemas/contract.schema";
 import { Archive, CalendarClock, Coins, PauseCircle, Pencil, PencilLine, PlayCircle, RotateCcw } from "lucide-react";
 
@@ -64,6 +65,44 @@ export const CONTRACT_ACTIONS: RowAction<ContractSummaryItem, ContractActionCont
     hidden: (row) => row.original.isArchived,
   },
 ];
+
+const { pause, play, ...defaultContractActions } = actionsToCatalog(
+  CONTRACT_ACTIONS
+);
+
+const CONTRACT_PROFILE_SPECIFIC_ACTIONS: ActionCatalog<
+  ContractSummaryItem,
+  ContractActionContext
+> = {
+  pause: {
+    ...pause,
+    color: "amber",
+    disabled: (row) => row.original.isArchived,
+    hidden: (row) => !row.original.includeInProjection,
+  },
+  play: {
+    ...play,
+    color: "emerald",
+    disabled: (row) => row.original.isArchived,
+    hidden: (row) => row.original.includeInProjection,
+  },
+  edit: {
+    id: "edit",
+    label: "Editar",
+    icon: Pencil,
+    color: "blue",
+    disabled: (row) => row.original.isArchived,
+    onClick: (row, context) => context?.onEdit?.(row.original),
+  },
+};
+
+export const CONTRACT_PROFILE_ACTIONS: ActionCatalog<
+  ContractSummaryItem,
+  ContractActionContext
+> = {
+  ...CONTRACT_PROFILE_SPECIFIC_ACTIONS,
+  ...defaultContractActions,
+};
 
 function contextIsDefined(row: { original: ContractSummaryItem }): boolean {
   return !!row.original;

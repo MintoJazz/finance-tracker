@@ -20,8 +20,6 @@ import { ContractActionContext } from "../contract-actions-drawer";
 interface ContractProfileCardProps {
     contract: ContractProfile;
     contractActionsContext?: ContractActionContext;
-    onToggleProjection?: () => void;
-    onEditClick?: () => void;
     className?: string;
     children?: React.ReactNode;
 }
@@ -29,8 +27,6 @@ interface ContractProfileCardProps {
 export function ContractProfileCard({
     contract,
     contractActionsContext,
-    onToggleProjection,
-    onEditClick,
     className,
     children,
 }: ContractProfileCardProps) {
@@ -210,8 +206,6 @@ export function ContractProfileCard({
                 <ContractQuickActions
                     contract={contract}
                     contractActionsContext={contractActionsContext}
-                    onToggleProjection={onToggleProjection}
-                    onEditClick={onEditClick}
                 />
             </ProfileCardContent>
             {children}

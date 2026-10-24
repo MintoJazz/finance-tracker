@@ -5,12 +5,24 @@ export type RowLike<TData> = Row<TData> | { original: TData }
 
 export type ActionIcon = ComponentType<{ className?: string }>
 
+export type ActionColor =
+  | "rose"
+  | "emerald"
+  | "blue"
+  | "amber"
+  | "indigo"
+  | "purple"
+  | "sky"
+  | "neutral"
+
 export interface RowAction<TData extends RowData = any, TContext = any> {
   id?: string
   label: string | ReactNode
   icon?: ActionIcon | ReactNode
   href?: string
   shortcut?: string
+  color?: ActionColor
+  colorClassName?: string
   hidden?: (row: RowLike<TData>, context?: TContext) => boolean
   disabled?: boolean | ((row: RowLike<TData>, context?: TContext) => boolean)
   onClick?: (row: RowLike<TData>, context: TContext) => void | Promise<void>
@@ -25,6 +37,11 @@ export type ActionRow<TData extends RowData = any, TContext = any> = RowAction<
   TData,
   TContext
 >
+
+export type ActionCatalog<
+  TData extends RowData = RowData,
+  TContext = unknown,
+> = Record<string, RowAction<TData, TContext>>
 
 export interface DataTableRowActionsProps<
   TData extends RowData = any,
