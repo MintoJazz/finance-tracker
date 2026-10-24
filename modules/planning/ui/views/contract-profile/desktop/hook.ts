@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
 import { useArchiveRestore } from "@/hooks/use-archive-restore";
@@ -21,6 +21,10 @@ export function useContractProfileDesktop({
     initialCycles,
 }: ContractProfileInput): ContractProfileDesktopProps {
     const router = useRouter();
+
+    const [renameOpen, setRenameOpen] = useState(false);
+    const [scheduleOpen, setScheduleOpen] = useState(false);
+    const [limitsOpen, setLimitsOpen] = useState(false);
 
     // 1. Dados do perfil do contrato
     const {
@@ -90,6 +94,9 @@ export function useContractProfileDesktop({
     const contractActionsContext = useMemo<ContractActionContext>(
         () => ({
             onEdit: (c) => router.push(`/contracts/${c.id}/edit`),
+            onRename: () => setRenameOpen(true),
+            onAdjustSchedule: () => setScheduleOpen(true),
+            onAdjustLimits: () => setLimitsOpen(true),
             onToggleProjection: async (c) => {
                 if (c.isArchived) {
                     toast.add({
@@ -135,6 +142,24 @@ export function useContractProfileDesktop({
             onRestore,
         }),
         [router, onArchive, onRestore, reloadProfile, reloadCycles]
+    );
+
+    const contractModalsContext = useMemo(
+        () => ({
+            rename: {
+                isOpen: renameOpen,
+                onClose: () => setRenameOpen(false),
+            },
+            schedule: {
+                isOpen: scheduleOpen,
+                onClose: () => setScheduleOpen(false),
+            },
+            limits: {
+                isOpen: limitsOpen,
+                onClose: () => setLimitsOpen(false),
+            },
+        }),
+        [renameOpen, scheduleOpen, limitsOpen]
     );
 
     // 6. Contexto de ações do ciclo (por enquanto acionando toasts)
@@ -190,5 +215,6 @@ export function useContractProfileDesktop({
         clearFilters,
         paginationContext,
         cycleActionContext,
+        contractModalsContext,
     };
 }

@@ -8,6 +8,17 @@ import { ContractActionContext } from "../../components/contract-actions-drawer/
 import { ContractCycleActionContext } from "../../components/contract-profile/contract-cycle-actions";
 import { ArchiveRestoreModalContext } from "@/hooks/use-archive-restore";
 
+export interface ContractProfileContractModalContextItem {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export interface ContractProfileContractModalsContext {
+    rename: ContractProfileContractModalContextItem;
+    schedule: ContractProfileContractModalContextItem;
+    limits: ContractProfileContractModalContextItem;
+}
+
 export interface ContractProfileInput {
     contractId: string | number;
     profile?: ContractProfile | null;
@@ -35,6 +46,7 @@ export interface ContractProfileDesktopProps {
         setPageSize: (size: number) => void;
     };
     cycleActionContext: ContractCycleActionContext;
+    contractModalsContext?: ContractProfileContractModalsContext;
 }
 
 export interface ContractProfileMobileProps {

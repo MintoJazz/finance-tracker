@@ -13,6 +13,18 @@ export interface PaginationContext {
   setPageSize: (val: number) => void;
 }
 
+export interface ContractsOverviewModalContextItem {
+  isOpen: boolean;
+  contract: ContractSummaryItem | null;
+  onClose: () => void;
+}
+
+export interface ContractsOverviewModalsContext {
+  rename: ContractsOverviewModalContextItem;
+  schedule: ContractsOverviewModalContextItem;
+  limits: ContractsOverviewModalContextItem;
+}
+
 export interface ContractsOverviewProps {
   data: Page<ContractSummaryItem>;
   counts: ContractTypeCounts;
@@ -21,6 +33,7 @@ export interface ContractsOverviewProps {
   filterContext: FilterContext;
   paginationContext: PaginationContext;
   archiveContext: ArchiveRestoreModalContext;
+  modalsContext?: ContractsOverviewModalsContext;
 }
 
 export interface MobileContractsOverviewProps {

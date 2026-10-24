@@ -1,20 +1,37 @@
 import { RowAction } from "@/types/actions.types";
 import { ContractSummaryItem } from "../../../core/schemas/contract.schema";
-import { Archive, PauseCircle, Pencil, PlayCircle, RotateCcw } from "lucide-react";
+import { Archive, CalendarClock, Coins, PauseCircle, Pencil, PencilLine, PlayCircle, RotateCcw } from "lucide-react";
 
 export interface ContractActionContext {
   onToggleProjection: (contract: ContractSummaryItem) => void;
   onArchive: (contract: ContractSummaryItem) => void;
   onRestore?: (contract: ContractSummaryItem) => void;
   onEdit?: (contract: ContractSummaryItem) => void;
+  onRename?: (contract: ContractSummaryItem) => void;
+  onAdjustSchedule?: (contract: ContractSummaryItem) => void;
+  onAdjustLimits?: (contract: ContractSummaryItem) => void;
 }
 
 export const CONTRACT_ACTIONS: RowAction<ContractSummaryItem, ContractActionContext>[] = [
   {
-    id: "edit",
-    label: "Editar",
-    icon: Pencil,
-    onClick: (row, context) => context?.onEdit?.(row.original),
+    id: "rename",
+    label: "Renomear",
+    icon: PencilLine,
+    onClick: (row, context) => context?.onRename?.(row.original),
+    hidden: (row) => !contextIsDefined(row) || row.original.isArchived,
+  },
+  {
+    id: "adjust-schedule",
+    label: "Ajustar prazos",
+    icon: CalendarClock,
+    onClick: (row, context) => context?.onAdjustSchedule?.(row.original),
+    hidden: (row) => !contextIsDefined(row) || row.original.isArchived,
+  },
+  {
+    id: "adjust-limits",
+    label: "Ajustar limites",
+    icon: Coins,
+    onClick: (row, context) => context?.onAdjustLimits?.(row.original),
     hidden: (row) => !contextIsDefined(row) || row.original.isArchived,
   },
   {

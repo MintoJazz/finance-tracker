@@ -11,11 +11,11 @@ import { toggleContractProjectionAction } from "../../../actions/toggle-contract
 import { archiveContractAction } from "../../../actions/archive-contract.action";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
-import { useTransition, useMemo, useCallback } from "react";
+import { useTransition, useMemo, useCallback, useState } from "react";
 import { useArchiveRestore } from "@/hooks/use-archive-restore";
 import { Result } from "@/types/result.types";
 
-export function useMobileContractsOverview(data: { page: Page<ContractSummaryItem>; counts: ContractTypeCounts }): MobileContractsOverviewProps {
+export function useMobileContractsOverview(data: { page: Page<ContractSummaryItem>; counts: ContractTypeCounts }): MobileContractsOverviewProps & { modalsContext?: any } {
   const [, startTransition] = useTransition();
   const router = useRouter();
 
@@ -23,6 +23,19 @@ export function useMobileContractsOverview(data: { page: Page<ContractSummaryIte
   const { getParam, setParam } = useQueryParams();
   const type = getParam("type") || "ALL";
   const setType = (val: string) => setParam("type", val);
+
+  const [renameState, setRenameState] = useState<{ open: boolean; contract: ContractSummaryItem | null }>({
+    open: false,
+    contract: null,
+  });
+  const [scheduleState, setScheduleState] = useState<{ open: boolean; contract: ContractSummaryItem | null }>({
+    open: false,
+    contract: null,
+  });
+  const [limitsState, setLimitsState] = useState<{ open: boolean; contract: ContractSummaryItem | null }>({
+    open: false,
+    contract: null,
+  });
 
   const {
     items,
@@ -119,7 +132,37 @@ export function useMobileContractsOverview(data: { page: Page<ContractSummaryIte
       );
     },
     onArchive,
+    onRename: (contract: ContractSummaryItem) => {
+      setRenameState({ open: true, contract });
+    },
+    onAdjustSchedule: (contract: ContractSummaryItem) => {
+      setScheduleState({ open: true, contract });
+    },
+    onAdjustLimits: (contract: ContractSummaryItem) => {
+      setLimitsState({ open: true, contract });
+    },
   }), [handleAction, onArchive]);
+
+  const modalsContext = useMemo(
+    () => ({
+      rename: {
+        isOpen: renameState.open,
+        contract: renameState.contract,
+        onClose: () => setRenameState({ open: false, contract: null }),
+      },
+      schedule: {
+        isOpen: scheduleState.open,
+        contract: scheduleState.contract,
+        onClose: () => setScheduleState({ open: false, contract: null }),
+      },
+      limits: {
+        isOpen: limitsState.open,
+        contract: limitsState.contract,
+        onClose: () => setLimitsState({ open: false, contract: null }),
+      },
+    }),
+    [renameState, scheduleState, limitsState]
+  );
 
   const filterContext = {
     ...baseFilterContext,
@@ -138,5 +181,6 @@ export function useMobileContractsOverview(data: { page: Page<ContractSummaryIte
     filterContext,
     onAddClick,
     archiveContext,
-  };
+    modalsContext,
+  } as any;
 }

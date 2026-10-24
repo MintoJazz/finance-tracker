@@ -17,8 +17,17 @@ import { MobileContractsOverviewProps } from "../types";
 import { ContractActionsDrawer } from "../../../components/contract-actions-drawer";
 import { ContractSummaryItem } from "../../../../core/schemas/contract.schema";
 import { ArchiveContractModalConfig } from "../../archive-contract-modal";
+import { RenameContractModalConfig } from "../../rename-contract-modal";
+import { AdjustContractScheduleModalConfig } from "../../adjust-contract-schedule-modal";
+import { AdjustContractLimitsModalConfig } from "../../adjust-contract-limits-modal";
 
 const ArchiveContractModal = ArchiveContractModalConfig.views.mobile.View;
+const RenameContractModal = RenameContractModalConfig.views.mobile.View;
+const useRenameContractModal = RenameContractModalConfig.views.mobile.hook;
+const AdjustContractScheduleModal = AdjustContractScheduleModalConfig.views.mobile.View;
+const useAdjustContractScheduleModal = AdjustContractScheduleModalConfig.views.mobile.hook;
+const AdjustContractLimitsModal = AdjustContractLimitsModalConfig.views.mobile.View;
+const useAdjustContractLimitsModal = AdjustContractLimitsModalConfig.views.mobile.hook;
 
 export default function ContractsOverviewViewMobile({
   items,
@@ -31,12 +40,52 @@ export default function ContractsOverviewViewMobile({
   filterContext,
   onAddClick,
   archiveContext,
-}: MobileContractsOverviewProps) {
+  modalsContext,
+}: MobileContractsOverviewProps & { modalsContext?: any }) {
   const router = useRouter();
   const { searchProps, typeProps } = filterContext;
   
   const [actionsOpen, setActionsOpen] = React.useState(false);
   const [selectedContract, setSelectedContract] = React.useState<ContractSummaryItem | null>(null);
+
+  const renameModalProps = useRenameContractModal(
+    modalsContext?.rename?.contract
+      ? ({
+          isOpen: modalsContext.rename.isOpen,
+          contractId: modalsContext.rename.contract.id,
+          contractName: modalsContext.rename.contract.name,
+          onClose: modalsContext.rename.onClose,
+        } as any)
+      : ({} as any)
+  );
+
+  const scheduleModalProps = useAdjustContractScheduleModal(
+    modalsContext?.schedule?.contract
+      ? ({
+          isOpen: modalsContext.schedule.isOpen,
+          contractId: modalsContext.schedule.contract.id,
+          contractName: modalsContext.schedule.contract.name,
+          initialDueDay: modalsContext.schedule.contract.dueDay,
+          initialClosingDay: (modalsContext.schedule.contract as any).closingDay ?? null,
+          initialDueMonth: modalsContext.schedule.contract.dueMonth ?? null,
+          initialClosingMonth: (modalsContext.schedule.contract as any).closingMonth ?? null,
+          frequency: modalsContext.schedule.contract.frequency,
+          onClose: modalsContext.schedule.onClose,
+        } as any)
+      : ({} as any)
+  );
+
+  const limitsModalProps = useAdjustContractLimitsModal(
+    modalsContext?.limits?.contract
+      ? ({
+          isOpen: modalsContext.limits.isOpen,
+          contractId: modalsContext.limits.contract.id,
+          contractName: modalsContext.limits.contract.name,
+          initialValue: modalsContext.limits.contract.value,
+          onClose: modalsContext.limits.onClose,
+        } as any)
+      : ({} as any)
+  );
 
   const handleActionClick = (contract: ContractSummaryItem) => {
     setSelectedContract(contract);
@@ -137,6 +186,9 @@ export default function ContractsOverviewViewMobile({
       />
 
       <ArchiveContractModal {...archiveContext} />
+      <RenameContractModal {...renameModalProps} />
+      <AdjustContractScheduleModal {...scheduleModalProps} />
+      <AdjustContractLimitsModal {...limitsModalProps} />
     </div>
   );
 }

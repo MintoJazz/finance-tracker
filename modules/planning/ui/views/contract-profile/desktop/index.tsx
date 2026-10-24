@@ -11,6 +11,16 @@ import ContractCycleFiltersForm from "../../../components/contract-profile/contr
 import ContractCycleTable from "../../../components/contract-profile/contract-cycle-table";
 import ContractProfileCard from "../../../components/contract-profile/contract-profile-card";
 import ContractProfileSkeleton from "../../../components/contract-profile/skeletons/contract-profile-skeleton";
+import { RenameContractModalConfig } from "../../rename-contract-modal";
+import { AdjustContractScheduleModalConfig } from "../../adjust-contract-schedule-modal";
+import { AdjustContractLimitsModalConfig } from "../../adjust-contract-limits-modal";
+
+const RenameContractModal = RenameContractModalConfig.views.desktop.View;
+const useRenameContractModal = RenameContractModalConfig.views.desktop.hook;
+const AdjustContractScheduleModal = AdjustContractScheduleModalConfig.views.desktop.View;
+const useAdjustContractScheduleModal = AdjustContractScheduleModalConfig.views.desktop.hook;
+const AdjustContractLimitsModal = AdjustContractLimitsModalConfig.views.desktop.View;
+const useAdjustContractLimitsModal = AdjustContractLimitsModalConfig.views.desktop.hook;
 
 export default function ContractProfileViewDesktop({
     profile,
@@ -28,7 +38,46 @@ export default function ContractProfileViewDesktop({
     clearFilters,
     paginationContext,
     cycleActionContext,
+    contractModalsContext,
 }: ContractProfileDesktopProps) {
+    const renameModalProps = useRenameContractModal(
+        profile
+            ? ({
+                  isOpen: contractModalsContext?.rename?.isOpen ?? false,
+                  contractId: profile.id,
+                  contractName: profile.name,
+                  onClose: contractModalsContext?.rename?.onClose ?? (() => {}),
+              } as any)
+            : ({} as any)
+    );
+
+    const scheduleModalProps = useAdjustContractScheduleModal(
+        profile
+            ? ({
+                  isOpen: contractModalsContext?.schedule?.isOpen ?? false,
+                  contractId: profile.id,
+                  contractName: profile.name,
+                  initialDueDay: profile.dueDay,
+                  initialClosingDay: profile.closingDay ?? null,
+                  initialDueMonth: profile.dueMonth ?? null,
+                  initialClosingMonth: profile.closingMonth ?? null,
+                  frequency: profile.frequency,
+                  onClose: contractModalsContext?.schedule?.onClose ?? (() => {}),
+              } as any)
+            : ({} as any)
+    );
+
+    const limitsModalProps = useAdjustContractLimitsModal(
+        profile
+            ? ({
+                  isOpen: contractModalsContext?.limits?.isOpen ?? false,
+                  contractId: profile.id,
+                  contractName: profile.name,
+                  initialValue: profile.value,
+                  onClose: contractModalsContext?.limits?.onClose ?? (() => {}),
+              } as any)
+            : ({} as any)
+    );
     if (profileError) {
         return (
             <ErrorView
@@ -122,6 +171,9 @@ export default function ContractProfileViewDesktop({
 
             <ArchiveContractModalViewDesktop {...archiveContext} />
             <RestoreContractModalViewDesktop {...restoreContext} />
+            <RenameContractModal {...renameModalProps} />
+            <AdjustContractScheduleModal {...scheduleModalProps} />
+            <AdjustContractLimitsModal {...limitsModalProps} />
         </div>
     );
 }

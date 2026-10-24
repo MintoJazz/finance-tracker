@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState, useTransition } from "react";
 import { useQueryParams } from "@/hooks/use-query-params";
 import { useOverviewFilters } from "@/hooks/use-overview-filters";
 import { ContractsOverviewProps } from "../types";
@@ -10,7 +11,6 @@ import { archiveContractAction } from "../../../actions/archive-contract.action"
 import { toggleContractProjectionAction } from "../../../actions/toggle-contract-projection.action";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
 import { useArchiveRestore } from "@/hooks/use-archive-restore";
 import { Result } from "@/types/result.types";
 
@@ -24,6 +24,19 @@ export function useContractsOverview(data: { page: Page<ContractSummaryItem>; co
   const setType = (val: string) => setParam("type", val);
 
   const { paginationContext } = usePaginationQueryParams();
+
+  const [renameState, setRenameState] = useState<{ open: boolean; contract: ContractSummaryItem | null }>({
+    open: false,
+    contract: null,
+  });
+  const [scheduleState, setScheduleState] = useState<{ open: boolean; contract: ContractSummaryItem | null }>({
+    open: false,
+    contract: null,
+  });
+  const [limitsState, setLimitsState] = useState<{ open: boolean; contract: ContractSummaryItem | null }>({
+    open: false,
+    contract: null,
+  });
 
   const onAddClick = () => {
     router.push("/contracts/create");
@@ -92,12 +105,42 @@ export function useContractsOverview(data: { page: Page<ContractSummaryItem>; co
       );
     },
     onArchive,
+    onRename: (contract: ContractSummaryItem) => {
+      setRenameState({ open: true, contract });
+    },
+    onAdjustSchedule: (contract: ContractSummaryItem) => {
+      setScheduleState({ open: true, contract });
+    },
+    onAdjustLimits: (contract: ContractSummaryItem) => {
+      setLimitsState({ open: true, contract });
+    },
   };
 
   const filterContext = {
     ...baseFilterContext,
     typeProps: { value: type, onValueChange: setType },
   };
+
+  const modalsContext = useMemo(
+    () => ({
+      rename: {
+        isOpen: renameState.open,
+        contract: renameState.contract,
+        onClose: () => setRenameState({ open: false, contract: null }),
+      },
+      schedule: {
+        isOpen: scheduleState.open,
+        contract: scheduleState.contract,
+        onClose: () => setScheduleState({ open: false, contract: null }),
+      },
+      limits: {
+        isOpen: limitsState.open,
+        contract: limitsState.contract,
+        onClose: () => setLimitsState({ open: false, contract: null }),
+      },
+    }),
+    [renameState, scheduleState, limitsState]
+  );
 
   return {
     data: data.page,
@@ -107,5 +150,6 @@ export function useContractsOverview(data: { page: Page<ContractSummaryItem>; co
     filterContext,
     paginationContext,
     archiveContext,
-  };
+    modalsContext,
+  } as ContractsOverviewProps & { modalsContext: typeof modalsContext };
 }

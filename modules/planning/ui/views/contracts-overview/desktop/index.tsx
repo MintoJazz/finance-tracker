@@ -15,8 +15,17 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContractTable } from "../../../components/contract-table";
 import { ContractsOverviewProps } from "../types";
 import { ArchiveContractModalConfig } from "../../archive-contract-modal";
+import { RenameContractModalConfig } from "../../rename-contract-modal";
+import { AdjustContractScheduleModalConfig } from "../../adjust-contract-schedule-modal";
+import { AdjustContractLimitsModalConfig } from "../../adjust-contract-limits-modal";
 
 const ArchiveContractModal = ArchiveContractModalConfig.views.desktop.View;
+const RenameContractModal = RenameContractModalConfig.views.desktop.View;
+const useRenameContractModal = RenameContractModalConfig.views.desktop.hook;
+const AdjustContractScheduleModal = AdjustContractScheduleModalConfig.views.desktop.View;
+const useAdjustContractScheduleModal = AdjustContractScheduleModalConfig.views.desktop.hook;
+const AdjustContractLimitsModal = AdjustContractLimitsModalConfig.views.desktop.View;
+const useAdjustContractLimitsModal = AdjustContractLimitsModalConfig.views.desktop.hook;
 
 export default function ContractsOverviewViewDesktop({
   data,
@@ -26,9 +35,49 @@ export default function ContractsOverviewViewDesktop({
   onAddClick,
   paginationContext,
   archiveContext,
-}: ContractsOverviewProps) {
+  modalsContext,
+}: ContractsOverviewProps & { modalsContext?: any }) {
   const router = useRouter();
   const { searchProps, typeProps } = filterContext;
+
+  const renameModalProps = useRenameContractModal(
+    modalsContext?.rename?.contract
+      ? ({
+          isOpen: modalsContext.rename.isOpen,
+          contractId: modalsContext.rename.contract.id,
+          contractName: modalsContext.rename.contract.name,
+          onClose: modalsContext.rename.onClose,
+        } as any)
+      : ({} as any)
+  );
+
+  const scheduleModalProps = useAdjustContractScheduleModal(
+    modalsContext?.schedule?.contract
+      ? ({
+          isOpen: modalsContext.schedule.isOpen,
+          contractId: modalsContext.schedule.contract.id,
+          contractName: modalsContext.schedule.contract.name,
+          initialDueDay: modalsContext.schedule.contract.dueDay,
+          initialClosingDay: (modalsContext.schedule.contract as any).closingDay ?? null,
+          initialDueMonth: modalsContext.schedule.contract.dueMonth ?? null,
+          initialClosingMonth: (modalsContext.schedule.contract as any).closingMonth ?? null,
+          frequency: modalsContext.schedule.contract.frequency,
+          onClose: modalsContext.schedule.onClose,
+        } as any)
+      : ({} as any)
+  );
+
+  const limitsModalProps = useAdjustContractLimitsModal(
+    modalsContext?.limits?.contract
+      ? ({
+          isOpen: modalsContext.limits.isOpen,
+          contractId: modalsContext.limits.contract.id,
+          contractName: modalsContext.limits.contract.name,
+          initialValue: modalsContext.limits.contract.value,
+          onClose: modalsContext.limits.onClose,
+        } as any)
+      : ({} as any)
+  );
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 md:p-8">
@@ -99,6 +148,9 @@ export default function ContractsOverviewViewDesktop({
       </p>
 
       <ArchiveContractModal {...archiveContext} />
+      <RenameContractModal {...renameModalProps} />
+      <AdjustContractScheduleModal {...scheduleModalProps} />
+      <AdjustContractLimitsModal {...limitsModalProps} />
     </div>
   );
 }

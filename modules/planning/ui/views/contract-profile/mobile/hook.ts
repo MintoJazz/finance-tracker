@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
 import { useArchiveRestore } from "@/hooks/use-archive-restore";
-import { ContractProfileInput, ContractProfileMobileProps } from "../types";
+import { ContractProfileMobileProps, ContractProfileInput } from "../types";
 import { useContractProfileData } from "../hooks/use-contract-profile-data";
 import { useContractCycleFilters } from "../hooks/use-contract-cycle-filters";
 import { useContractCyclesInfinite } from "../hooks/use-contract-cycles-data";
@@ -19,8 +19,12 @@ export function useContractProfileMobile({
     contractId,
     profile: initialProfile,
     initialCycles,
-}: ContractProfileInput): ContractProfileMobileProps {
+}: ContractProfileInput): ContractProfileMobileProps & { contractModalsContext?: any } {
     const router = useRouter();
+
+    const [renameOpen, setRenameOpen] = useState(false);
+    const [scheduleOpen, setScheduleOpen] = useState(false);
+    const [limitsOpen, setLimitsOpen] = useState(false);
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
     // 1. Dados do perfil do contrato
@@ -95,6 +99,9 @@ export function useContractProfileMobile({
     const contractActionsContext = useMemo<ContractActionContext>(
         () => ({
             onEdit: (c) => router.push(`/contracts/${c.id}/edit`),
+            onRename: () => setRenameOpen(true),
+            onAdjustSchedule: () => setScheduleOpen(true),
+            onAdjustLimits: () => setLimitsOpen(true),
             onToggleProjection: async (c) => {
                 if (c.isArchived) {
                     toast.add({
@@ -140,6 +147,24 @@ export function useContractProfileMobile({
             onRestore,
         }),
         [router, onArchive, onRestore, reloadProfile, reloadCycles]
+    );
+
+    const contractModalsContext = useMemo(
+        () => ({
+            rename: {
+                isOpen: renameOpen,
+                onClose: () => setRenameOpen(false),
+            },
+            schedule: {
+                isOpen: scheduleOpen,
+                onClose: () => setScheduleOpen(false),
+            },
+            limits: {
+                isOpen: limitsOpen,
+                onClose: () => setLimitsOpen(false),
+            },
+        }),
+        [renameOpen, scheduleOpen, limitsOpen]
     );
 
     // 6. Contexto de ações do ciclo (por enquanto acionando toasts)
@@ -201,5 +226,6 @@ export function useContractProfileMobile({
         isFilterDrawerOpen,
         setIsFilterDrawerOpen,
         cycleActionContext,
-    };
+        contractModalsContext,
+    } as any;
 }

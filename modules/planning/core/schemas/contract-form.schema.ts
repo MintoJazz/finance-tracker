@@ -151,7 +151,7 @@ function validateYearlySchedule(
   }
 }
 
-function applyScheduleValidation(
+export function applyScheduleValidation(
   data: ScheduleValidationData,
   ctx: z.RefinementCtx
 ) {
