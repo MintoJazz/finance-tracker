@@ -44,10 +44,10 @@ export default async function CardProfilePage(props: CardProfilePageProps) {
     const profile = profileResult.data;
     const activeCycle = profile.cycles.find((c) => c.status === "OPEN") ?? profile.cycles.at(-1);
 
-    const movementsUseCase = LedgerFactory.makeGetWalletMovementsUseCase();
+    const movementsUseCase = LedgerFactory.makeGetCardMovementsUseCase();
     const movementsResult = await movementsUseCase.execute({
         session,
-        walletId: cardId,
+        cardId,
         pageRequest: { page: 1, pageSize: 10 },
         filter: activeCycle ? { from: activeCycle.from, to: activeCycle.to } : {},
     });

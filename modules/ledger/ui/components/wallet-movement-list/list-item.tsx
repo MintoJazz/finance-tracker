@@ -15,9 +15,13 @@ import {
     ListItemFooter,
     ListItemFooterLeft,
     ListItemFooterRight,
-    ListItemFooterInfo
+    ListItemFooterInfo,
 } from "@/components/list-item";
 import { MOVEMENT_TYPE_UI_CONFIG } from "../../themes/movement-type";
+import {
+    CategoryAvatar,
+    getCategorySubtitle,
+} from "../category-badge";
 
 interface WalletMovementListItemProps {
     movement: WalletMovement;
@@ -30,45 +34,62 @@ export function WalletMovementListItem({
     onOpenActions,
     className,
 }: WalletMovementListItemProps) {
-    const { description, date, type, direction, amount, isReversed, hasReceipt } = movement;
-    const { badgeClassName, icon: Icon, iconClassName, label } = MOVEMENT_TYPE_UI_CONFIG[type];
+    const {
+        description,
+        date,
+        type,
+        direction,
+        amount,
+        isReversed,
+        hasReceipt,
+        categoryClassification,
+    } = movement;
+    const { icon: Icon, label } = MOVEMENT_TYPE_UI_CONFIG[type];
+    const subtitle = getCategorySubtitle(categoryClassification);
 
     return (
         <ListItem className={cn(isReversed && "opacity-75", className)}>
             <ListItemHeader>
-                {/* <ListItemAvatar>
-                    <div
-                        className={cn(
-                            "flex size-9 shrink-0 items-center justify-center rounded-xl border border-border/60 select-none",
-                            iconClassName
-                        )}
-                    >
-                        <Icon className="size-4" />
-                    </div>
-                </ListItemAvatar> */}
+                <ListItemAvatar>
+                    <CategoryAvatar
+                        classification={categoryClassification}
+                        size="md"
+                    />
+                </ListItemAvatar>
                 <ListItemContent>
                     <ListItemTitle>
-                        <span
-                            className={cn(
-                                "truncate font-medium text-foreground text-sm",
-                                isReversed && "line-through text-muted-foreground"
-                            )}
-                        >
-                            {description}
-                        </span>
-                        {hasReceipt && (
-                            <span title="Possui comprovante anexo">
-                                <Paperclip className="size-3.5 text-muted-foreground shrink-0" />
-                            </span>
-                        )}
-                        {isReversed && (
-                            <Badge
-                                variant="outline"
-                                className="text-[10px] text-muted-foreground border-dashed shrink-0"
+                        <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                                <span
+                                    className={cn(
+                                        "truncate font-medium text-foreground text-sm",
+                                        isReversed && "line-through text-muted-foreground"
+                                    )}
+                                    title={description}
+                                >
+                                    {description}
+                                </span>
+                                {hasReceipt && (
+                                    <span title="Possui comprovante anexo">
+                                        <Paperclip className="size-3.5 text-muted-foreground shrink-0" />
+                                    </span>
+                                )}
+                                {isReversed && (
+                                    <Badge
+                                        variant="outline"
+                                        className="text-[10px] text-muted-foreground border-dashed shrink-0"
+                                    >
+                                        Estornada
+                                    </Badge>
+                                )}
+                            </div>
+                            <span
+                                className="text-xs text-muted-foreground truncate font-normal"
+                                title={subtitle}
                             >
-                                Estornada
-                            </Badge>
-                        )}
+                                {subtitle}
+                            </span>
+                        </div>
                     </ListItemTitle>
                 </ListItemContent>
                 <ListItemActions>
@@ -90,7 +111,7 @@ export function WalletMovementListItem({
                     <ListItemFooterInfo icon={Calendar}>
                         {formatDate(new Date(date))}
                     </ListItemFooterInfo>
-                    <ListItemFooterInfo icon={Icon} >
+                    <ListItemFooterInfo icon={Icon}>
                         {label}
                     </ListItemFooterInfo>
                 </ListItemFooterLeft>

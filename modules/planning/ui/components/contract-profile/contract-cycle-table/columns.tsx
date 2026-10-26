@@ -53,36 +53,8 @@ export const CYCLE_STATUS_CONFIG: Record<
 
 export const CONTRACT_CYCLE_COLUMNS: ColumnDef<ContractCycleItem>[] = [
     {
-        accessorKey: "label",
-        header: "Competência",
-        cell: ({ row }) => {
-            const cycle = row.original;
-            const isProjected = cycle.status === "PROJECTED";
-            return (
-                <div className="flex flex-col min-w-0">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-medium text-sm text-foreground truncate">
-                            {cycle.label}
-                        </span>
-                        {isProjected && (
-                            <Badge
-                                variant="outline"
-                                className="border-dashed border-indigo-500/40 text-indigo-700 dark:text-indigo-300 bg-indigo-500/5 text-[10px] py-0 px-1.5 h-4 font-normal shrink-0"
-                            >
-                                Projetado
-                            </Badge>
-                        )}
-                    </div>
-                    <span className="text-xs text-muted-foreground truncate">
-                        {formatDate(new Date(cycle.from))} a {formatDate(new Date(cycle.to))}
-                    </span>
-                </div>
-            );
-        },
-    },
-    {
-        accessorKey: "status",
-        header: "Status",
+        accessorKey: "dueDate",
+        header: "Vencimento",
         cell: ({ row }) => {
             const cycle = row.original;
             const config = CYCLE_STATUS_CONFIG[cycle.status] ?? {
@@ -90,26 +62,39 @@ export const CONTRACT_CYCLE_COLUMNS: ColumnDef<ContractCycleItem>[] = [
                 icon: Clock,
                 iconClassName: "text-muted-foreground",
             };
-            const StatusIcon = config.icon;
 
             const dueDate = new Date(cycle.dueDate);
-            const isPast =
-                cycle.status === "OVERDUE" ||
-                dueDate.getTime() < new Date().setHours(0, 0, 0, 0);
-            const dueText = isPast
-                ? `Venceu em ${formatDate(dueDate)}`
-                : `Vence em ${formatDate(dueDate)}`;
 
             return (
                 <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-1.5 text-sm font-medium">
-                        <StatusIcon className={cn("size-3.5 shrink-0", config.iconClassName)} />
-                        <span className={cn("truncate", config.iconClassName)}>
-                            {config.label}
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {formatDate(dueDate)}
+                        </span>
+                        <span className={cn("truncate", )}>
+                        </span>
+                    </div>
+                    <span className={cn("text-xs text-muted-foreground truncate", config.iconClassName)}>
+                        {config.label}
+                    </span>
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: "label",
+        header: "Competência",
+        cell: ({ row }) => {
+            const cycle = row.original;
+            return (
+                <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-medium text-sm text-foreground truncate">
+                            {cycle.label}
                         </span>
                     </div>
                     <span className="text-xs text-muted-foreground truncate">
-                        {dueText}
+                        {formatDate(new Date(cycle.from))} a {formatDate(new Date(cycle.to))}
                     </span>
                 </div>
             );

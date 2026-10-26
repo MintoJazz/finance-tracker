@@ -2,7 +2,10 @@ import {
     EntryType as PrismaEntryType,
     Movement as PrismaMovement,
 } from "@/prisma/generated/prisma/client";
-import { WalletMovement } from "../../core/schemas/wallet-movement.schema";
+import {
+    MovementCategoryClassification,
+    WalletMovement,
+} from "../../core/schemas/wallet-movement.schema";
 import { WalletMovementTypeResolver } from "../../core/policies/wallet-movement-type.registry";
 
 export type MovementWithEntry = PrismaMovement & {
@@ -17,7 +20,10 @@ export type MovementWithEntry = PrismaMovement & {
 };
 
 export class WalletMovementMapper {
-    static toDomain(movement: MovementWithEntry): WalletMovement {
+    static toDomain(
+        movement: MovementWithEntry,
+        categoryClassification?: MovementCategoryClassification | null
+    ): WalletMovement {
         const { entry } = movement;
 
         return {
@@ -33,6 +39,7 @@ export class WalletMovementMapper {
             amount: Math.abs(movement.amount),
             isReversed: entry.reversedBy !== null,
             hasReceipt: false,
+            categoryClassification: categoryClassification ?? { kind: "none" },
         };
     }
 }

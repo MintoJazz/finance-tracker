@@ -22,9 +22,9 @@ import { CycleNavigatorSkeleton } from "@/modules/account/ui/components/card-pro
 import { CardProfileSkeleton } from "@/modules/account/ui/components/card-profile/skeletons/profile-skeleton";
 import { ArchiveCardModalViewDesktop } from "../../archive-card-modal";
 import { RestoreCardModalViewDesktop } from "../../restore-card-modal";
-import { WalletMovementFilterForm } from "@/modules/ledger/ui/components/wallet-movement-filter-form";
+import { MovementFilter } from "@/modules/ledger/ui/components/movement-filter";
 import { WalletMovementSearch } from "@/modules/ledger/ui/components/wallet-movement-search";
-import { WalletMovementTable } from "@/modules/ledger/ui/components/wallet-movement-table";
+import { CreditMovementTable } from "@/modules/ledger/ui/components/credit-movement-table";
 import { CardProfileDesktopProps } from "../types";
 
 export default function CardProfileViewDesktop({
@@ -130,7 +130,7 @@ export default function CardProfileViewDesktop({
                             error={movementsError}
                         />
                     ) : (
-                        <WalletMovementTable
+                        <CreditMovementTable
                             data={movementsData}
                             isLoading={isLoadingProfile || isLoadingMovements}
                             hasFilters={activeFilterCount > 0}
@@ -251,13 +251,14 @@ export default function CardProfileViewDesktop({
                                         </Button>
                                     )}
                                 </div>
-                                <WalletMovementFilterForm
+                                <MovementFilter
                                     values={filters}
                                     onChange={applyFilters}
                                     onReset={clearFilters}
-                                    hideResetButton={true}
-                                    hideDateRange={true}
-                                />
+                                >
+                                    <MovementFilter.Direction />
+                                    <MovementFilter.Types />
+                                </MovementFilter>
                             </div>
                         </ProfileCard>
                     )}

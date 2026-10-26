@@ -14,7 +14,8 @@ import { ProfileSkeleton } from "@/modules/account/ui/components/wallet-profile/
 import { ArchiveWalletModalViewMobile } from "../../archive-wallet-modal";
 import { RestoreWalletModalViewMobile } from "../../restore-wallet-modal";
 import { WalletMovementList } from "@/modules/ledger/ui/components/wallet-movement-list";
-import { WalletMovementFilterDrawer } from "@/modules/ledger/ui/components/wallet-movement-filter-drawer";
+import { MovementFilter } from "@/modules/ledger/ui/components/movement-filter";
+import { MovementFilterDrawer } from "@/modules/ledger/ui/components/movement-filter/drawer";
 import { WalletMovementSearch } from "@/modules/ledger/ui/components/wallet-movement-search";
 import { WalletProfileMobileProps } from "../types";
 import { useState } from "react";
@@ -214,13 +215,19 @@ export default function WalletProfileViewMobile({
             </div>
 
             {/* Drawer de Filtros Mobile */}
-            <WalletMovementFilterDrawer
+            <MovementFilterDrawer
                 open={isFilterDrawerOpen}
                 onOpenChange={setIsFilterDrawerOpen}
                 filters={filters}
                 onApply={applyFilters}
                 onClear={clearFilters}
-            />
+                title="Filtros do Extrato"
+                description="Filtre as movimentações por período, tipo e direção."
+            >
+                <MovementFilter.Direction />
+                <MovementFilter.DateRange />
+                <MovementFilter.Types />
+            </MovementFilterDrawer>
 
             <ArchiveWalletModalViewMobile {...archiveContext} />
             <RestoreWalletModalViewMobile {...restoreContext} />

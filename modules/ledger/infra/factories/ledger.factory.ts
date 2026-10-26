@@ -3,6 +3,7 @@ import { IContextMemberRepository } from "@/modules/space/core/types/context-mem
 import { PrismaContextMembersRepository } from "@/modules/space/infra/repositories/context-members-prisma.repository";
 import { WalletPrismaQueries } from "@/modules/account/infra/repositories/wallet-prisma.queries";
 import { GetWalletMovementsUseCase } from "../../core/use-cases/get-wallet-movements.use-case";
+import { GetCardMovementsUseCase } from "../../core/use-cases/get-card-movements.use-case";
 import { IMovementQueries } from "../../core/types/movement-queries.interface";
 import { ISpaceAccessProvider } from "../../core/types/space-access-provider.interface";
 import { IBalanceLookupProvider } from "../../core/types/balance-lookup-provider.interface";
@@ -20,6 +21,13 @@ export class LedgerFactory {
 
     public static readonly makeGetWalletMovementsUseCase = () =>
         new GetWalletMovementsUseCase(
+            this.movementQueries,
+            this.spaceAccessProvider,
+            this.balanceLookupProvider
+        );
+
+    public static readonly makeGetCardMovementsUseCase = () =>
+        new GetCardMovementsUseCase(
             this.movementQueries,
             this.spaceAccessProvider,
             this.balanceLookupProvider

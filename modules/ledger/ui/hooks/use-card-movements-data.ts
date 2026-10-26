@@ -43,7 +43,7 @@ export function useCardMovementsPaginated(
         try {
             const pageRequest: PageRequest = { page, pageSize };
             const result = await getCardMovementsAction({
-                walletId: cardId,
+                cardId,
                 pageRequest,
                 filter: filters,
             });
@@ -131,7 +131,7 @@ export function useCardMovementsInfinite(
         setError(null);
         try {
             const result = await getCardMovementsAction({
-                walletId: cardId,
+                cardId,
                 pageRequest: { page: 1, pageSize },
                 filter: filters,
             });
@@ -173,7 +173,7 @@ export function useCardMovementsInfinite(
         const nextPage = pageIndex + 2;
         try {
             const result = await getCardMovementsAction({
-                walletId: cardId,
+                cardId,
                 pageRequest: { page: nextPage, pageSize },
                 filter: filters,
             });

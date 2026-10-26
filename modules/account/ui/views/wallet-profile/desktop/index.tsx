@@ -14,7 +14,7 @@ import { ProfileSkeleton } from "@/modules/account/ui/components/wallet-profile/
 import { ArchiveWalletModalViewDesktop } from "../../archive-wallet-modal";
 import { RestoreWalletModalViewDesktop } from "../../restore-wallet-modal";
 import { WalletMovementTable } from "@/modules/ledger/ui/components/wallet-movement-table";
-import { WalletMovementFilterForm } from "@/modules/ledger/ui/components/wallet-movement-filter-form";
+import { MovementFilter } from "@/modules/ledger/ui/components/movement-filter";
 import { WalletMovementSearch } from "@/modules/ledger/ui/components/wallet-movement-search";
 import { WalletProfileDesktopProps } from "../types";
 import { useState } from "react";
@@ -203,12 +203,15 @@ export default function WalletProfileViewDesktop({
                                         </Button>
                                     )}
                                 </div>
-                                <WalletMovementFilterForm
+                                <MovementFilter
                                     values={filters}
                                     onChange={applyFilters}
                                     onReset={clearFilters}
-                                    hideResetButton={true}
-                                />
+                                >
+                                    <MovementFilter.Direction />
+                                    <MovementFilter.DateRange />
+                                    <MovementFilter.Types />
+                                </MovementFilter>
                             </div>
                         </ProfileCard>
                     )}

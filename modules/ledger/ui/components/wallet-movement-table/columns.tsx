@@ -6,8 +6,12 @@ import { cn } from "@/lib/utils";
 import { MovementAmountSpan } from "../movement-amount-span";
 import { WalletMovement } from "@/modules/ledger/core/schemas/wallet-movement.schema";
 import { MOVEMENT_TYPE_UI_CONFIG } from "../../themes/movement-type";
+import {
+    CategoryAvatar,
+    getCategorySubtitle,
+} from "../category-badge";
 
-export const MOVEMENT_COLUMNS: ColumnDef<WalletMovement, unknown>[] = [
+export const WALLET_MOVEMENT_COLUMNS: ColumnDef<WalletMovement, unknown>[] = [
     {
         id: "date",
         header: "Data",
@@ -26,31 +30,53 @@ export const MOVEMENT_COLUMNS: ColumnDef<WalletMovement, unknown>[] = [
         header: "Descrição",
         accessorKey: "description",
         cell: ({ row }) => {
-            const { description, hasReceipt, isReversed } = row.original;
+            const {
+                description,
+                hasReceipt,
+                isReversed,
+                categoryClassification,
+            } = row.original;
+            const subtitle = getCategorySubtitle(categoryClassification);
+
             return (
-                <div className="flex items-center gap-2 max-w-xs sm:max-w-sm xl:max-w-md min-w-0">
-                    <span
-                        className={cn(
-                            "truncate font-medium text-foreground text-sm",
-                            isReversed && "line-through text-muted-foreground"
-                        )}
-                        title={description}
-                    >
-                        {description}
-                    </span>
-                    {hasReceipt && (
-                        <span title="Possui comprovante anexo">
-                            <Paperclip className="size-3.5 text-muted-foreground shrink-0" />
-                        </span>
-                    )}
-                    {isReversed && (
-                        <Badge
-                            variant="outline"
-                            className="text-[10px] text-muted-foreground border-dashed"
+                <div className="flex items-center gap-3 max-w-xs sm:max-w-sm xl:max-w-md min-w-0">
+                    <CategoryAvatar
+                        classification={categoryClassification}
+                        size="md"
+                        className="shrink-0"
+                    />
+                    <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                            <span
+                                className={cn(
+                                    "truncate font-medium text-foreground text-sm",
+                                    isReversed && "line-through text-muted-foreground"
+                                )}
+                                title={description}
+                            >
+                                {description}
+                            </span>
+                            {hasReceipt && (
+                                <span title="Possui comprovante anexo">
+                                    <Paperclip className="size-3.5 text-muted-foreground shrink-0" />
+                                </span>
+                            )}
+                            {isReversed && (
+                                <Badge
+                                    variant="outline"
+                                    className="text-[10px] text-muted-foreground border-dashed shrink-0"
+                                >
+                                    Estornada
+                                </Badge>
+                            )}
+                        </div>
+                        <span
+                            className="text-xs text-muted-foreground truncate"
+                            title={subtitle}
                         >
-                            Estornada
-                        </Badge>
-                    )}
+                            {subtitle}
+                        </span>
+                    </div>
                 </div>
             );
         },
@@ -81,3 +107,5 @@ export const MOVEMENT_COLUMNS: ColumnDef<WalletMovement, unknown>[] = [
         },
     },
 ];
+
+export const MOVEMENT_COLUMNS = WALLET_MOVEMENT_COLUMNS;

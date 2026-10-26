@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WalletMovement } from "@/modules/ledger/core/schemas/wallet-movement.schema";
 import { EmptyWalletMovementList } from "./empty";
 import { WalletMovementListItem } from "./list-item";
-import { MovementListSkeleton } from "../skeletons/movement-list-skeleton";
-import WalletMovementActionsDrawer, { MovementActionContext } from "../wallet-movements-actions-menu";
+import { MovementActionContext } from "../wallet-movements-actions-menu";
+import { MovementList } from "../movement-list";
 
 interface WalletMovementListProps {
     items: WalletMovement[];
@@ -35,7 +34,7 @@ export function WalletMovementList({
     const [activeMovement, setActiveMovement] = useState<WalletMovement | null>(null);
 
     if (isLoading && items.length === 0) {
-        return <MovementListSkeleton />;
+        return <MovementList.Skeleton />;
     }
 
     if (items.length === 0) {
@@ -49,8 +48,8 @@ export function WalletMovementList({
     }
 
     return (
-        <div className={cn("w-full flex flex-col", className)}>
-            <div className="w-full flex flex-col divide-y divide-border border-y border-border">
+        <MovementList className={cn("w-full flex flex-col", className)}>
+            <MovementList.Content>
                 {items.map((movement) => (
                     <WalletMovementListItem
                         key={movement.movementId}
@@ -58,38 +57,24 @@ export function WalletMovementList({
                         onOpenActions={() => setActiveMovement(movement)}
                     />
                 ))}
-            </div>
+            </MovementList.Content>
 
-            <WalletMovementActionsDrawer
-                open={!!activeMovement}
+            <MovementList.Sentinel
+                hasMore={hasMore}
+                isLoadingMore={isLoadingMore}
+                sentinelRef={sentinelRef}
+                loadingMessage="Carregando mais movimentações..."
+                allLoadedMessage="Todas as movimentações foram carregadas"
+            />
+
+            <MovementList.ActionsDrawer
+                movement={activeMovement}
                 onOpenChange={(open) => {
                     if (!open) setActiveMovement(null);
                 }}
-                movement={activeMovement}
                 context={actionContext}
-                trigger={null}
             />
-
-            {/* Sentinela de interseção para carregamento infinito */}
-            {hasMore && (
-                <div
-                    ref={sentinelRef}
-                    className="flex w-full items-center justify-center py-4 px-4"
-                >
-                    {isLoadingMore && (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Loader2 className="size-4 animate-spin text-primary" />
-                            <span>Carregando mais movimentações...</span>
-                        </div>
-                    )}
-                </div>
-            )}
-            {!hasMore && items.length > 0 && (
-                <p className="text-center text-xs text-muted-foreground py-3 px-4">
-                    Todas as movimentações foram carregadas
-                </p>
-            )}
-        </div>
+        </MovementList>
     );
 }
 

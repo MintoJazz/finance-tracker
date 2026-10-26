@@ -75,7 +75,7 @@ export class WalletPrismaQueries implements IWalletQueries {
             where: {
                 id,
                 contextId,
-                balanceType: { in: ["WALLET", "CREDIT"] },
+                balanceType: "WALLET",
                 removedAt: null,
             },
             select: {
@@ -84,6 +84,22 @@ export class WalletPrismaQueries implements IWalletQueries {
             },
         });
         return wallet;
+    }
+
+    async findCardById(id: number, contextId: number): Promise<{ id: number; name: string } | null> {
+        const card = await prisma.balance.findFirst({
+            where: {
+                id,
+                contextId,
+                balanceType: "CREDIT",
+                removedAt: null,
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+        });
+        return card;
     }
 
     async findWalletProfileById(id: number, contextId: number): Promise<WalletProfile | null> {

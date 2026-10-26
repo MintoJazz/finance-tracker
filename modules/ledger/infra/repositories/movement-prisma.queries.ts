@@ -7,6 +7,7 @@ import {
 } from "@/prisma/generated/prisma/models";
 import { Page, PageRequest } from "@/types/pagination.types";
 import {
+    MovementCategoryClassification,
     WalletMovement,
     WalletMovementFilters,
     WalletMovementType,
@@ -59,7 +60,80 @@ export class MovementPrismaQueries implements IMovementQueries {
             prisma.movement.count({ where }),
         ]);
 
-        const data = rawItems.map((item) => WalletMovementMapper.toDomain(item));
+        if (rawItems.length === 0) {
+            return {
+                data: [],
+                total,
+                pageIndex: page - 1,
+                pageSize,
+                pageCount: Math.ceil(total / pageSize) || 1,
+            };
+        }
+
+        const entryIds = rawItems.map((item) => item.entryId);
+
+        const balance = await prisma.balance.findUnique({
+            where: { id: walletId },
+            select: { contextId: true },
+        });
+
+        const categoryViews = balance?.contextId
+            ? await prisma.entryCategoryView.findMany({
+                  where: {
+                      entryId: { in: entryIds },
+                      contextId: balance.contextId,
+                  },
+              })
+            : [];
+
+        const categoryBalanceIds = categoryViews
+            .map((cv) => cv.categoryBalanceId)
+            .filter((id): id is number => typeof id === "number");
+
+        const creditBalanceIds = categoryViews
+            .map((cv) => cv.creditBalanceId)
+            .filter((id): id is number => typeof id === "number");
+
+        const [categories, creditCards] = await Promise.all([
+            categoryBalanceIds.length > 0
+                ? prisma.balance.findMany({
+                      where: { id: { in: categoryBalanceIds } },
+                      select: {
+                          id: true,
+                          name: true,
+                          appearance: {
+                              select: {
+                                  icon: true,
+                                  color: true,
+                              },
+                          },
+                      },
+                  })
+                : [],
+            creditBalanceIds.length > 0
+                ? prisma.balance.findMany({
+                      where: { id: { in: creditBalanceIds } },
+                      select: {
+                          id: true,
+                          name: true,
+                      },
+                  })
+                : [],
+        ]);
+
+        const categoryMap = new Map(categories.map((c) => [c.id, c]));
+        const creditCardMap = new Map(creditCards.map((c) => [c.id, c]));
+        const categoryViewMap = new Map(categoryViews.map((cv) => [cv.entryId, cv]));
+
+        const data = rawItems.map((item) => {
+            const classification = this.resolveCategoryClassification(
+                item.entryId,
+                categoryViewMap,
+                categoryMap,
+                creditCardMap
+            );
+            return WalletMovementMapper.toDomain(item, classification);
+        });
 
         return {
             data,
@@ -68,6 +142,51 @@ export class MovementPrismaQueries implements IMovementQueries {
             pageSize,
             pageCount: Math.ceil(total / pageSize) || 1,
         };
+    }
+
+    private resolveCategoryClassification(
+        entryId: number,
+        categoryViewMap: Map<number, { kind: string; categoryBalanceId: number | null; creditBalanceId: number | null }>,
+        categoryMap: Map<number, { id: number; name: string; appearance: { icon: string | null; color: string | null } | null }>,
+        creditCardMap: Map<number, { id: number; name: string }>
+    ): MovementCategoryClassification {
+        const view = categoryViewMap.get(entryId);
+        if (!view) return { kind: "none" };
+
+        switch (view.kind) {
+            case "category": {
+                if (view.categoryBalanceId) {
+                    const cat = categoryMap.get(view.categoryBalanceId);
+                    if (cat) {
+                        return {
+                            kind: "category",
+                            category: {
+                                id: cat.id,
+                                name: cat.name,
+                                appearance: cat.appearance,
+                            },
+                        };
+                    }
+                }
+                return { kind: "none" };
+            }
+            case "multiple":
+                return { kind: "multiple" };
+            case "pass-through":
+                return { kind: "pass-through" };
+            case "credit-settlement": {
+                if (view.creditBalanceId) {
+                    const card = creditCardMap.get(view.creditBalanceId);
+                    return {
+                        kind: "credit-settlement",
+                        creditCard: card ? { id: card.id, name: card.name } : undefined,
+                    };
+                }
+                return { kind: "credit-settlement" };
+            }
+            default:
+                return { kind: "none" };
+        }
     }
 
     private buildWhereClause(

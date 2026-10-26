@@ -22,8 +22,9 @@ import { CycleNavigatorSkeleton } from "@/modules/account/ui/components/card-pro
 import { CardProfileSkeleton } from "@/modules/account/ui/components/card-profile/skeletons/profile-skeleton";
 import { ArchiveCardModalViewMobile } from "../../archive-card-modal";
 import { RestoreCardModalViewMobile } from "../../restore-card-modal";
-import { WalletMovementFilterDrawer } from "@/modules/ledger/ui/components/wallet-movement-filter-drawer";
-import { WalletMovementList } from "@/modules/ledger/ui/components/wallet-movement-list";
+import { MovementFilter } from "@/modules/ledger/ui/components/movement-filter";
+import { MovementFilterDrawer } from "@/modules/ledger/ui/components/movement-filter/drawer";
+import { CreditMovementList } from "@/modules/ledger/ui/components/credit-movement-list";
 import { WalletMovementSearch } from "@/modules/ledger/ui/components/wallet-movement-search";
 import { CardProfileMobileProps } from "../types";
 
@@ -245,7 +246,7 @@ export default function CardProfileViewMobile({
                         />
                     </div>
                 ) : (
-                    <WalletMovementList
+                    <CreditMovementList
                         items={items}
                         isLoading={isLoadingProfile || isLoadingMovements}
                         isLoadingMore={isLoadingMore}
@@ -259,14 +260,18 @@ export default function CardProfileViewMobile({
             </div>
 
             {/* Drawer de Filtros Mobile (Sem DateRangePicker pois o ciclo controla from/to) */}
-            <WalletMovementFilterDrawer
+            <MovementFilterDrawer
                 open={isFilterDrawerOpen}
                 onOpenChange={setIsFilterDrawerOpen}
                 filters={filters}
                 onApply={applyFilters}
                 onClear={clearFilters}
-                hideDateRange={true}
-            />
+                title="Filtros da Fatura"
+                description="Filtre os lançamentos por tipo e direção."
+            >
+                <MovementFilter.Direction />
+                <MovementFilter.Types />
+            </MovementFilterDrawer>
 
             <ArchiveCardModalViewMobile {...archiveContext} />
             <RestoreCardModalViewMobile {...restoreContext} />
