@@ -75,14 +75,16 @@ export function QuickActions<
 
   if (!normalizedRow) return null
 
-  const primaryActions = visibleActions.slice(0, maxVisibleActions)
-  const optionsActions = visibleActions.slice(maxVisibleActions)
+  if (visibleActions.length === 0) return null
 
-  if (primaryActions.length === 0) return null
+  const primaryActions = visibleActions.slice(0, maxVisibleActions)
+  const overflowActions = visibleActions.slice(maxVisibleActions)
+  const optionsActions = isDesktop ? overflowActions : visibleActions
+  const showOptions = optionsActions.length > 0
 
   const columns = Math.min(
     5,
-    primaryActions.length + (optionsActions.length > 0 ? 1 : 0)
+    primaryActions.length + (showOptions ? 1 : 0)
   )
 
   const optionsTrigger = (
@@ -171,7 +173,7 @@ export function QuickActions<
         )
       })}
 
-      {optionsActions.length > 0 &&
+      {showOptions &&
         (isDesktop ? (
           <DataTableRowActions
             row={normalizedRow}
