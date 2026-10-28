@@ -13,8 +13,8 @@ import {
 export function orderEntriesWithReversals(
     entries: CycleEntryRow[]
 ): CycleEntryRow[] {
-    const standalone = entries.filter((e) => e.type !== "reversal");
-    const reversals = entries.filter((e) => e.type === "reversal");
+    const standalone = entries.filter((e) => e.type !== "REVERSAL");
+    const reversals = entries.filter((e) => e.type === "REVERSAL");
 
     const result: CycleEntryRow[] = [];
     for (const entry of standalone) {

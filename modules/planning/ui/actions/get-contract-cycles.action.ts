@@ -26,8 +26,6 @@ export async function getContractCyclesAction(
     const useCase = PlanningFactory.makeGetContractCyclesUseCase();
     return useCase.execute({
         session,
-        contractId: parsed.data.contractId,
-        pageRequest: parsed.data.pageRequest,
-        filter: parsed.data.filter,
+        ...parsed.data
     });
 }

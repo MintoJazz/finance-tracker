@@ -39,6 +39,7 @@ export default function ContractProfileViewDesktop({
     paginationContext,
     cycleActionContext,
     contractModalsContext,
+    onCycleClick,
 }: ContractProfileDesktopProps) {
     const renameModalProps = useRenameContractModal(
         profile
@@ -123,6 +124,7 @@ export default function ContractProfileViewDesktop({
                             setPage={paginationContext.setPage}
                             setPageSize={paginationContext.setPageSize}
                             cycleActionContext={cycleActionContext}
+                            onRowClick={onCycleClick}
                         />
                     )}
                 </main>

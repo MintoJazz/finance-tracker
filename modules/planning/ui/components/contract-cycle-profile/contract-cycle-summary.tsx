@@ -76,7 +76,7 @@ export function ContractCycleSummary({
     );
 
     const effectiveContext = cycleActionContext ?? defaultActionContext;
-    const isProjected = cycle.status === "projected";
+    const isProjected = cycle.status === "PROJECTED";
 
     return (
         <Card

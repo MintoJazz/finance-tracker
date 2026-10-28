@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
 import { useArchiveRestore } from "@/hooks/use-archive-restore";
@@ -9,6 +9,7 @@ import { useContractProfileData } from "../hooks/use-contract-profile-data";
 import { useContractCycleFilters } from "../hooks/use-contract-cycle-filters";
 import { useContractCyclesInfinite } from "../hooks/use-contract-cycles-data";
 import { ContractSummaryItem } from "@/modules/planning/core/schemas/contract.schema";
+import { ContractCycleItem } from "@/modules/planning/core/schemas/contract-cycle.schema";
 import { archiveContractAction } from "../../../actions/archive-contract.action";
 import { restoreContractAction } from "../../../actions/restore-contract.action";
 import { toggleContractProjectionAction } from "../../../actions/toggle-contract-projection.action";
@@ -202,6 +203,16 @@ export function useContractProfileMobile({
         []
     );
 
+    const onCycleClick = useCallback(
+        (cycle: ContractCycleItem) => {
+            const targetContractId = cycle.contractId ?? contractId;
+            router.push(
+                `/contracts/${targetContractId}/cycle?from=${cycle.from}&to=${cycle.to}`
+            );
+        },
+        [router, contractId]
+    );
+
     return {
         profile,
         isLoadingProfile,
@@ -227,5 +238,6 @@ export function useContractProfileMobile({
         setIsFilterDrawerOpen,
         cycleActionContext,
         contractModalsContext,
+        onCycleClick,
     } as any;
 }

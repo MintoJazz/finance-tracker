@@ -26,8 +26,9 @@ export function ContractCycleEntryActionsDrawerHeader({
     const isReversed = Boolean(entry.reversedByEntryId);
     const isCredit =
         entry.direction === "CREDIT" ||
-        entry.type === "settlement" ||
-        entry.type === "reversal";
+        entry.type === "SETTLEMENT" ||
+        entry.type === "CLAIM_PAYMENT" ||
+        entry.type === "REVERSAL";
     const classification = getEntryCategoryClassification(entry);
     const typeLabel = ENTRY_TYPE_CONFIG[entry.type]?.label ?? "Lançamento";
 

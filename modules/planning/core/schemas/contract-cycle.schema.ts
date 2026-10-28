@@ -74,18 +74,9 @@ export const CycleRangeSchema = z
 
 export type CycleRange = z.infer<typeof CycleRangeSchema>;
 
-export const ContractCycleProfileStatusSchema = z.enum([
-    "projected",
-    "open",
-    "paid",
-    "partial",
-    "overdue",
-    "transferred",
-]);
-
-export type ContractCycleProfileStatus = z.infer<
-    typeof ContractCycleProfileStatusSchema
->;
+export { type EntryTypeEnum } from "./cycle-entries.schema";
+import { EntryTypeEnumSchema } from "./cycle-entries.schema";
+export { EntryTypeEnumSchema };
 
 export const ContractCycleRuleSchema = z.object({
     label: z.string(),
@@ -100,7 +91,7 @@ export const ContractCycleProfileSchema = z.object({
     title: z.string(), // Ex: "Outubro 2026"
     range: CycleRangeSchema,
     dueDate: z.string(), // ISO YYYY-MM-DD
-    status: ContractCycleProfileStatusSchema,
+    status: ContractCycleStatusEnumSchema,
     expectedAmount: z.number().int().nonnegative(), // Centavos
     paidAmount: z.number().int().nonnegative(), // Centavos
     transferredAmount: z.number().int().nonnegative(), // Centavos
@@ -113,16 +104,6 @@ export const ContractCycleProfileSchema = z.object({
 
 export type ContractCycleProfile = z.infer<typeof ContractCycleProfileSchema>;
 
-export const CycleEntryTypeSchema = z.enum([
-    "provision",
-    "adjustment",
-    "settlement",
-    "claim_opening",
-    "reversal",
-]);
-
-export type CycleEntryType = z.infer<typeof CycleEntryTypeSchema>;
-
 export const CycleEntryCounterpartSchema = z.object({
     label: z.string(),
     href: z.string(),
@@ -134,7 +115,7 @@ export const CycleEntryRowSchema = z.object({
     id: z.number().int().positive(),
     date: z.string(), // ISO YYYY-MM-DD
     description: z.string(),
-    type: CycleEntryTypeSchema,
+    type: EntryTypeEnumSchema,
     direction: z.enum(["CREDIT", "DEBIT"]),
     amount: z.number().int().positive(), // Centavos (sempre positivo)
     hasAttachment: z.boolean(),

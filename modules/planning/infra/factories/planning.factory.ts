@@ -8,12 +8,15 @@ import { IContractQueries } from "../../core/types/contract-queries.interface";
 import { IContractRepository } from "../../core/types/contract-repository.interface";
 import { ICycleEntriesQueries } from "../../core/types/cycle-entries-queries.interface";
 import { IContractProfileQueries } from "../../core/types/contract-profile-queries.interface";
+import { IContractCycleProfileQueries } from "../../core/types/contract-cycle-profile-queries.interface";
 import { IPlanningAccessProvider } from "../../core/types/space-access-provider.interface";
 import { CreateContractUseCase } from "../../core/use-cases/create-contract.use-case";
 import { ArchiveContractUseCase } from "../../core/use-cases/archive-contract.use-case";
 import { GetAgreementDetailUseCase } from "../../core/use-cases/get-agreement-detail.use-case";
 import { GetContractCyclesUseCase } from "../../core/use-cases/get-contract-cycles.use-case";
 import { GetContractProfileUseCase } from "../../core/use-cases/get-contract-profile.use-case";
+import { GetContractCycleProfileUseCase } from "../../core/use-cases/get-contract-cycle-profile.use-case";
+import { ResolveCurrentContractCycleUseCase } from "../../core/use-cases/resolve-current-contract-cycle.use-case";
 import { GetContextContractsUseCase } from "../../core/use-cases/get-context-contracts.use-case";
 import { GetCycleEntriesUseCase } from "../../core/use-cases/get-cycle-entries.use-case";
 import { RestoreContractUseCase } from "../../core/use-cases/restore-contract.use-case";
@@ -23,6 +26,7 @@ import { AgreementDetailPrismaQueries } from "../repositories/agreement-detail-p
 import { ContractPrismaQueries } from "../repositories/contract-prisma.queries";
 import { ContractPrismaRepository } from "../repositories/contract-prisma.repository";
 import { ContractProfilePrismaQueries } from "../repositories/contract-profile-prisma.queries";
+import { ContractCycleProfilePrismaQueries } from "../repositories/contract-cycle-profile-prisma.queries";
 import { CycleEntriesPrismaQueries } from "../repositories/cycle-entries-prisma.queries";
 
 export class PlanningFactory {
@@ -45,6 +49,8 @@ export class PlanningFactory {
         new AgreementDetailPrismaQueries();
     private static readonly contractProfileQueries: IContractProfileQueries =
         new ContractProfilePrismaQueries();
+    private static readonly contractCycleProfileQueries: IContractCycleProfileQueries =
+        new ContractCycleProfilePrismaQueries();
     private static readonly cycleEntriesQueries: ICycleEntriesQueries =
         new CycleEntriesPrismaQueries();
     private static readonly cycleEngineService = new CycleEngineService();
@@ -91,6 +97,20 @@ export class PlanningFactory {
     public static readonly makeGetContractCyclesUseCase = () =>
         new GetContractCyclesUseCase(
             this.contractProfileQueries,
+            this.planningAccessProvider,
+            this.cycleEngineService
+        );
+
+    public static readonly makeGetContractCycleProfileUseCase = () =>
+        new GetContractCycleProfileUseCase(
+            this.contractCycleProfileQueries,
+            this.planningAccessProvider,
+            this.cycleEngineService
+        );
+
+    public static readonly makeResolveCurrentContractCycleUseCase = () =>
+        new ResolveCurrentContractCycleUseCase(
+            this.contractCycleProfileQueries,
             this.planningAccessProvider,
             this.cycleEngineService
         );

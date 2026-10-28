@@ -27,7 +27,7 @@ export function ContractCycleProgress({
         Math.max(0, (transferredAmount / total) * 100)
     );
 
-    const isOverdue = status === "overdue" && openAmount > 0;
+    const isOverdue = status === "OVERDUE" && openAmount > 0;
 
     return (
         <div className={cn("flex flex-col gap-2 w-full", className)}>

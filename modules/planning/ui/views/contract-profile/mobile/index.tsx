@@ -43,6 +43,7 @@ export default function ContractProfileViewMobile({
     isFilterDrawerOpen,
     setIsFilterDrawerOpen,
     cycleActionContext,
+    onCycleClick,
     contractModalsContext,
 }: ContractProfileMobileProps & { contractModalsContext?: any }) {
     const renameModalProps = useRenameContractModal(
@@ -162,6 +163,7 @@ export default function ContractProfileViewMobile({
                         hasFilters={activeFilterCount > 0}
                         onClearFilters={clearFilters}
                         cycleActionContext={cycleActionContext}
+                        onSelectCycle={onCycleClick}
                     />
                 )}
             </div>

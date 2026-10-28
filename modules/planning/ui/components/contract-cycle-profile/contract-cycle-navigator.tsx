@@ -8,38 +8,43 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
     ContractCycleProfile,
-    ContractCycleProfileStatus,
+    ContractCycleStatusEnum,
 } from "../../../core/schemas/contract-cycle.schema";
 
 const CYCLE_STATUS_CONFIG: Record<
-    ContractCycleProfileStatus,
+    ContractCycleStatusEnum,
     { label: string; className: string }
 > = {
-    projected: {
+    PROJECTED: {
         label: "Projetado",
         className: "border-border text-muted-foreground bg-muted/40",
     },
-    open: {
+    OPEN: {
         label: "Em aberto",
         className:
             "border-blue-500/30 text-blue-700 dark:text-blue-400 bg-blue-500/10",
     },
-    paid: {
+    PENDING: {
+        label: "Pendente",
+        className:
+            "border-sky-500/30 text-sky-700 dark:text-sky-400 bg-sky-500/10",
+    },
+    PAID: {
         label: "Pago",
         className:
             "border-emerald-500/30 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10",
     },
-    partial: {
+    PARTIAL: {
         label: "Parcial",
         className:
             "border-amber-500/30 text-amber-700 dark:text-amber-400 bg-amber-500/10",
     },
-    overdue: {
+    OVERDUE: {
         label: "Vencido",
         className:
             "border-rose-500/30 text-rose-700 dark:text-rose-400 bg-rose-500/10",
     },
-    transferred: {
+    TRANSFERRED: {
         label: "Transferido",
         className:
             "border-indigo-500/30 text-indigo-700 dark:text-indigo-400 bg-indigo-500/10",

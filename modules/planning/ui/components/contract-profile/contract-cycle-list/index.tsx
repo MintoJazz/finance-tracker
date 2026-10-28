@@ -22,6 +22,7 @@ interface ContractCycleListProps {
     onClearFilters?: () => void;
     sentinelRef?: (node: HTMLDivElement | null) => void;
     cycleActionContext?: ContractCycleActionContext;
+    onSelectCycle?: (cycle: ContractCycleItem) => void;
     className?: string;
 }
 
@@ -35,6 +36,7 @@ export function ContractCycleList({
     onClearFilters,
     sentinelRef,
     cycleActionContext,
+    onSelectCycle,
     className,
 }: ContractCycleListProps) {
     const [selectedCycleForActions, setSelectedCycleForActions] =
@@ -62,6 +64,9 @@ export function ContractCycleList({
                         key={cycle.cycleKey}
                         cycle={cycle}
                         isPayable={isPayable}
+                        onSelect={
+                            onSelectCycle ? () => onSelectCycle(cycle) : undefined
+                        }
                         onOpenActions={
                             cycleActionContext
                                 ? () => {

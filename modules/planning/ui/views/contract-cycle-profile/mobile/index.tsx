@@ -42,7 +42,7 @@ export default function ContractCycleProfileViewMobile({
 
     const filteredEntries = React.useMemo(() => {
         return entries.filter((entry) => {
-            if (!includeReversed && (entry.type === "reversal" || Boolean(entry.reversedByEntryId))) {
+            if (!includeReversed && (entry.type === "REVERSAL" || Boolean(entry.reversedByEntryId))) {
                 return false;
             }
             if (searchTerm && searchTerm.trim().length > 0) {

@@ -1,6 +1,6 @@
 "use server";
 
-import { failure, Result, success } from "@/types/result.types";
+import { failure, Result } from "@/types/result.types";
 import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
 import {
     ContractCycleProfile,
@@ -8,10 +8,7 @@ import {
     CycleRange,
     CycleRangeSchema,
 } from "../../core/schemas/contract-cycle.schema";
-import {
-    getContractCycleProfileMock,
-    resolveCurrentCycleRange,
-} from "../../infra/mock/contract-cycle.mock";
+import { PlanningFactory } from "../../infra/factories/planning.factory";
 
 export interface ContractCycleProfileActionResult {
     cycle: ContractCycleProfile;
@@ -28,8 +25,11 @@ export async function resolveCurrentContractCycleAction(
         return failure("ID do contrato inválido");
     }
 
-    const range = resolveCurrentCycleRange(contractId);
-    return success(range);
+    const useCase = PlanningFactory.makeResolveCurrentContractCycleUseCase();
+    return useCase.execute({
+        session,
+        contractId,
+    });
 }
 
 export async function getContractCycleProfileAction(
@@ -50,11 +50,10 @@ export async function getContractCycleProfileAction(
         );
     }
 
-    // A fronteira para na Server Action consumindo o mock
-    const result = getContractCycleProfileMock(contractId, parsedRange.data);
-    if (!result) {
-        return failure("Ciclo não encontrado para o contrato informado.");
-    }
-
-    return success(result);
+    const useCase = PlanningFactory.makeGetContractCycleProfileUseCase();
+    return useCase.execute({
+        session,
+        contractId,
+        range: parsedRange.data,
+    });
 }

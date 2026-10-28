@@ -47,6 +47,7 @@ export interface ContractProfileDesktopProps {
     };
     cycleActionContext: ContractCycleActionContext;
     contractModalsContext?: ContractProfileContractModalsContext;
+    onCycleClick?: (cycle: ContractCycleItem) => void;
 }
 
 export interface ContractProfileMobileProps {
@@ -73,4 +74,5 @@ export interface ContractProfileMobileProps {
     isFilterDrawerOpen: boolean;
     setIsFilterDrawerOpen: (open: boolean) => void;
     cycleActionContext: ContractCycleActionContext;
+    onCycleClick?: (cycle: ContractCycleItem) => void;
 }

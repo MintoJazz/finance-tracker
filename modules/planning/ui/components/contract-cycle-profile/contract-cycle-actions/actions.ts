@@ -1,7 +1,6 @@
 import {
     ContractCycleItem,
     ContractCycleProfile,
-    ContractCycleStatusEnum,
 } from "../../../../core/schemas/contract-cycle.schema";
 
 export {
@@ -19,7 +18,7 @@ export function cycleProfileToItem(profile: ContractCycleProfile): ContractCycle
         from: profile.range.from,
         to: profile.range.to,
         dueDate: new Date(profile.dueDate),
-        status: profile.status.toUpperCase() as ContractCycleStatusEnum,
+        status: profile.status,
         totalAmount: profile.expectedAmount,
         paidAmount: profile.paidAmount,
         remainingAmount: profile.openAmount,

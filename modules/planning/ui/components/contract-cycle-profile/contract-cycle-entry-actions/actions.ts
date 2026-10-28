@@ -65,7 +65,7 @@ export const CONTRACT_CYCLE_ENTRY_ACTIONS: RowAction<
         confirmDescription: "Tem certeza que deseja estornar este lançamento?",
         onClick: (row, context) => context?.onReverseEntry?.(row.original),
         hidden: (row) =>
-            row.original.type === "reversal" ||
+            row.original.type === "REVERSAL" ||
             Boolean(row.original.reversedByEntryId),
     },
 ];

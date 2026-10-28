@@ -14,36 +14,59 @@ import {
 import { MovementCategoryClassification } from "@/modules/ledger/core/schemas/wallet-movement.schema";
 import {
     CycleEntryRow,
-    CycleEntryType,
+    EntryTypeEnum,
 } from "../../../../core/schemas/contract-cycle.schema";
 
 export const ENTRY_TYPE_CONFIG: Record<
-    CycleEntryType,
+    EntryTypeEnum,
     { label: string; className: string }
 > = {
-    provision: {
+    ACCRUAL: {
         label: "Provisão",
         className: "border-border text-muted-foreground bg-muted/40",
     },
-    adjustment: {
+    ADJUSTMENT: {
         label: "Ajuste",
         className:
             "border-amber-500/30 text-amber-700 dark:text-amber-400 bg-amber-500/10",
     },
-    settlement: {
+    SETTLEMENT: {
         label: "Pagamento",
         className:
             "border-emerald-500/30 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10",
     },
-    claim_opening: {
+    CLAIM_PAYMENT: {
+        label: "Pagamento",
+        className:
+            "border-emerald-500/30 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10",
+    },
+    CLAIM_RECEIPT: {
+        label: "Recebimento",
+        className:
+            "border-emerald-500/30 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10",
+    },
+    CLAIM_OPENING: {
         label: "Parcelamento",
         className:
             "border-indigo-500/30 text-indigo-700 dark:text-indigo-400 bg-indigo-500/10",
     },
-    reversal: {
+    CLAIM_ACCEPTANCE: {
+        label: "Repactuação",
+        className:
+            "border-indigo-500/30 text-indigo-700 dark:text-indigo-400 bg-indigo-500/10",
+    },
+    REVERSAL: {
         label: "Estorno",
         className:
             "border-rose-500/30 text-rose-700 dark:text-rose-400 bg-rose-500/10",
+    },
+    DIRECT: {
+        label: "Direto",
+        className: "border-border text-muted-foreground bg-muted/40",
+    },
+    TRANSFER: {
+        label: "Transferência",
+        className: "border-border text-muted-foreground bg-muted/40",
     },
 };
 
@@ -51,7 +74,7 @@ export function getEntryCategoryClassification(
     entry: CycleEntryRow
 ): MovementCategoryClassification {
     switch (entry.type) {
-        case "provision":
+        case "ACCRUAL":
             return {
                 kind: "category",
                 category: {
@@ -60,7 +83,7 @@ export function getEntryCategoryClassification(
                     appearance: { icon: "file-text", color: "sky" },
                 },
             };
-        case "adjustment":
+        case "ADJUSTMENT":
             return {
                 kind: "category",
                 category: {
@@ -69,15 +92,19 @@ export function getEntryCategoryClassification(
                     appearance: { icon: "sliders", color: "amber" },
                 },
             };
-        case "settlement":
+        case "SETTLEMENT":
+        case "CLAIM_PAYMENT":
+        case "CLAIM_RECEIPT":
             return {
                 kind: "credit-settlement",
             };
-        case "claim_opening":
+        case "CLAIM_OPENING":
+        case "CLAIM_ACCEPTANCE":
+        case "TRANSFER":
             return {
                 kind: "pass-through",
             };
-        case "reversal":
+        case "REVERSAL":
             return {
                 kind: "category",
                 category: {
@@ -86,6 +113,7 @@ export function getEntryCategoryClassification(
                     appearance: { icon: "rotate-ccw", color: "rose" },
                 },
             };
+        case "DIRECT":
         default:
             return { kind: "none" };
     }
@@ -176,8 +204,9 @@ export const CONTRACT_CYCLE_ENTRY_COLUMNS: ColumnDef<CycleEntryRow, unknown>[] =
             const entry = row.original;
             const isCredit =
                 entry.direction === "CREDIT" ||
-                entry.type === "settlement" ||
-                entry.type === "reversal";
+                entry.type === "SETTLEMENT" ||
+                entry.type === "CLAIM_PAYMENT" ||
+                entry.type === "REVERSAL";
             const isReversed = Boolean(entry.reversedByEntryId);
             const typeLabel =
                 ENTRY_TYPE_CONFIG[entry.type]?.label ?? "Lançamento";
