@@ -1,19 +1,18 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import type { RowData } from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
 import { ActionsDrawer } from "@/components/actions/drawer"
-import { DataTableRowActions, renderActionIcon } from "@/components/actions/menu"
+import { DataTableRowActions } from "@/components/actions/menu"
 import { useIsDesktop } from "@/hooks/use-breakpoint"
 import { cn } from "@/lib/utils"
 import type {
   ActionCatalog,
+  ActionColor,
   RowAction,
   RowLike,
 } from "@/types/actions.types"
-import { getQuickActionTheme } from "./themes"
+import { QuickActionOptionsTrigger, QuickActionTile } from "./tile"
 
 export interface QuickActionsProps<
   TData extends RowData = RowData,
@@ -28,6 +27,8 @@ export interface QuickActionsProps<
   optionsTriggerLabel?: string
   maxVisibleActions?: number
   className?: string
+  variant?: "default" | "inline"
+  colorMap?: Record<string, ActionColor>
 }
 
 const GRID_COLUMNS: Record<number, string> = {
@@ -36,6 +37,16 @@ const GRID_COLUMNS: Record<number, string> = {
   3: "grid-cols-3",
   4: "grid-cols-4",
   5: "grid-cols-5",
+}
+
+const DEFAULT_ACTION_COLOR_MAP: Record<string, ActionColor> = {
+  settle: "emerald",
+  consolidate: "emerald",
+  "adjust-value": "amber",
+  discard: "rose",
+  expense: "rose",
+  "pay-invoice": "emerald",
+  "adjust-limit": "blue",
 }
 
 export function QuickActions<
@@ -49,8 +60,10 @@ export function QuickActions<
   optionsLabel,
   optionsContentClassName,
   optionsTriggerLabel = "Opções",
-  maxVisibleActions = 3,
+  maxVisibleActions,
   className,
+  variant = "default",
+  colorMap,
 }: QuickActionsProps<TData, TContext>) {
   const isDesktop = useIsDesktop()
 
@@ -73,32 +86,92 @@ export function QuickActions<
     )
   }, [actionList, normalizedRow, context])
 
-  if (!normalizedRow) return null
+  if (!normalizedRow || visibleActions.length === 0) return null
 
-  if (visibleActions.length === 0) return null
+  const isInline = variant === "inline"
 
-  const primaryActions = visibleActions.slice(0, maxVisibleActions)
-  const overflowActions = visibleActions.slice(maxVisibleActions)
+  // Regra de quantidade de tiles:
+  // Máximo de 4 tiles no total.
+  // Se variant === "inline":
+  //   Se visibleActions > 4: 3 primárias + 1 "Opções" com as excedentes.
+  //   Se visibleActions <= 4: todas primárias. "Opções" aparece apenas se houver excedente no menu.
+  // Se variant === "default":
+  //   Mantém o padrão clássico do projeto (3 primárias + Opções para o restante).
+  const defaultMax = isInline
+    ? (visibleActions.length > 4 ? 3 : 4)
+    : 3
+
+  const effectiveMaxVisible = maxVisibleActions ?? defaultMax
+
+  const primaryActions = visibleActions.slice(0, effectiveMaxVisible)
+  const overflowActions = visibleActions.slice(effectiveMaxVisible)
   const optionsActions = isDesktop ? overflowActions : visibleActions
-  const showOptions = optionsActions.length > 0
+  const showOptions = overflowActions.length > 0
+
+  const tileClassName = isInline
+    ? "w-full sm:w-14 sm:min-w-[56px] shrink-0"
+    : undefined
+
+  const optionsTrigger = (
+    <QuickActionOptionsTrigger
+      label={optionsTriggerLabel}
+      className={tileClassName}
+    />
+  )
+
+  const resolveColor = (action: RowAction<TData, TContext>): ActionColor | undefined => {
+    if (action.color) return action.color
+    const id = action.id ?? ""
+    if (colorMap && id in colorMap) return colorMap[id]
+    if (id in DEFAULT_ACTION_COLOR_MAP) return DEFAULT_ACTION_COLOR_MAP[id]
+    return undefined
+  }
+
+  if (isInline) {
+    return (
+      <div
+        className={cn(
+          "grid grid-cols-4 gap-2 w-full sm:flex sm:items-center sm:justify-end sm:gap-2 sm:w-auto",
+          className
+        )}
+      >
+        {primaryActions.map((action, index) => (
+          <QuickActionTile
+            key={action.id ?? index}
+            action={action}
+            row={normalizedRow}
+            context={context}
+            color={resolveColor(action)}
+            className={tileClassName}
+          />
+        ))}
+
+        {showOptions &&
+          (isDesktop ? (
+            <DataTableRowActions
+              row={normalizedRow}
+              actions={optionsActions}
+              context={context}
+              trigger={optionsTrigger}
+            />
+          ) : (
+            <ActionsDrawer
+              row={normalizedRow}
+              actions={optionsActions}
+              context={context}
+              trigger={optionsTrigger}
+              header={optionsHeader}
+              label={optionsLabel}
+              contentClassName={optionsContentClassName}
+            />
+          ))}
+      </div>
+    )
+  }
 
   const columns = Math.min(
     5,
     primaryActions.length + (showOptions ? 1 : 0)
-  )
-
-  const optionsTrigger = (
-    <button
-      type="button"
-      className="group flex flex-col items-center gap-1 cursor-pointer min-w-0"
-    >
-      <div className="w-full max-w-12 sm:max-w-13 h-9 sm:h-9.5 rounded-xl border border-border/70 bg-muted/60 dark:bg-muted/40 flex items-center justify-center transition-all group-hover:scale-105 active:scale-95 group-hover:bg-muted group-hover:shadow-xs">
-        <MoreHorizontal className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-      </div>
-      <span className="text-[11px] font-medium text-foreground text-center truncate w-full">
-        {optionsTriggerLabel}
-      </span>
-    </button>
   )
 
   return (
@@ -109,69 +182,15 @@ export function QuickActions<
         className
       )}
     >
-      {primaryActions.map((action, index) => {
-        const key = action.id ?? index
-        const isDisabled =
-          typeof action.disabled === "function"
-            ? action.disabled(normalizedRow, context)
-            : action.disabled
-        const theme = getQuickActionTheme(action.color)
-
-        const content = (
-          <>
-            <div
-              className={cn(
-                "w-full max-w-12 sm:max-w-13 h-9 sm:h-9.5 rounded-xl border flex items-center justify-center transition-all group-hover:scale-105 active:scale-95 group-hover:shadow-xs",
-                theme.containerClassName,
-                action.colorClassName
-              )}
-            >
-              {renderActionIcon(
-                action.icon,
-                cn(
-                  "size-4 transition-transform group-hover:-translate-y-0.5",
-                  theme.iconClassName
-                )
-              )}
-            </div>
-            <span className="text-[11px] font-medium text-foreground text-center truncate w-full">
-              {action.label}
-            </span>
-          </>
-        )
-
-        const tileClassName =
-          "group flex flex-col items-center gap-1 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 min-w-0"
-
-        if (action.href && !isDisabled) {
-          return (
-            <Link
-              key={key}
-              href={action.href}
-              className={tileClassName}
-              onClick={() => {
-                void action.onClick?.(normalizedRow, context as TContext)
-              }}
-            >
-              {content}
-            </Link>
-          )
-        }
-
-        return (
-          <button
-            key={key}
-            type="button"
-            disabled={isDisabled}
-            onClick={() => {
-              void action.onClick?.(normalizedRow, context as TContext)
-            }}
-            className={tileClassName}
-          >
-            {content}
-          </button>
-        )
-      })}
+      {primaryActions.map((action, index) => (
+        <QuickActionTile
+          key={action.id ?? index}
+          action={action}
+          row={normalizedRow}
+          context={context}
+          color={resolveColor(action)}
+        />
+      ))}
 
       {showOptions &&
         (isDesktop ? (
@@ -197,3 +216,6 @@ export function QuickActions<
 }
 
 export default QuickActions
+export * from "./tile"
+export * from "./themes"
+

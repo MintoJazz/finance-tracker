@@ -2,7 +2,6 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { AlertTriangle, CheckCircle2, Clock, Sparkles } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { AmountSpan } from "@/components/amount-span";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
@@ -48,6 +47,11 @@ export const CYCLE_STATUS_CONFIG: Record<
         label: "Em aberto",
         icon: Clock,
         iconClassName: "text-muted-foreground",
+    },
+    TRANSFERRED: {
+        label: "Transferido",
+        icon: Sparkles,
+        iconClassName: "text-indigo-600 dark:text-indigo-400",
     },
 };
 

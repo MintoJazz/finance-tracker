@@ -7,6 +7,7 @@ export const ContractCycleStatusEnumSchema = z.enum([
     "PARTIAL",   // Quitado parcialmente
     "OVERDUE",   // Vencido
     "PAID",      // Quitado integralmente
+    "TRANSFERRED", // Quitado por transferência/parcelamento
 ]);
 
 export type ContractCycleStatusEnum = z.infer<typeof ContractCycleStatusEnumSchema>;
@@ -53,3 +54,152 @@ export const GetContractCyclesDTOSchema = z.object({
 });
 
 export type GetContractCyclesDTO = z.infer<typeof GetContractCyclesDTOSchema>;
+
+// ==========================================
+// Perfil Detalhado do Ciclo de Contrato
+// ==========================================
+
+export const CycleRangeSchema = z
+    .object({
+        from: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/, "Data inicial no formato YYYY-MM-DD"),
+        to: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/, "Data final no formato YYYY-MM-DD"),
+    })
+    .refine((data) => data.from <= data.to, {
+        message: "A data inicial (from) deve ser menor ou igual à data final (to)",
+    });
+
+export type CycleRange = z.infer<typeof CycleRangeSchema>;
+
+export const ContractCycleProfileStatusSchema = z.enum([
+    "projected",
+    "open",
+    "paid",
+    "partial",
+    "overdue",
+    "transferred",
+]);
+
+export type ContractCycleProfileStatus = z.infer<
+    typeof ContractCycleProfileStatusSchema
+>;
+
+export const ContractCycleRuleSchema = z.object({
+    label: z.string(),
+    effectiveFrom: z.string(),
+});
+
+export type ContractCycleRule = z.infer<typeof ContractCycleRuleSchema>;
+
+export const ContractCycleProfileSchema = z.object({
+    contractId: z.number().int().positive(),
+    contractName: z.string(),
+    title: z.string(), // Ex: "Outubro 2026"
+    range: CycleRangeSchema,
+    dueDate: z.string(), // ISO YYYY-MM-DD
+    status: ContractCycleProfileStatusSchema,
+    expectedAmount: z.number().int().nonnegative(), // Centavos
+    paidAmount: z.number().int().nonnegative(), // Centavos
+    transferredAmount: z.number().int().nonnegative(), // Centavos
+    openAmount: z.number().int().nonnegative(), // Centavos
+    hasReceipt: z.boolean(),
+    prev: CycleRangeSchema.nullable(),
+    next: CycleRangeSchema.nullable(),
+    rule: ContractCycleRuleSchema,
+});
+
+export type ContractCycleProfile = z.infer<typeof ContractCycleProfileSchema>;
+
+export const CycleEntryTypeSchema = z.enum([
+    "provision",
+    "adjustment",
+    "settlement",
+    "claim_opening",
+    "reversal",
+]);
+
+export type CycleEntryType = z.infer<typeof CycleEntryTypeSchema>;
+
+export const CycleEntryCounterpartSchema = z.object({
+    label: z.string(),
+    href: z.string(),
+});
+
+export type CycleEntryCounterpart = z.infer<typeof CycleEntryCounterpartSchema>;
+
+export const CycleEntryRowSchema = z.object({
+    id: z.number().int().positive(),
+    date: z.string(), // ISO YYYY-MM-DD
+    description: z.string(),
+    type: CycleEntryTypeSchema,
+    direction: z.enum(["CREDIT", "DEBIT"]),
+    amount: z.number().int().positive(), // Centavos (sempre positivo)
+    hasAttachment: z.boolean(),
+    reversesEntryId: z.number().int().positive().nullable(),
+    reversedByEntryId: z.number().int().positive().nullable(),
+    counterpart: CycleEntryCounterpartSchema.nullable(),
+});
+
+export type CycleEntryRow = z.infer<typeof CycleEntryRowSchema>;
+
+// Payloads para fase futura de backend (mutações)
+export const PayCyclePayloadSchema = z.object({
+    contractId: z.number().int().positive(),
+    cycleRange: CycleRangeSchema,
+    amount: z.number().int().positive("O valor deve ser maior que zero"),
+    paymentDate: z.string(),
+    walletId: z.number().int().positive("Selecione a carteira de origem"),
+});
+
+export type PayCyclePayload = z.infer<typeof PayCyclePayloadSchema>;
+
+export const InstallmentCyclePayloadSchema = z.object({
+    contractId: z.number().int().positive(),
+    cycleRange: CycleRangeSchema,
+    totalAmount: z.number().int().positive(),
+    installmentsCount: z.number().int().min(2).max(72),
+    firstDueDate: z.string(),
+    targetContractId: z.number().int().positive().optional(),
+});
+
+export type InstallmentCyclePayload = z.infer<
+    typeof InstallmentCyclePayloadSchema
+>;
+
+export const AdjustCyclePayloadSchema = z.object({
+    contractId: z.number().int().positive(),
+    cycleRange: CycleRangeSchema,
+    newAmount: z.number().int().nonnegative(),
+    reason: z.string().min(1, "Informe o motivo do ajuste"),
+});
+
+export type AdjustCyclePayload = z.infer<typeof AdjustCyclePayloadSchema>;
+
+export const AttachReceiptPayloadSchema = z.object({
+    contractId: z.number().int().positive(),
+    cycleRange: CycleRangeSchema,
+    attachmentId: z.string().min(1, "Anexo obrigatório"),
+    notes: z.string().optional(),
+});
+
+export type AttachReceiptPayload = z.infer<typeof AttachReceiptPayloadSchema>;
+
+export const SkipCyclePayloadSchema = z.object({
+    contractId: z.number().int().positive(),
+    cycleRange: CycleRangeSchema,
+});
+
+export type SkipCyclePayload = z.infer<typeof SkipCyclePayloadSchema>;
+
+export const ReverseEntryPayloadSchema = z.object({
+    contractId: z.number().int().positive(),
+    cycleRange: CycleRangeSchema,
+    entryId: z.number().int().positive(),
+    reason: z.string().optional(),
+});
+
+export type ReverseEntryPayload = z.infer<typeof ReverseEntryPayloadSchema>;
+
