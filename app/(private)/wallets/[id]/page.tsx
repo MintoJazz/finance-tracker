@@ -1,9 +1,9 @@
 import { ViewContainer } from "@/components/adaptive";
 import { ErrorView } from "@/components/error-view";
-import { WalletProfileAdaptiveConfig } from "@/modules/account/ui/views/wallet-profile";
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
-import { AccountFactory } from "@/modules/account/infra/factories/account.factory";
-import { LedgerFactory } from "@/modules/ledger/infra/factories/ledger.factory";
+import { WalletProfileAdaptiveConfig } from "@/modules/wallets/ui/views/wallet-profile";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
+import { WalletFactory } from "@/modules/wallets/infra/factories/wallet.factory";
+import { MovementFactory } from "@/modules/movements/infra/factories/movement.factory";
 import { redirect } from "next/navigation";
 
 interface WalletProfilePageProps {
@@ -26,7 +26,7 @@ export default async function WalletProfilePage(props: WalletProfilePageProps) {
         );
     }
 
-    const profileUseCase = AccountFactory.makeGetWalletProfileUseCase();
+    const profileUseCase = WalletFactory.makeGetWalletProfileUseCase();
     const profileResult = await profileUseCase.execute({
         session,
         walletId,
@@ -41,7 +41,7 @@ export default async function WalletProfilePage(props: WalletProfilePageProps) {
         );
     }
 
-    const movementsUseCase = LedgerFactory.makeGetWalletMovementsUseCase();
+    const movementsUseCase = MovementFactory.makeGetWalletMovementsUseCase();
     const movementsResult = await movementsUseCase.execute({
         session,
         walletId,

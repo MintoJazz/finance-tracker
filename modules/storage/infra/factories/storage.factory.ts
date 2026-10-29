@@ -1,12 +1,12 @@
-import { GetSpaceAccessUseCase } from "@/modules/space/core/use-case/get-acess.use-case";
-import { ISpaceAccessProvider } from "@/modules/storage/core/types/space-access-provider.interface";
-import { IContextMemberRepository } from "@/modules/space/core/types/context-member-repository.interface";
+import { GetSpaceAccessUseCase } from "@/modules/space/application/use-cases/get-acess.use-case";
+import { ISpaceAccessProvider } from "@/modules/storage/application/interfaces/space-access-provider.interface";
+import { IContextMemberRepository } from "@/modules/space/application/interfaces/context-member-repository.interface";
 import { PrismaContextMembersRepository } from "@/modules/space/infra/repositories/context-members-prisma.repository";
-import { IAttachmentRepository } from "../../core/types/attachment-repository.interface";
-import { IFileStorage } from "../../core/types/file-storage.interface";
-import { RequestUploadUseCase } from "../../core/use-cases/request-upload.use-case";
-import { ConfirmUploadUseCase } from "../../core/use-cases/confirm-upload.use-case";
-import { CleanupStaleUploadsUseCase } from "../../core/use-cases/cleanup-stale-uploads.use-case";
+import { IAttachmentRepository } from "@/modules/storage/application/interfaces/attachment-repository.interface";
+import { IFileStorage } from "@/modules/storage/application/interfaces/file-storage.interface";
+import { RequestUploadUseCase } from "@/modules/storage/application/use-cases/request-upload.use-case";
+import { ConfirmUploadUseCase } from "@/modules/storage/application/use-cases/confirm-upload.use-case";
+import { CleanupStaleUploadsUseCase } from "@/modules/storage/application/use-cases/cleanup-stale-uploads.use-case";
 import { S3FileStorage } from "../storage/s3-file-storage";
 import { PrismaAttachmentRepository } from "../repositories/attachment-prisma.repository";
 

@@ -1,10 +1,10 @@
-import { AccountFactory } from "@/modules/account/infra/factories/account.factory";
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
+import { WalletFactory } from "@/modules/wallets/infra/factories/wallet.factory";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { redirect } from "next/navigation";
 import { PageRequest } from "@/types/pagination.types";
 import { BaseFilter, BaseFilterSchema } from "@/types/filters.types";
 import { ViewContainer } from "@/components/adaptive";
-import { WalletsOverviewConfig } from "@/modules/account/ui/views/wallets-overview";
+import { WalletsOverviewConfig } from "@/modules/wallets/ui/views/wallets-overview";
 import { ErrorView } from "@/components/error-view";
 
 interface Props {
@@ -21,7 +21,7 @@ export default async function Page(props: Props) {
     const pageRequest: PageRequest = { page, pageSize };
     const filter = BaseFilterSchema.parse({ search });
 
-    const useCase = AccountFactory.makeGetContextWalletsUseCase();
+    const useCase = WalletFactory.makeGetContextWalletsUseCase();
     const { success, data, error } = await useCase.execute({ session, pageRequest, filter });
 
     if (!success || !data) {

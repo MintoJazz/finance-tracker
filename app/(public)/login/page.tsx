@@ -1,6 +1,6 @@
 import { ViewRenderer } from "@/components/adaptive";
-import { LoginView } from "@/modules/identity/ui/views/login";
-import { useLoginView } from "@/modules/identity/ui/views/login/hook";
+import { LoginView } from "@/modules/auth/ui/views/login";
+import { useLoginView } from "@/modules/auth/ui/views/login/hook";
 
 interface LoginPageProps {
     searchParams: Promise<{ callbackUrl?: string }>

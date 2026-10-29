@@ -10,7 +10,7 @@ import {
   CreateUploadUrlParams,
   IFileStorage,
   StorageObjectMetadata,
-} from "../../core/types/file-storage.interface";
+} from "@/modules/storage/application/interfaces/file-storage.interface";
 
 export class S3FileStorage implements IFileStorage {
   private readonly s3: S3Client;

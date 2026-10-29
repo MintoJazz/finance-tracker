@@ -1,5 +1,5 @@
 import { Attachment as PrismaAttachment } from "@/prisma/generated/prisma/client";
-import { Attachment } from "../../core/schemas/attachment.schema";
+import { Attachment } from "@/modules/storage/models/attachment.schema";
 
 export class AttachmentMapper {
   static toDomain(raw: PrismaAttachment): Attachment {

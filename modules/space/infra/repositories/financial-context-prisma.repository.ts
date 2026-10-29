@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma, PrismaClient } from "@/prisma/generated/prisma/client";
-import { UserContextOption } from "../../core/schemas/context.schema";
+import { UserContextOption } from "@/modules/space/models/context.schema";
 import {
   CreateContextWithOwnerDTO,
   IFinancialContextRepository,
-} from "../../core/types/financial-context-repository.interface";
+} from "@/modules/space/application/interfaces/financial-context-repository.interface";
 
 export class PrismaFinancialContextRepository implements IFinancialContextRepository {
   constructor(

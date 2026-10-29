@@ -1,6 +1,6 @@
 import { ViewRenderer } from "@/components/adaptive"
-import { SignupView } from "@/modules/identity/ui/views/signup"
-import { useSignupView } from "@/modules/identity/ui/views/signup/hook"
+import { SignupView } from "@/modules/auth/ui/views/signup"
+import { useSignupView } from "@/modules/auth/ui/views/signup/hook"
 
 interface Props {
     searchParams?: Promise<{

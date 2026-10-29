@@ -1,0 +1,56 @@
+import { ContractSummaryItem } from "@/modules/contracts/models/contract.schema";
+
+// Type based on what Prisma will return with include
+type RawContractBalance = {
+    id: number;
+    name: string;
+    balanceType: string;
+    removedAt: Date | null;
+    agreement?: {
+        id: number;
+        startsAt: Date;
+        endsAt: Date | null;
+        includeInProjection: boolean;
+        rules: {
+            frequency: string;
+            dueDay: number;
+            effectiveFrom?: Date;
+        }[];
+        amountEntries?: {
+            amount: number;
+        }[];
+    } | null;
+};
+
+export class ContractMapper {
+    static toSummary(balance: RawContractBalance): ContractSummaryItem {
+        const agreement = balance.agreement;
+        if (!agreement) {
+            throw new Error(`Balance ${balance.id} does not have an agreement`);
+        }
+
+        const currentRule = agreement.rules?.[0];
+        const value = Math.max(
+            0,
+            agreement.amountEntries?.reduce((sum, e) => sum + e.amount, 0) ?? 0
+        );
+
+        const effectiveDate = currentRule?.effectiveFrom ?? agreement.startsAt;
+        const dueMonth = effectiveDate ? new Date(effectiveDate).getMonth() + 1 : null;
+
+        return {
+            id: agreement.id,
+            balanceId: balance.id,
+            name: balance.name,
+            type: balance.balanceType as "PAYABLE" | "RECEIVABLE",
+            value,
+            frequency: (currentRule?.frequency as "WEEKLY" | "MONTHLY" | "YEARLY") ?? "MONTHLY",
+            dueDay: currentRule?.dueDay ?? 1,
+            dueMonth,
+            startsAt: agreement.startsAt,
+            endsAt: agreement.endsAt,
+            includeInProjection: agreement.includeInProjection,
+            isArchived: balance.removedAt !== null,
+        };
+    }
+}

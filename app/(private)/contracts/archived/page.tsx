@@ -1,8 +1,8 @@
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { redirect } from "next/navigation";
 import { ArchivedPageLayout } from "@/components/archived/archived-page-layout";
-import { ArchivedContractsList } from "@/modules/planning/ui/components/archived-contracts-list";
-import { getContractsOverviewAction } from "@/modules/planning/ui/actions/get-contracts-overview.action";
+import { ArchivedContractsList } from "@/modules/contracts/ui/components/archived-contracts-list";
+import { getContractsOverviewAction } from "@/modules/contracts/ui/actions/get-contracts-overview.action";
 import { ErrorView } from "@/components/error-view";
 
 export default async function ArchivedContractsPage() {

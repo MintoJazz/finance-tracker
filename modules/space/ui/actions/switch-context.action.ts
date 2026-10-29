@@ -1,6 +1,6 @@
 "use server";
 
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { SpaceFactory } from "@/modules/space/infra/factories/space.factory";
 import { failure, success, Result } from "@/types/result.types";
 

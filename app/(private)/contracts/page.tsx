@@ -1,9 +1,9 @@
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { redirect } from "next/navigation";
 import { ViewContainer } from "@/components/adaptive";
-import { ContractsOverviewConfig } from "@/modules/planning/ui/views/contracts-overview";
+import { ContractsOverviewConfig } from "@/modules/contracts/ui/views/contracts-overview";
 import { ErrorView } from "@/components/error-view";
-import { getContractsOverviewAction } from "@/modules/planning/ui/actions/get-contracts-overview.action";
+import { getContractsOverviewAction } from "@/modules/contracts/ui/actions/get-contracts-overview.action";
 
 interface Props {
     searchParams: Promise<{

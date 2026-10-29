@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
-import { AccountFactory } from "@/modules/account/infra/factories/account.factory";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
+import { CardFactory } from "@/modules/cards/infra/factories/card.factory";
 import { ViewContainer } from "@/components/adaptive";
-import { EditCardModalConfig } from "@/modules/account/ui/views/edit-card-modal";
+import { EditCardModalConfig } from "@/modules/cards/ui/views/edit-card-modal";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -19,7 +19,7 @@ export default async function EditCardModalPage(props: Props) {
         notFound();
     }
 
-    const result = await AccountFactory.makeGetCardByIdUseCase().execute({
+    const result = await CardFactory.makeGetCardByIdUseCase().execute({
         session,
         cardId,
     });

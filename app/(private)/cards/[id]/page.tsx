@@ -1,9 +1,9 @@
 import { ViewContainer } from "@/components/adaptive";
 import { ErrorView } from "@/components/error-view";
-import { CardProfileAdaptiveConfig } from "@/modules/account/ui/views/card-profile";
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
-import { AccountFactory } from "@/modules/account/infra/factories/account.factory";
-import { LedgerFactory } from "@/modules/ledger/infra/factories/ledger.factory";
+import { CardProfileAdaptiveConfig } from "@/modules/cards/ui/views/card-profile";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
+import { CardFactory } from "@/modules/cards/infra/factories/card.factory";
+import { MovementFactory } from "@/modules/movements/infra/factories/movement.factory";
 import { redirect } from "next/navigation";
 
 interface CardProfilePageProps {
@@ -26,7 +26,7 @@ export default async function CardProfilePage(props: CardProfilePageProps) {
         );
     }
 
-    const profileUseCase = AccountFactory.makeGetCardProfileUseCase();
+    const profileUseCase = CardFactory.makeGetCardProfileUseCase();
     const profileResult = await profileUseCase.execute({
         session,
         cardId,
@@ -44,7 +44,7 @@ export default async function CardProfilePage(props: CardProfilePageProps) {
     const profile = profileResult.data;
     const activeCycle = profile.cycles.find((c) => c.status === "OPEN") ?? profile.cycles.at(-1);
 
-    const movementsUseCase = LedgerFactory.makeGetCardMovementsUseCase();
+    const movementsUseCase = MovementFactory.makeGetCardMovementsUseCase();
     const movementsResult = await movementsUseCase.execute({
         session,
         cardId,

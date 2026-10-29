@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma, PrismaClient } from "@/prisma/generated/prisma/client";
-import { CreatePendingAttachmentDTO, IAttachmentRepository } from "../../core/types/attachment-repository.interface";
-import { Attachment } from "../../core/schemas/attachment.schema";
+import { CreatePendingAttachmentDTO, IAttachmentRepository } from "@/modules/storage/application/interfaces/attachment-repository.interface";
+import { Attachment } from "@/modules/storage/models/attachment.schema";
 import { AttachmentMapper } from "../mappers/attachment.mapper";
 
 

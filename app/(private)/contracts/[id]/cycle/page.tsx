@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { ViewContainer } from "@/components/adaptive";
 import { ErrorView } from "@/components/error-view";
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
-import { CycleRangeSchema } from "@/modules/planning/core/schemas/contract-cycle.schema";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
+import { CycleRangeSchema } from "@/modules/cycles/models/contract-cycle.schema";
 import {
     getContractCycleProfileAction,
     resolveCurrentContractCycleAction,
-} from "@/modules/planning/ui/actions/get-contract-cycle-profile.action";
-import { ContractCycleProfileAdaptiveConfig } from "@/modules/planning/ui/views/contract-cycle-profile";
+} from "@/modules/cycles/ui/actions/get-contract-cycle-profile.action";
+import { ContractCycleProfileAdaptiveConfig } from "@/modules/cycles/ui/views/contract-cycle-profile";
 
 interface ContractCyclePageProps {
     params: Promise<{ id: string }>;

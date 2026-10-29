@@ -1,12 +1,12 @@
 "use server";
 
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { failure, Result } from "@/types/result.types";
 import {
   RequestUploadInput,
-} from "../../core/schemas/attachment.schema";
-import { RequestUploadResult } from "../../core/use-cases/request-upload.use-case";
-import { StorageFactory } from "../../infra/factories/storage.factory";
+} from "@/modules/storage/models/attachment.schema";
+import { RequestUploadResult } from "@/modules/storage/application/use-cases/request-upload.use-case";
+import { StorageFactory } from "@/modules/storage/infra/factories/storage.factory";
 
 export async function requestUploadAction(
   input: RequestUploadInput

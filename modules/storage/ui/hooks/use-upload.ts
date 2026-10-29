@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { failure, success, Result } from "@/types/result.types";
-import { AttachmentPurpose } from "../../core/schemas/attachment.schema";
+import { AttachmentPurpose } from "@/modules/storage/models/attachment.schema";
 import { requestUploadAction } from "../actions/request-upload.action";
 import { confirmUploadAction } from "../actions/confirm-upload.action";
 

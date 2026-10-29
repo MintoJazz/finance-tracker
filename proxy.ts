@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server'
-import { AuthMiddlewareGuard } from './modules/identity/infra/handlers/proxy.handler'
+import { AuthMiddlewareGuard } from './modules/auth/infra/handlers/proxy.handler'
 
 export async function proxy(request: NextRequest) {
     return AuthMiddlewareGuard.handle(request)

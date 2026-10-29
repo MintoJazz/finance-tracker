@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 import { getRoleLabel } from "@/modules/space/ui/themes"
 import { switchContextAction } from "@/modules/space/ui/actions/switch-context.action"
-import type { UserContextData } from "@/modules/identity/core/schemas/user-context.schema"
+import type { UserContextData } from "@/modules/auth/models/user-context.schema"
 import { sidebarConfig } from "./config"
 import type { SwitcherOption, SidebarUserProfile } from "./types"
 import { NavSecondary } from "./nav-secondary"

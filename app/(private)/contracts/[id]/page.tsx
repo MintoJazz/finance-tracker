@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { ViewContainer } from "@/components/adaptive";
 import { ErrorView } from "@/components/error-view";
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
-import { PlanningFactory } from "@/modules/planning/infra/factories/planning.factory";
-import { ContractProfileAdaptiveConfig } from "@/modules/planning/ui/views/contract-profile";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
+import { ContractFactory } from "@/modules/contracts/infra/factories/contract.factory";
+import { CycleFactory } from "@/modules/cycles/infra/factories/cycle.factory";
+import { ContractProfileAdaptiveConfig } from "@/modules/contracts/ui/views/contract-profile";
 
 interface ContractProfilePageProps {
     params: Promise<{ id: string }>;
@@ -25,8 +26,8 @@ export default async function ContractProfilePage(props: ContractProfilePageProp
         );
     }
 
-    const getProfileUseCase = PlanningFactory.makeGetContractProfileUseCase();
-    const getCyclesUseCase = PlanningFactory.makeGetContractCyclesUseCase();
+    const getProfileUseCase = ContractFactory.makeGetContractProfileUseCase();
+    const getCyclesUseCase = CycleFactory.makeGetContractCyclesUseCase();
 
     const [profileResult, cyclesResult] = await Promise.all([
         getProfileUseCase.execute({ session, contractId }),

@@ -1,6 +1,6 @@
-import { IContextMemberRepository } from "@/modules/space/core/types/context-member-repository.interface";
+import { IContextMemberRepository } from "@/modules/space/application/interfaces/context-member-repository.interface";
 import { prisma } from "@/lib/prisma";
-import { ContextMemberType } from "@/modules/space/core/schemas/context-member.schema";
+import { ContextMemberType } from "@/modules/space/models/context-member.schema";
 
 export class PrismaContextMembersRepository implements IContextMemberRepository {
 

@@ -1,5 +1,5 @@
 import { AppSidebar } from "@/components/sidebar"
-import { getUserContextAction } from "@/modules/identity/ui/actions/get-user-context.action"
+import { getUserContextAction } from "@/modules/auth/ui/actions/get-user-context.action"
 import { AppHeader, HeaderProvider } from "@/components/header"
 import {
   SidebarInset,

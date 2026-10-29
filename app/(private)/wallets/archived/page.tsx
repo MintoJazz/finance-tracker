@@ -1,15 +1,15 @@
-import { AccountFactory } from "@/modules/account/infra/factories/account.factory";
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
+import { WalletFactory } from "@/modules/wallets/infra/factories/wallet.factory";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { redirect } from "next/navigation";
 import { ArchivedPageLayout } from "@/components/archived/archived-page-layout";
-import { ArchivedWalletsList } from "@/modules/account/ui/components/archived-wallets-list";
+import { ArchivedWalletsList } from "@/modules/wallets/ui/components/archived-wallets-list";
 import { ErrorView } from "@/components/error-view";
 
 export default async function ArchivedWalletsPage() {
   const session = await SessionHandler.getSession();
   if (!session) redirect("/login");
 
-  const useCase = AccountFactory.makeGetContextWalletsUseCase();
+  const useCase = WalletFactory.makeGetContextWalletsUseCase();
   const { success, data, error } = await useCase.execute({
     session,
     pageRequest: { page: 1, pageSize: 50 },

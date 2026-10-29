@@ -1,12 +1,12 @@
 "use server";
 
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { failure, Result } from "@/types/result.types";
 import {
   ConfirmUploadInput,
-} from "../../core/schemas/attachment.schema";
-import { ConfirmUploadResult } from "../../core/use-cases/confirm-upload.use-case";
-import { StorageFactory } from "../../infra/factories/storage.factory";
+} from "@/modules/storage/models/attachment.schema";
+import { ConfirmUploadResult } from "@/modules/storage/application/use-cases/confirm-upload.use-case";
+import { StorageFactory } from "@/modules/storage/infra/factories/storage.factory";
 
 export async function confirmUploadAction(
   input: ConfirmUploadInput

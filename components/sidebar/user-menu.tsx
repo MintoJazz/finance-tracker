@@ -10,7 +10,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { ChevronsUpDownIcon } from "lucide-react"
-import { onLogout } from "@/modules/identity/ui/actions/logout.action"
+import { onLogout } from "@/modules/auth/ui/actions/logout.action"
 import type { SidebarAction, SidebarUserProfile } from "./types"
 
 interface UserMenuProps {

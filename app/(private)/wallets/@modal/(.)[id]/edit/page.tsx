@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
-import { AccountFactory } from "@/modules/account/infra/factories/account.factory";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
+import { WalletFactory } from "@/modules/wallets/infra/factories/wallet.factory";
 import { ViewContainer } from "@/components/adaptive";
-import { EditWalletModalConfig } from "@/modules/account/ui/views/edit-wallet-modal";
+import { EditWalletModalConfig } from "@/modules/wallets/ui/views/edit-wallet-modal";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -19,7 +19,7 @@ export default async function EditWalletModalPage(props: Props) {
         notFound();
     }
 
-    const result = await AccountFactory.makeGetWalletByIdUseCase().execute({
+    const result = await WalletFactory.makeGetWalletByIdUseCase().execute({
         session,
         walletId,
     });

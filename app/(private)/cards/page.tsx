@@ -1,10 +1,10 @@
-import { AccountFactory } from "@/modules/account/infra/factories/account.factory";
-import { SessionHandler } from "@/modules/identity/infra/handlers/session.handler";
+import { CardFactory } from "@/modules/cards/infra/factories/card.factory";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { redirect } from "next/navigation";
 import { PageRequest } from "@/types/pagination.types";
 import { BaseFilter, BaseFilterSchema } from "@/types/filters.types";
 import { ViewContainer } from "@/components/adaptive";
-import { CardsOverviewConfig } from "@/modules/account/ui/views/cards-overview";
+import { CardsOverviewConfig } from "@/modules/cards/ui/views/cards-overview";
 import { ErrorView } from "@/components/error-view";
 
 interface Props {
@@ -20,7 +20,7 @@ export default async function CardsPage(props: Props) {
     const pageRequest: PageRequest = { page, pageSize };
     const filter = BaseFilterSchema.parse({ search });
 
-    const useCase = AccountFactory.makeGetContextCardsUseCase();
+    const useCase = CardFactory.makeGetContextCardsUseCase();
     const { success, data, error } = await useCase.execute({ session, pageRequest, filter });
 
     if (!success || !data) {
