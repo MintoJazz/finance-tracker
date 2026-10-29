@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Calendar, MoreHorizontal } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AmountSpan } from "@/components/amount-span";
 import { formatDate } from "@/lib/formatters";
@@ -73,14 +72,6 @@ export function ContractCycleListItem({
                         <span className="truncate font-medium text-foreground text-sm">
                             {cycle.label}
                         </span>
-                        {isProjected && (
-                            <Badge
-                                variant="outline"
-                                className="border-dashed border-indigo-500/40 text-indigo-700 dark:text-indigo-300 bg-indigo-500/5 text-[10px] py-0 px-1.5 h-4 font-normal"
-                            >
-                                Projetado
-                            </Badge>
-                        )}
                     </ListItemTitle>
                     <ListItemSubtitle>
                         {formatDate(new Date(cycle.from))} a {formatDate(new Date(cycle.to))}

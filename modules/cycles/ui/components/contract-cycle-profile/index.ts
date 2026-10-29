@@ -1,4 +1,5 @@
 export * from "./contract-cycle-navigator";
+export * from "./contract-cycle-details";
 export * from "./contract-cycle-progress";
 export * from "./contract-cycle-summary";
 export * from "./contract-cycle-actions";

@@ -11,7 +11,7 @@ import {
     ContractCycleStatusEnum,
 } from "@/modules/cycles/models/contract-cycle.schema";
 
-const CYCLE_STATUS_CONFIG: Record<
+export const CYCLE_STATUS_CONFIG: Record<
     ContractCycleStatusEnum,
     { label: string; className: string }
 > = {
@@ -51,7 +51,7 @@ const CYCLE_STATUS_CONFIG: Record<
     },
 };
 
-interface ContractCycleNavigatorProps {
+export interface ContractCycleNavigatorProps {
     cycle: ContractCycleProfile;
     className?: string;
 }
@@ -74,18 +74,13 @@ export function ContractCycleNavigator({
         : null;
 
     return (
-        <div
-            className={cn(
-                "flex items-center justify-between gap-2 rounded-xl border bg-card px-3 py-2.5 sm:px-4 sm:py-3 shadow-2xs",
-                className
-            )}
-        >
+        <div className={cn("flex items-center justify-between gap-2 w-full", className)}>
             {/* Seta Anterior via Link ou botão desabilitado */}
             {prevHref ? (
                 <Link
                     href={prevHref}
                     className={cn(
-                        buttonVariants({ variant: "ghost", size: "icon" }),
+                        buttonVariants({ variant: "ghost", size: "icon-sm" }),
                         "size-8 shrink-0 rounded-lg"
                     )}
                     aria-label="Ciclo anterior"
@@ -96,7 +91,7 @@ export function ContractCycleNavigator({
                 <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
+                    size="icon-sm"
                     disabled
                     className="size-8 shrink-0 rounded-lg opacity-40 cursor-not-allowed"
                     aria-label="Ciclo anterior (indisponível)"
@@ -105,22 +100,20 @@ export function ContractCycleNavigator({
                 </Button>
             )}
 
-            {/* Centro: Título + Status à esquerda | Total à direita */}
-            <div className="flex flex-1 flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 min-w-0 px-1">
-                <div className="w-full flex items-center justify-between gap-2">
-                    <span className="text-sm sm:text-base font-semibold tracking-tight text-foreground truncate">
-                        {cycle.title}
-                    </span>
-                    <Badge
-                        variant="outline"
-                        className={cn(
-                            "text-[10px] px-1.5 py-0 font-medium",
-                            statusConfig.className
-                        )}
-                    >
-                        {statusConfig.label}
-                    </Badge>
-                </div>
+            {/* Centro: Título do ciclo + Badge de status */}
+            <div className="flex items-center justify-center gap-2 min-w-0 px-1">
+                <span className="text-sm sm:text-base font-semibold tracking-tight text-foreground truncate">
+                    {cycle.title}
+                </span>
+                <Badge
+                    variant="outline"
+                    className={cn(
+                        "text-[10px] px-1.5 py-0 font-medium shrink-0",
+                        statusConfig.className
+                    )}
+                >
+                    {statusConfig.label}
+                </Badge>
             </div>
 
             {/* Seta Próxima via Link ou botão desabilitado */}
@@ -128,7 +121,7 @@ export function ContractCycleNavigator({
                 <Link
                     href={nextHref}
                     className={cn(
-                        buttonVariants({ variant: "ghost", size: "icon" }),
+                        buttonVariants({ variant: "ghost", size: "icon-sm" }),
                         "size-8 shrink-0 rounded-lg"
                     )}
                     aria-label="Próximo ciclo"
@@ -139,7 +132,7 @@ export function ContractCycleNavigator({
                 <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
+                    size="icon-sm"
                     disabled
                     className="size-8 shrink-0 rounded-lg opacity-40 cursor-not-allowed"
                     aria-label="Próximo ciclo (indisponível)"
@@ -152,3 +145,4 @@ export function ContractCycleNavigator({
 }
 
 export default ContractCycleNavigator;
+

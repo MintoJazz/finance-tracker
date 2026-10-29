@@ -223,9 +223,17 @@ export function QuickActions<
 
   if (!normalizedRow || visibleActions.length === 0) return null
 
-  const primaryActions = visibleActions.slice(0, MAX_PRIMARY_SLOTS)
-  const overflowActions = visibleActions.slice(MAX_PRIMARY_SLOTS)
-  const showOptions = overflowActions.length > 0
+  // Se houver mais de 3 ações, os 2 primeiros slots ficam em evidência e o 3º vira "Opções".
+  // Se houver exatamente 3 ações, todas cabem nos 3 slots sem precisar do botão de "Opções".
+  // Se houver 1 ou 2 ações, elas ficam em row cobrindo a área disponível.
+  const hasOverflow = visibleActions.length > 3
+  const primaryActions = hasOverflow
+    ? visibleActions.slice(0, MAX_PRIMARY_SLOTS)
+    : visibleActions
+  const overflowActions = hasOverflow
+    ? visibleActions.slice(MAX_PRIMARY_SLOTS)
+    : []
+  const showOptions = hasOverflow
   const isRowLayout = !showOptions && primaryActions.length <= 2
 
   const optionsTrigger = (
@@ -267,7 +275,7 @@ export function QuickActions<
           ) : (
             <ActionsDrawer
               row={normalizedRow}
-              actions={overflowActions}
+              actions={visibleActions}
               context={context}
               trigger={optionsTrigger}
               header={optionsHeader}

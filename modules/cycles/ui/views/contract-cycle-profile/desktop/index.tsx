@@ -7,8 +7,9 @@ import { Toggle } from "@/components/ui/toggle";
 import { ErrorView } from "@/components/error-view";
 import { WalletMovementSearch } from "@/modules/movements/ui/components/wallet-movement-search";
 import { ContractCycleProfileDesktopProps } from "../types";
-import { ContractCycleSummary } from "../../../components/contract-cycle-profile/contract-cycle-summary";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ContractCycleNavigator } from "../../../components/contract-cycle-profile/contract-cycle-navigator";
+import { ContractCycleDetails } from "../../../components/contract-cycle-profile/contract-cycle-details";
 import { ContractCycleEntryTable } from "../../../components/contract-cycle-profile/contract-cycle-entry-table";
 import { ContractCycleProfileSkeleton } from "../../../components/contract-cycle-profile/skeletons/contract-cycle-profile-skeleton";
 import { CycleEntryActionContext } from "../../../components/contract-cycle-profile/contract-cycle-entry-actions";
@@ -77,11 +78,15 @@ export default function ContractCycleProfileViewDesktop({
 
     return (
         <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 p-4 md:p-6 lg:p-8 lg:py-4 min-w-0">
-            {/* Seletor Horizontal de Ciclo (Navegador com setas prev/next, status e total) */}
-            <ContractCycleNavigator cycle={cycle} />
-
-            {/* 1. Resumo do Ciclo (Nome, Regra, Status, Destaque de Saldo, Barra de Progresso e Ações Rápidas) */}
-            <ContractCycleSummary cycle={cycle} onSkip={onSkip} />
+            {/* 1. Resumo do Ciclo dentro do componente de Card */}
+            <Card className="overflow-hidden shadow-2xs w-full">
+                <CardHeader className="flex flex-row items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-muted/30 border-b">
+                    <ContractCycleNavigator cycle={cycle} />
+                </CardHeader>
+                <CardContent className="flex flex-col items-center text-center p-5 sm:p-7 gap-5 w-full">
+                    <ContractCycleDetails cycle={cycle} onSkip={onSkip} />
+                </CardContent>
+            </Card>
 
             {/* 2. Seção Extrato do Ciclo replicando padrão do CardProfile */}
             <main className="min-w-0 w-full flex flex-col gap-3.5">

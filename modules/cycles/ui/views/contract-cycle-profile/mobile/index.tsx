@@ -7,11 +7,12 @@ import { Toggle } from "@/components/ui/toggle";
 import { ErrorView } from "@/components/error-view";
 import { WalletMovementSearch } from "@/modules/movements/ui/components/wallet-movement-search";
 import { ContractCycleProfileMobileProps } from "../types";
-import { ContractCycleSummary } from "../../../components/contract-cycle-profile/contract-cycle-summary";
 import { ContractCycleNavigator } from "../../../components/contract-cycle-profile/contract-cycle-navigator";
+import { ContractCycleDetails } from "../../../components/contract-cycle-profile/contract-cycle-details";
 import { ContractCycleEntryList } from "../../../components/contract-cycle-profile/contract-cycle-entry-list";
 import { ContractCycleProfileSkeleton } from "../../../components/contract-cycle-profile/skeletons/contract-cycle-profile-skeleton";
 import { CycleEntryActionContext } from "../../../components/contract-cycle-profile/contract-cycle-entry-actions";
+import { Separator } from "@/components/ui/separator";
 
 export default function ContractCycleProfileViewMobile({
     cycle,
@@ -77,14 +78,14 @@ export default function ContractCycleProfileViewMobile({
 
     return (
         <div className="flex w-full flex-col gap-4 pb-8">
-            {/* 1. Seletor Horizontal de Ciclo no topo */}
-            <div className="px-3.5 pt-2">
-                <ContractCycleNavigator cycle={cycle} />
-            </div>
-
-            {/* 2. Resumo do Ciclo (Nome, Regra, Vencimento, Destaque de Saldo, Barra de Progresso e Ações) */}
-            <div className="px-4">
-                <ContractCycleSummary cycle={cycle} onSkip={onSkip} />
+            {/* 1. Resumo do Ciclo fora de Card */}
+            <div className="flex flex-col">
+                <ContractCycleNavigator
+                    cycle={cycle}
+                    className="px-3 py-2"
+                />
+                <Separator />
+                <ContractCycleDetails className="p-4" cycle={cycle} onSkip={onSkip} />
             </div>
 
             {/* 3. Seção Extrato do Ciclo */}
