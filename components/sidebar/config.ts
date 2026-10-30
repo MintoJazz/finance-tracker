@@ -54,7 +54,7 @@ export const sidebarConfig = {
         items: [
           { title: "Compromissos", url: "#" },
           { title: "Contratos", url: "/contracts" },
-          { title: "Categorias", url: "#" }
+          { title: "Categorias", url: "/categories" }
         ],
       },
     ] satisfies NavCollapsibleItem[],

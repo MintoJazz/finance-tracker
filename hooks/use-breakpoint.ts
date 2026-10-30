@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 export function useMediaQuery(query: string): boolean {
     const subscribe = (callback: () => void) => {
@@ -26,7 +26,14 @@ export function useMediaQuery(query: string): boolean {
 }
 
 export function useIsDesktop(breakpoint = "(min-width: 768px)"): boolean {
-    return useMediaQuery(breakpoint);
+    const isDesktop = useMediaQuery(breakpoint);
+
+    useEffect(() => {
+        const viewport = isDesktop ? "desktop" : "mobile";
+        document.cookie = `viewport=${viewport}; path=/; max-age=31536000; SameSite=Lax`;
+    }, [isDesktop]);
+
+    return isDesktop;
 }
 
 export function useIsMobile(breakpoint = "(min-width: 768px)"): boolean {
