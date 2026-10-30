@@ -149,19 +149,22 @@ export function useMobileContractsOverview(data: { page: Page<ContractSummaryIte
         isOpen: renameState.open,
         contract: renameState.contract,
         onClose: () => setRenameState({ open: false, contract: null }),
+        onSuccess: () => router.refresh(),
       },
       schedule: {
         isOpen: scheduleState.open,
         contract: scheduleState.contract,
         onClose: () => setScheduleState({ open: false, contract: null }),
+        onSuccess: () => router.refresh(),
       },
       limits: {
         isOpen: limitsState.open,
         contract: limitsState.contract,
         onClose: () => setLimitsState({ open: false, contract: null }),
+        onSuccess: () => router.refresh(),
       },
     }),
-    [renameState, scheduleState, limitsState]
+    [renameState, scheduleState, limitsState, router]
   );
 
   const filterContext = {

@@ -55,6 +55,7 @@ export default function ContractsOverviewViewMobile({
           contractId: modalsContext.rename.contract.id,
           contractName: modalsContext.rename.contract.name,
           onClose: modalsContext.rename.onClose,
+          onSuccess: modalsContext.rename.onSuccess,
         } as any)
       : ({} as any)
   );
@@ -71,6 +72,7 @@ export default function ContractsOverviewViewMobile({
           initialClosingMonth: (modalsContext.schedule.contract as any).closingMonth ?? null,
           frequency: modalsContext.schedule.contract.frequency,
           onClose: modalsContext.schedule.onClose,
+          onSuccess: modalsContext.schedule.onSuccess,
         } as any)
       : ({} as any)
   );
@@ -83,6 +85,7 @@ export default function ContractsOverviewViewMobile({
           contractName: modalsContext.limits.contract.name,
           initialValue: modalsContext.limits.contract.value,
           onClose: modalsContext.limits.onClose,
+          onSuccess: modalsContext.limits.onSuccess,
         } as any)
       : ({} as any)
   );

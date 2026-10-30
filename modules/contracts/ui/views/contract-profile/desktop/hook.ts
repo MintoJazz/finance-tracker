@@ -94,7 +94,6 @@ export function useContractProfileDesktop({
     // 5. Contexto de ações do contrato
     const contractActionsContext = useMemo<ContractActionContext>(
         () => ({
-            onEdit: (c) => router.push(`/contracts/${c.id}/edit`),
             onRename: () => setRenameOpen(true),
             onAdjustSchedule: () => setScheduleOpen(true),
             onAdjustLimits: () => setLimitsOpen(true),
@@ -145,22 +144,29 @@ export function useContractProfileDesktop({
         [router, onArchive, onRestore, reloadProfile, reloadCycles]
     );
 
+    const onModalSuccess = useCallback(async () => {
+        await Promise.all([reloadProfile(), reloadCycles()]);
+    }, [reloadProfile, reloadCycles]);
+
     const contractModalsContext = useMemo(
         () => ({
             rename: {
                 isOpen: renameOpen,
                 onClose: () => setRenameOpen(false),
+                onSuccess: onModalSuccess,
             },
             schedule: {
                 isOpen: scheduleOpen,
                 onClose: () => setScheduleOpen(false),
+                onSuccess: onModalSuccess,
             },
             limits: {
                 isOpen: limitsOpen,
                 onClose: () => setLimitsOpen(false),
+                onSuccess: onModalSuccess,
             },
         }),
-        [renameOpen, scheduleOpen, limitsOpen]
+        [renameOpen, scheduleOpen, limitsOpen, onModalSuccess]
     );
 
     // 6. Contexto de ações do ciclo (por enquanto acionando toasts)

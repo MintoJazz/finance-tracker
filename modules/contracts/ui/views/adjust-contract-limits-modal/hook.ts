@@ -9,6 +9,7 @@ import {
   AdjustContractLimitsFormSchema,
   type AdjustContractLimitsFormValues,
 } from "@/modules/contracts/models/adjust-contract-limits-form.schema";
+import { adjustContractLimitsAction } from "@/modules/contracts/ui/actions/adjust-contract-limits.action";
 import type { AdjustContractLimitsModalInput, AdjustContractLimitsModalProps } from "./types";
 
 export function useAdjustContractLimitsModal(input?: AdjustContractLimitsModalInput): AdjustContractLimitsModalProps {
@@ -41,6 +42,20 @@ export function useAdjustContractLimitsModal(input?: AdjustContractLimitsModalIn
   const onSubmit = async (values: AdjustContractLimitsFormValues) => {
     setIsSubmitting(true);
     try {
+      const contractId = input?.contractId;
+      if (contractId) {
+        const result = await adjustContractLimitsAction(contractId, values);
+        if (!result.success) {
+          toast.add({
+            type: "error",
+            title: "Erro ao ajustar limites",
+            description: result.error ?? "Não foi possível ajustar os limites do contrato.",
+            priority: "high",
+          });
+          return;
+        }
+      }
+
       if (input?.onSuccess) {
         await Promise.resolve(input.onSuccess(values));
       }

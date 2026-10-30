@@ -1,6 +1,7 @@
 import { ViewContainer } from "@/components/adaptive";
 import { ErrorView } from "@/components/error-view";
 import { CardProfileAdaptiveConfig } from "@/modules/cards/ui/views/card-profile";
+import { getDeviceViewport } from "@/lib/device";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { CardFactory } from "@/modules/cards/infra/factories/card.factory";
 import { MovementFactory } from "@/modules/movements/infra/factories/movement.factory";
@@ -52,8 +53,11 @@ export default async function CardProfilePage(props: CardProfilePageProps) {
         filter: activeCycle ? { from: activeCycle.from, to: activeCycle.to } : {},
     });
 
+    const initialViewport = await getDeviceViewport();
+
     return (
         <ViewContainer
+            initialViewport={initialViewport}
             data={{
                 cardId,
                 profile,

@@ -6,6 +6,7 @@ import { BaseFilter, BaseFilterSchema } from "@/types/filters.types";
 import { ViewContainer } from "@/components/adaptive";
 import { CardsOverviewConfig } from "@/modules/cards/ui/views/cards-overview";
 import { ErrorView } from "@/components/error-view";
+import { getDeviceViewport } from "@/lib/device";
 
 interface Props {
     searchParams: Promise<PageRequest & BaseFilter>;
@@ -28,5 +29,7 @@ export default async function CardsPage(props: Props) {
         return <ErrorView title="Erro ao carregar cartões" error={error ?? "Não foi possível carregar os cartões."} />;
     }
 
-    return <ViewContainer data={data} {...CardsOverviewConfig} />;
+    const initialViewport = await getDeviceViewport();
+
+    return <ViewContainer initialViewport={initialViewport} data={data} {...CardsOverviewConfig} />;
 }

@@ -9,6 +9,7 @@ import {
   RenameContractFormSchema,
   type RenameContractFormValues,
 } from "@/modules/contracts/models/rename-contract-form.schema";
+import { renameContractAction } from "@/modules/contracts/ui/actions/rename-contract.action";
 import type { RenameContractModalInput, RenameContractModalProps } from "./types";
 
 export function useRenameContractModal(input?: RenameContractModalInput): RenameContractModalProps {
@@ -41,6 +42,20 @@ export function useRenameContractModal(input?: RenameContractModalInput): Rename
   const onSubmit = async (values: RenameContractFormValues) => {
     setIsSubmitting(true);
     try {
+      const contractId = input?.contractId;
+      if (contractId) {
+        const result = await renameContractAction(contractId, values.name);
+        if (!result.success) {
+          toast.add({
+            type: "error",
+            title: "Erro ao renomear",
+            description: result.error ?? "Não foi possível renomear o contrato.",
+            priority: "high",
+          });
+          return;
+        }
+      }
+
       if (input?.onSuccess) {
         await Promise.resolve(input.onSuccess(values.name));
       }

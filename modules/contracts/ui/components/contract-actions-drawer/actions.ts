@@ -7,7 +7,6 @@ export interface ContractActionContext {
   onToggleProjection: (contract: ContractSummaryItem) => void;
   onArchive: (contract: ContractSummaryItem) => void;
   onRestore?: (contract: ContractSummaryItem) => void;
-  onEdit?: (contract: ContractSummaryItem) => void;
   onRename?: (contract: ContractSummaryItem) => void;
   onAdjustSchedule?: (contract: ContractSummaryItem) => void;
   onAdjustLimits?: (contract: ContractSummaryItem) => void;

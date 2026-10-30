@@ -3,6 +3,7 @@ import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { WalletFactory } from "@/modules/wallets/infra/factories/wallet.factory";
 import { ViewContainer } from "@/components/adaptive";
 import { EditWalletModalConfig } from "@/modules/wallets/ui/views/edit-wallet-modal";
+import { getDeviceViewport } from "@/lib/device";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -28,8 +29,11 @@ export default async function EditWalletModalPage(props: Props) {
         notFound();
     }
 
+    const initialViewport = await getDeviceViewport();
+
     return (
         <ViewContainer
+            initialViewport={initialViewport}
             data={{
                 id: result.data.id,
                 defaultName: result.data.name,

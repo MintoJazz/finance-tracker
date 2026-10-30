@@ -10,6 +10,7 @@ import {
   type AdjustContractScheduleFormValues,
 } from "@/modules/contracts/models/adjust-contract-schedule-form.schema";
 import type { ContractFrequencyEnum } from "@/modules/contracts/models/contract-form.schema";
+import { adjustContractScheduleAction } from "@/modules/contracts/ui/actions/adjust-contract-schedule.action";
 import type { AdjustContractScheduleModalInput, AdjustContractScheduleModalProps } from "./types";
 
 function getDefaultSchedule(frequency: ContractFrequencyEnum) {
@@ -76,6 +77,20 @@ export function useAdjustContractScheduleModal(input?: AdjustContractScheduleMod
   const onSubmit = async (values: AdjustContractScheduleFormValues) => {
     setIsSubmitting(true);
     try {
+      const contractId = input?.contractId;
+      if (contractId) {
+        const result = await adjustContractScheduleAction(contractId, values);
+        if (!result.success) {
+          toast.add({
+            type: "error",
+            title: "Erro ao ajustar prazos",
+            description: result.error ?? "Não foi possível ajustar os prazos do contrato.",
+            priority: "high",
+          });
+          return;
+        }
+      }
+
       if (input?.onSuccess) {
         await Promise.resolve(input.onSuccess(values));
       }

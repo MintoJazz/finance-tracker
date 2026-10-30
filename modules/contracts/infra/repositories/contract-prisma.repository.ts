@@ -3,6 +3,9 @@ import {
     IContractRepository,
     CreateContractRepositoryDTO,
     CreatedContractResult,
+    ContractAdjustmentData,
+    AdjustContractLimitsRepositoryDTO,
+    AdjustContractScheduleRepositoryDTO,
 } from "@/modules/contracts/application/interfaces/contract-repository.interface";
 
 export class ContractPrismaRepository implements IContractRepository {
@@ -116,6 +119,121 @@ export class ContractPrismaRepository implements IContractRepository {
         await prisma.agreement.update({
             where: { id },
             data: { includeInProjection }
+        });
+    }
+
+    async renameContract(id: number, contextId: number, name: string): Promise<void> {
+        const agreement = await prisma.agreement.findUnique({
+            where: { id },
+            include: { balance: true }
+        });
+
+        if (agreement?.balance.contextId !== contextId) {
+            throw new Error("Contract not found or access denied.");
+        }
+
+        await prisma.balance.update({
+            where: { id: agreement.balanceId },
+            data: { name: name.trim() }
+        });
+    }
+
+    async findContractForAdjustment(id: number, contextId: number): Promise<ContractAdjustmentData | null> {
+        const agreement = await prisma.agreement.findFirst({
+            where: {
+                id,
+                balance: { contextId }
+            },
+            include: {
+                balance: true,
+                rules: {
+                    orderBy: { effectiveFrom: "asc" }
+                },
+                amountEntries: {
+                    orderBy: { effectiveAt: "asc" }
+                }
+            }
+        });
+
+        if (!agreement) return null;
+
+        return {
+            id: agreement.id,
+            balanceId: agreement.balance.id,
+            name: agreement.balance.name,
+            balanceType: agreement.balance.balanceType as any,
+            startsAt: agreement.startsAt,
+            endsAt: agreement.endsAt,
+            includeInProjection: agreement.includeInProjection,
+            isArchived: agreement.balance.removedAt !== null,
+            rules: agreement.rules.map((r) => ({
+                id: r.id,
+                effectiveFrom: r.effectiveFrom,
+                frequency: r.frequency as any,
+                interval: r.interval,
+                dueDay: r.dueDay,
+                closingDay: r.closingDay,
+            })),
+            amountEntries: agreement.amountEntries.map((e) => ({
+                id: e.id,
+                amount: e.amount,
+                effectiveAt: e.effectiveAt,
+                reason: e.reason,
+            })),
+        };
+    }
+
+    async adjustContractLimits(id: number, contextId: number, data: AdjustContractLimitsRepositoryDTO): Promise<void> {
+        const agreement = await prisma.agreement.findUnique({
+            where: { id },
+            include: { balance: true }
+        });
+
+        if (agreement?.balance.contextId !== contextId) {
+            throw new Error("Contract not found or access denied.");
+        }
+
+        await prisma.agreementAmountEntry.create({
+            data: {
+                agreementId: id,
+                amount: data.amount,
+                effectiveAt: data.effectiveAt,
+                reason: data.reason ?? "Ajuste de limite",
+            }
+        });
+    }
+
+    async adjustContractSchedule(id: number, contextId: number, data: AdjustContractScheduleRepositoryDTO): Promise<void> {
+        const agreement = await prisma.agreement.findUnique({
+            where: { id },
+            include: { balance: true }
+        });
+
+        if (agreement?.balance.contextId !== contextId) {
+            throw new Error("Contract not found or access denied.");
+        }
+
+        await prisma.cycleRule.upsert({
+            where: {
+                agreementId_effectiveFrom: {
+                    agreementId: id,
+                    effectiveFrom: data.effectiveFrom,
+                }
+            },
+            create: {
+                agreementId: id,
+                effectiveFrom: data.effectiveFrom,
+                frequency: data.frequency,
+                interval: data.interval ?? 1,
+                dueDay: data.dueDay,
+                closingDay: data.closingDay,
+            },
+            update: {
+                frequency: data.frequency,
+                interval: data.interval ?? 1,
+                dueDay: data.dueDay,
+                closingDay: data.closingDay,
+            }
         });
     }
 }

@@ -16,7 +16,7 @@ export function AppHeader() {
   const trail = useMemo(() => buildTrail(pathname, labels), [pathname, labels])
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b border-border/40 md:border-none">
+    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b border-border/40">
       <div className="flex min-w-0 w-full items-center gap-2 px-4">
         <SidebarTrigger className="-ml-1" />
         {trail.length > 0 && (

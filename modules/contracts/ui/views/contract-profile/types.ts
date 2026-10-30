@@ -11,6 +11,7 @@ import { ArchiveRestoreModalContext } from "@/hooks/use-archive-restore";
 export interface ContractProfileContractModalContextItem {
     isOpen: boolean;
     onClose: () => void;
+    onSuccess?: (values?: any) => void | Promise<void>;
 }
 
 export interface ContractProfileContractModalsContext {

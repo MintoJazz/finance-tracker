@@ -8,6 +8,7 @@ import {
     resolveCurrentContractCycleAction,
 } from "@/modules/cycles/ui/actions/get-contract-cycle-profile.action";
 import { ContractCycleProfileAdaptiveConfig } from "@/modules/cycles/ui/views/contract-cycle-profile";
+import { getDeviceViewport } from "@/lib/device";
 
 interface ContractCyclePageProps {
     params: Promise<{ id: string }>;
@@ -82,8 +83,11 @@ export default async function ContractCyclePage(props: ContractCyclePageProps) {
         );
     }
 
+    const initialViewport = await getDeviceViewport();
+
     return (
         <ViewContainer
+            initialViewport={initialViewport}
             data={{
                 contractId,
                 cycle: result.data.cycle,

@@ -1,6 +1,7 @@
 import { ViewContainer } from "@/components/adaptive";
 import { ErrorView } from "@/components/error-view";
 import { WalletProfileAdaptiveConfig } from "@/modules/wallets/ui/views/wallet-profile";
+import { getDeviceViewport } from "@/lib/device";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { WalletFactory } from "@/modules/wallets/infra/factories/wallet.factory";
 import { MovementFactory } from "@/modules/movements/infra/factories/movement.factory";
@@ -49,8 +50,11 @@ export default async function WalletProfilePage(props: WalletProfilePageProps) {
         filter: {},
     });
 
+    const initialViewport = await getDeviceViewport();
+
     return (
         <ViewContainer
+            initialViewport={initialViewport}
             data={{
                 walletId,
                 profile: profileResult.data,

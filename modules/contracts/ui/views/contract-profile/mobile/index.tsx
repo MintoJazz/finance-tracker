@@ -53,6 +53,7 @@ export default function ContractProfileViewMobile({
                   contractId: profile.id,
                   contractName: profile.name,
                   onClose: contractModalsContext?.rename?.onClose ?? (() => {}),
+                  onSuccess: contractModalsContext?.rename?.onSuccess,
               } as any)
             : ({} as any)
     );
@@ -69,6 +70,7 @@ export default function ContractProfileViewMobile({
             initialClosingMonth: profile.closingMonth ?? null,
             frequency: profile.frequency,
             onClose: contractModalsContext?.schedule?.onClose ?? (() => {}),
+            onSuccess: contractModalsContext?.schedule?.onSuccess,
           } as any)
         : ({} as any)
     );
@@ -81,6 +83,7 @@ export default function ContractProfileViewMobile({
                   contractName: profile.name,
                   initialValue: profile.value,
                   onClose: contractModalsContext?.limits?.onClose ?? (() => {}),
+                  onSuccess: contractModalsContext?.limits?.onSuccess,
               } as any)
             : ({} as any)
     );

@@ -5,6 +5,7 @@ import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { ContractFactory } from "@/modules/contracts/infra/factories/contract.factory";
 import { CycleFactory } from "@/modules/cycles/infra/factories/cycle.factory";
 import { ContractProfileAdaptiveConfig } from "@/modules/contracts/ui/views/contract-profile";
+import { getDeviceViewport } from "@/lib/device";
 
 interface ContractProfilePageProps {
     params: Promise<{ id: string }>;
@@ -55,8 +56,11 @@ export default async function ContractProfilePage(props: ContractProfilePageProp
 
     const profile = profileResult.data;
 
+    const initialViewport = await getDeviceViewport();
+
     return (
         <ViewContainer
+            initialViewport={initialViewport}
             data={{
                 contractId,
                 profile,

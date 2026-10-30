@@ -4,6 +4,7 @@ import { ViewContainer } from "@/components/adaptive";
 import { ContractsOverviewConfig } from "@/modules/contracts/ui/views/contracts-overview";
 import { ErrorView } from "@/components/error-view";
 import { getContractsOverviewAction } from "@/modules/contracts/ui/actions/get-contracts-overview.action";
+import { getDeviceViewport } from "@/lib/device";
 
 interface Props {
     searchParams: Promise<{
@@ -43,5 +44,7 @@ export default async function ContractsPage(props: Props) {
         return <ErrorView title="Erro ao carregar contratos" error="Não foi possível carregar os contratos." />;
     }
 
-    return <ViewContainer data={data} {...ContractsOverviewConfig} />;
+    const initialViewport = await getDeviceViewport();
+
+    return <ViewContainer initialViewport={initialViewport} data={data} {...ContractsOverviewConfig} />;
 }

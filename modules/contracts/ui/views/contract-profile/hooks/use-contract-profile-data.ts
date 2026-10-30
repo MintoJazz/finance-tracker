@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
 import { useBreadcrumbLabel } from "@/components/header";
 import { ContractProfile } from "@/modules/contracts/models/contract-profile.schema";
 import { getContractProfileAction } from "@/modules/contracts/ui/actions/get-contract-profile.action";
@@ -19,8 +18,6 @@ export function useContractProfileData(
     initialProfile?: ContractProfile | null
 ): UseContractProfileDataReturn {
     const numericId = typeof contractId === "string" ? Number(contractId) : contractId;
-    const pathname = usePathname();
-    const prevPathnameRef = useRef<string>(pathname);
     const hasMountedRef = useRef(false);
 
     const [profile, setProfile] = useState<ContractProfile | null>(initialProfile ?? null);
@@ -74,17 +71,6 @@ export function useContractProfileData(
         void fetchProfile();
     }, [fetchProfile, initialProfile]);
 
-    // Recarrega silenciosamente quando retorna de sub-rota de edição (/contracts/[id]/edit -> /contracts/[id])
-    useEffect(() => {
-        const wasInSubRoute =
-            prevPathnameRef.current !== pathname &&
-            prevPathnameRef.current.endsWith("/edit");
-        prevPathnameRef.current = pathname;
-
-        if (wasInSubRoute && pathname === `/contracts/${numericId}`) {
-            void fetchProfile();
-        }
-    }, [pathname, numericId, fetchProfile]);
 
     return {
         profile,

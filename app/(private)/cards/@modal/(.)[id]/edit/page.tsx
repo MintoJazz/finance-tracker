@@ -3,6 +3,7 @@ import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { CardFactory } from "@/modules/cards/infra/factories/card.factory";
 import { ViewContainer } from "@/components/adaptive";
 import { EditCardModalConfig } from "@/modules/cards/ui/views/edit-card-modal";
+import { getDeviceViewport } from "@/lib/device";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -28,8 +29,11 @@ export default async function EditCardModalPage(props: Props) {
         notFound();
     }
 
+    const initialViewport = await getDeviceViewport();
+
     return (
         <ViewContainer
+            initialViewport={initialViewport}
             data={{
                 id: result.data.id,
                 defaultValues: {
