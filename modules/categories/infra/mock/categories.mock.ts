@@ -1,4 +1,11 @@
-import type { CategoryItem } from "@/modules/categories/models/category.schema";
+import type {
+  CategoryItem,
+  CreateCategoryFormValues,
+} from "@/modules/categories/models/category.schema";
+import {
+  DEFAULT_CATEGORY_COLOR,
+  DEFAULT_CATEGORY_ICON,
+} from "@/modules/categories/models/category.schema";
 import type { Page, PageRequest } from "@/types/pagination.types";
 
 interface MockRawCategory {
@@ -340,6 +347,79 @@ export class CategoriesMockService {
    */
   static getTotalAmount(): number {
     return MOCK_FULL_CATEGORIES.reduce((acc, cat) => acc + cat.amount, 0);
+  }
+
+  /**
+   * Cria uma nova categoria raiz ou subcategoria em memória.
+   */
+  static createCategory(input: CreateCategoryFormValues): CategoryItem {
+    const allIds: number[] = [];
+    for (const root of MOCK_FULL_CATEGORIES) {
+      allIds.push(root.id);
+      for (const child of root.children) {
+        allIds.push(child.id);
+      }
+    }
+    const nextId = allIds.length > 0 ? Math.max(...allIds) + 1 : 1;
+
+    const icon = input.icon || DEFAULT_CATEGORY_ICON;
+    const color = input.color || DEFAULT_CATEGORY_COLOR;
+    const name = input.name.trim();
+
+    if (input.parentId) {
+      const parentRaw = MOCK_FULL_CATEGORIES.find(
+        (c) => c.id === input.parentId
+      );
+      if (!parentRaw) {
+        throw new Error("Categoria pai não encontrada.");
+      }
+
+      const newSub = {
+        id: nextId,
+        name,
+        icon,
+        color,
+        amount: 0,
+      };
+
+      parentRaw.children.push(newSub);
+
+      return {
+        id: newSub.id,
+        name: newSub.name,
+        icon: newSub.icon,
+        color: newSub.color,
+        appearance: { icon: newSub.icon, color: newSub.color },
+        amount: 0,
+        parentId: parentRaw.id,
+        childrenCount: 0,
+        children: [],
+      };
+    }
+
+    const newRoot: MockRawCategory = {
+      id: nextId,
+      name,
+      icon,
+      color,
+      amount: 0,
+      parentId: null,
+      children: [],
+    };
+
+    MOCK_FULL_CATEGORIES.unshift(newRoot);
+
+    return {
+      id: newRoot.id,
+      name: newRoot.name,
+      icon: newRoot.icon,
+      color: newRoot.color,
+      appearance: { icon: newRoot.icon, color: newRoot.color },
+      amount: 0,
+      parentId: null,
+      childrenCount: 0,
+      children: [],
+    };
   }
 }
 

@@ -16,9 +16,7 @@ export interface CategoriesMasterCommonProps {
   activeId: number | null;
   loadingChildrenIds: number[];
   onFetchChildren: (categoryId: number) => Promise<void>;
-  isAddModalOpen: boolean;
   onOpenAddModal: () => void;
-  onCloseAddModal: () => void;
   actionContext: CategoryActionContext;
 }
 

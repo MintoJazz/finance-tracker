@@ -110,7 +110,7 @@ export const CATEGORY_COLOR_PALETTES: Record<string, CategoryColorTheme> = {
 
 export function getCategoryTheme(color?: string | null): {
     palette?: CategoryColorTheme;
-    style?: { backgroundColor?: string; color?: string };
+    style?: { backgroundColor?: string; color?: string; borderColor?: string };
 } {
     if (!color || typeof color !== "string") {
         return {};
@@ -128,6 +128,7 @@ export function getCategoryTheme(color?: string | null): {
             style: {
                 backgroundColor: `${trimmedRaw}20`,
                 color: trimmedRaw,
+                borderColor: `${trimmedRaw}40`,
             },
         };
     }

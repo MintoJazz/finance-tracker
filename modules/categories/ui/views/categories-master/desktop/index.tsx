@@ -4,16 +4,6 @@ import * as React from "react";
 import { Loader2, MoreHorizontal, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
@@ -39,9 +29,7 @@ export default function CategoriesMasterViewDesktop({
   activeId,
   loadingChildrenIds,
   onFetchChildren,
-  isAddModalOpen,
   onOpenAddModal,
-  onCloseAddModal,
   actionContext,
 }: CategoriesMasterDesktopProps) {
   return (
@@ -144,43 +132,14 @@ export default function CategoriesMasterViewDesktop({
 
       {items.length === 0 && (
         <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-          <p className="text-sm font-medium text-foreground">Nenhuma categoria encontrada</p>
+          <p className="text-sm font-medium text-foreground">
+            Nenhuma categoria encontrada
+          </p>
           <p className="text-xs text-muted-foreground mt-1">
             Tente buscar com outro termo ou limpe os filtros.
           </p>
         </div>
       )}
-
-      {/* Modal Desktop para Nova Categoria (Dialog) */}
-      <Dialog open={isAddModalOpen} onOpenChange={(open) => !open && onCloseAddModal()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Nova Categoria</DialogTitle>
-            <DialogDescription>
-              Crie uma nova categoria para agrupar e organizar suas movimentações orçamentárias.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-3 py-2">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="category-name">Nome da Categoria</Label>
-              <Input id="category-name" placeholder="Ex: Educação, Investimentos..." autoFocus />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onCloseAddModal}>
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                onCloseAddModal();
-              }}
-            >
-              Criar Categoria
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

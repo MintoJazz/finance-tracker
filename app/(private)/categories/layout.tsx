@@ -6,9 +6,10 @@ import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler"
 interface CategoriesLayoutProps {
     children: React.ReactNode
     master: React.ReactNode
+    modal: React.ReactNode
 }
 
-export default async function CategoriesLayout({ children, master }: CategoriesLayoutProps) {
+export default async function CategoriesLayout({ children, master, modal }: CategoriesLayoutProps) {
     const session = await SessionHandler.getSession()
     if (!session) redirect("/login")
 
@@ -17,10 +18,13 @@ export default async function CategoriesLayout({ children, master }: CategoriesL
     // master (slot @master) e detail (children) são Server Components gerenciados pelo Next.js
     // e passados como props para o ViewContainer (Client Component).
     return (
-        <ViewContainer
-            initialViewport={initialViewport}
-            data={{ master, detail: children }}
-            {...MasterDetailConfig}
-        />
+        <>
+            <ViewContainer
+                initialViewport={initialViewport}
+                data={{ master, detail: children }}
+                {...MasterDetailConfig}
+            />
+            {modal}
+        </>
     )
 }

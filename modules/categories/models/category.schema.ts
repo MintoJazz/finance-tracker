@@ -61,6 +61,25 @@ export const CategoryTreeFilterSchema = z.object({
 
 export type CategoryTreeFilter = z.infer<typeof CategoryTreeFilterSchema>;
 
+export const DEFAULT_CATEGORY_COLOR = "#06B6D4";
+export const DEFAULT_CATEGORY_ICON = "Tag";
+
+export const CategoryFormSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "O nome da categoria é obrigatório")
+    .max(50, "O nome deve ter no máximo 50 caracteres"),
+  color: z.string().nullable().optional(),
+  icon: z.string().nullable().optional(),
+  parentId: z.number().int().positive().nullable().optional(),
+});
+
+export type CategoryFormValues = z.infer<typeof CategoryFormSchema>;
+
+export const CreateCategorySchema = CategoryFormSchema;
+export type CreateCategoryFormValues = z.infer<typeof CreateCategorySchema>;
+
 /**
  * Busca recursivamente uma categoria pelo ID na árvore de categorias.
  */

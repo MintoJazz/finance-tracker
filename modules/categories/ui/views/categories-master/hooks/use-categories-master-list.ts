@@ -171,7 +171,13 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
           const childrenData = result.data;
           setItems((prevItems) =>
             prevItems.map((cat) =>
-              cat.id === parentId ? { ...cat, children: childrenData } : cat
+              cat.id === parentId
+                ? {
+                    ...cat,
+                    childrenCount: childrenData.length,
+                    children: childrenData,
+                  }
+                : cat
             )
           );
         }
@@ -183,6 +189,21 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
     },
     [dateRange, loadingChildrenMap, setItems]
   );
+
+  // Sincroniza subcategorias em memória quando `data.page` revalida no servidor (ex: após criar subcategoria)
+  React.useEffect(() => {
+    for (const freshRoot of data.page.data) {
+      const currentInList = items.find((i) => i.id === freshRoot.id);
+      if (
+        currentInList &&
+        currentInList.children &&
+        currentInList.children.length > 0 &&
+        currentInList.children.length !== freshRoot.childrenCount
+      ) {
+        void onFetchChildren(freshRoot.id);
+      }
+    }
+  }, [data.page]);
 
   // 5. Categoria Ativa (URL segment)
   const activeId = React.useMemo(() => {

@@ -14,7 +14,10 @@ import type { CategoryItem } from "@/modules/categories/models/category.schema";
 import { CategoriesMasterFilter } from "@/modules/categories/ui/components/categories-master-filter";
 import { CategoryActionsDrawer } from "@/modules/categories/ui/components/category-actions-drawer";
 import { DataTableRowActions } from "@/components/actions/menu";
-import { CATEGORY_ACTIONS } from "@/modules/categories/ui/components/category-actions";
+import {
+  CATEGORY_ACTIONS,
+  type CategoryActionContext,
+} from "@/modules/categories/ui/components/category-actions";
 import { cn } from "@/lib/utils";
 
 export interface CategoryDetailHeaderProps {
@@ -105,6 +108,21 @@ export function CategoryDetailHeader({
     );
   }, [basicInfo, category]);
 
+  const actionContext = React.useMemo<CategoryActionContext>(
+    () => ({
+      onAddSubcategory: (cat: CategoryItem) => {
+        router.push(`/categories/create?parentId=${cat.id}`);
+      },
+      onEdit: (cat: CategoryItem) => {
+        console.log("[DetailHeader] Editar categoria:", cat.name);
+      },
+      onArchive: (cat: CategoryItem) => {
+        console.log("[DetailHeader] Arquivar categoria:", cat.name);
+      },
+    }),
+    [router]
+  );
+
   return (
     <div className={cn("flex flex-col gap-3 w-full", className)}>
       {/* ======================================================== */}
@@ -168,6 +186,7 @@ export function CategoryDetailHeader({
           {rowLikeCategory && (
             <CategoryActionsDrawer
               category={rowLikeCategory}
+              context={actionContext}
               trigger={
                 <Button
                   type="button"
@@ -248,6 +267,7 @@ export function CategoryDetailHeader({
             <DataTableRowActions
               row={{ original: rowLikeCategory }}
               actions={CATEGORY_ACTIONS}
+              context={actionContext}
               trigger={
                 <Button
                   type="button"

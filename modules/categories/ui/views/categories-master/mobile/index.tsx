@@ -4,16 +4,6 @@ import * as React from "react";
 import { ChevronLeft, Loader2, MoreHorizontal, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerFooter,
-} from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
@@ -38,9 +28,7 @@ export default function CategoriesMasterViewMobile({
   activeId,
   loadingChildrenIds,
   onFetchChildren,
-  isAddModalOpen,
   onOpenAddModal,
-  onCloseAddModal,
   actionContext,
   activeCategoryForActions,
   isActionsDrawerOpen,
@@ -158,7 +146,9 @@ export default function CategoriesMasterViewMobile({
 
       {items.length === 0 && (
         <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-          <p className="text-sm font-medium text-foreground">Nenhuma categoria encontrada</p>
+          <p className="text-sm font-medium text-foreground">
+            Nenhuma categoria encontrada
+          </p>
           <p className="text-xs text-muted-foreground mt-1">
             Tente buscar com outro termo ou limpe os filtros.
           </p>
@@ -172,45 +162,6 @@ export default function CategoriesMasterViewMobile({
         onOpenChange={(open: boolean) => !open && onCloseActions()}
         context={actionContext}
       />
-
-      {/* Drawer Mobile para Nova Categoria */}
-      <Drawer
-        open={isAddModalOpen}
-        onOpenChange={(open) => !open && onCloseAddModal()}
-        showSwipeHandle
-      >
-        <DrawerContent className="p-4">
-          <DrawerHeader className="text-left px-0">
-            <DrawerTitle>Nova Categoria</DrawerTitle>
-            <DrawerDescription>
-              Crie uma nova categoria para organizar suas movimentações.
-            </DrawerDescription>
-          </DrawerHeader>
-          <div className="flex flex-col gap-3 py-3">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="mobile-category-name">Nome da Categoria</Label>
-              <Input
-                id="mobile-category-name"
-                placeholder="Ex: Educação, Lazer..."
-                autoFocus
-              />
-            </div>
-          </div>
-          <DrawerFooter className="px-0">
-            <Button
-              type="button"
-              onClick={() => {
-                onCloseAddModal();
-              }}
-            >
-              Criar Categoria
-            </Button>
-            <Button type="button" variant="outline" onClick={onCloseAddModal}>
-              Cancelar
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
     </div>
   );
 }
