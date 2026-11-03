@@ -2,13 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
-import { failure, success, type Result } from "@/types/result.types";
+import { failure, type Result } from "@/types/result.types";
 import {
   CreateCategorySchema,
   type CreateCategoryFormValues,
   type CategoryItem,
 } from "@/modules/categories/models/category.schema";
-import { CategoriesMockService } from "@/modules/categories/infra/mock/categories.mock";
+import { CategoryFactory } from "@/modules/categories/infra/factories/category.factory";
 
 export async function createCategoryAction(
   formData: CreateCategoryFormValues
@@ -24,13 +24,20 @@ export async function createCategoryAction(
   }
 
   try {
-    const created = CategoriesMockService.createCategory(parsed.data);
-    revalidatePath("/categories", "layout");
-    return success(created);
+    const useCase = CategoryFactory.makeCreateCategoryUseCase();
+    const result = await useCase.execute({
+      session,
+      data: parsed.data,
+    });
+
+    if (result.success) {
+      revalidatePath("/categories", "layout");
+    }
+
+    return result;
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Não foi possível criar a categoria.";
     return failure(message);
   }
 }
-

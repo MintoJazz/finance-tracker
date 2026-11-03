@@ -14,6 +14,7 @@ export interface CategoriesMasterCommonProps {
   dateRange: DateRange;
   onChangeDateRange: (range: DateRange | undefined) => void;
   activeId: number | null;
+  activeParentId?: number | null;
   loadingChildrenIds: number[];
   onFetchChildren: (categoryId: number) => Promise<void>;
   onOpenAddModal: () => void;

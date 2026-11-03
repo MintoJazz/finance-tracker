@@ -1,9 +1,9 @@
 "use server";
 
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
-import { failure, success, type Result } from "@/types/result.types";
+import { failure, type Result } from "@/types/result.types";
 import type { CategoryItem } from "@/modules/categories/models/category.schema";
-import { CategoriesMockService } from "@/modules/categories/infra/mock/categories.mock";
+import { CategoryFactory } from "@/modules/categories/infra/factories/category.factory";
 
 export interface GetCategoryChildrenParams {
   parentId: number;
@@ -19,11 +19,9 @@ export async function getCategoryChildrenAction(
     return failure("Não autenticado");
   }
 
-  // Simular latência de rede para feedback visual elegante da UI
-  await new Promise((resolve) => setTimeout(resolve, 250));
-
-  const children = CategoriesMockService.listCategoryChildren(params.parentId);
-
-  return success(children);
+  const useCase = CategoryFactory.makeGetCategoryChildrenUseCase();
+  return await useCase.execute({
+    session,
+    parentId: params.parentId,
+  });
 }
-

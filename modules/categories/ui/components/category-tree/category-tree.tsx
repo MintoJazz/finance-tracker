@@ -6,7 +6,6 @@ import { Layers, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMasterDetail } from "@/components/master-detail";
 import type { CategoryItem } from "@/modules/categories/models/category.schema";
-import { CategoriesMockService } from "@/modules/categories/infra/mock/categories.mock";
 import { CategoryTreeItem } from "./category-tree-item";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import {
@@ -21,6 +20,7 @@ import {
 export interface CategoryTreeProps {
   items: CategoryItem[];
   activeId?: number | null;
+  activeParentId?: number | null;
   renderItemActions?: (item: CategoryItem) => React.ReactNode;
   loadingChildrenIds?: number[];
   onFetchChildren?: (categoryId: number) => Promise<void>;
@@ -30,6 +30,7 @@ export interface CategoryTreeProps {
 export function CategoryTree({
   items,
   activeId = null,
+  activeParentId = null,
   renderItemActions,
   loadingChildrenIds = [],
   onFetchChildren,
@@ -48,11 +49,8 @@ export function CategoryTree({
     }
     // Por padrão, expande a categoria pai se ela ou um de seus filhos estiver ativo
     if (category.id === activeId) return true;
+    if (activeParentId === category.id) return true;
     if (category.children?.some((child) => child.id === activeId)) return true;
-    if (activeId) {
-      const info = CategoriesMockService.findCategoryById(activeId);
-      if (info?.parent?.id === category.id) return true;
-    }
     return false;
   };
 

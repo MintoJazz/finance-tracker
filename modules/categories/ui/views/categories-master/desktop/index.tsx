@@ -27,6 +27,7 @@ export default function CategoriesMasterViewDesktop({
   dateRange,
   onChangeDateRange,
   activeId,
+  activeParentId,
   loadingChildrenIds,
   onFetchChildren,
   onOpenAddModal,
@@ -87,6 +88,7 @@ export default function CategoriesMasterViewDesktop({
       <CategoryTree
         items={items}
         activeId={activeId}
+        activeParentId={activeParentId}
         loadingChildrenIds={loadingChildrenIds}
         onFetchChildren={onFetchChildren}
         renderItemActions={(item: CategoryItem) => (

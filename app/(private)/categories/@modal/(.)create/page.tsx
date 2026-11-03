@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ViewContainer } from "@/components/adaptive";
 import { getDeviceViewport } from "@/lib/device";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
-import { CategoriesMockService } from "@/modules/categories/infra/mock/categories.mock";
+import { CategoryFactory } from "@/modules/categories/infra/factories/category.factory";
 import type { CategoryParentSummary } from "@/modules/categories/ui/components/category-form/types";
 import { CreateCategoryModalConfig } from "@/modules/categories/ui/views/create-category-modal";
 
@@ -27,15 +27,21 @@ export default async function CreateCategoryModalPage(
   if (rawParentId) {
     const parsedId = Number(rawParentId);
     if (Number.isInteger(parsedId) && parsedId > 0) {
-      const found = CategoriesMockService.findCategoryById(parsedId);
-      // Subcategoria só pode ser vinculada a uma categoria raiz
-      if (found && !found.category.parentId) {
+      const basicInfoUseCase =
+        CategoryFactory.makeGetCategoryBasicInfoUseCase();
+      const result = await basicInfoUseCase.execute({
+        session,
+        id: parsedId,
+      });
+
+      // Subcategoria só pode ser vinculada a uma categoria raiz (parentId === null)
+      if (result.success && result.data && result.data.parentId === null && result.data.id) {
         parentCategory = {
-          id: found.category.id,
-          name: found.category.name,
-          icon: found.category.appearance?.icon ?? found.category.icon ?? null,
+          id: result.data.id,
+          name: result.data.name,
+          icon: result.data.appearance?.icon ?? result.data.icon ?? null,
           color:
-            found.category.appearance?.color ?? found.category.color ?? null,
+            result.data.appearance?.color ?? result.data.color ?? null,
         };
       }
     }
@@ -52,4 +58,3 @@ export default async function CreateCategoryModalPage(
     />
   );
 }
-

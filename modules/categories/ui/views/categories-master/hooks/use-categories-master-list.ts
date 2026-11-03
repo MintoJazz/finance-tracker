@@ -11,7 +11,7 @@ import type { Page } from "@/types/pagination.types";
 import type { CategoryItem, CategoryTreeDTO } from "@/modules/categories/models/category.schema";
 import { getCategoriesTreeAction } from "@/modules/categories/ui/actions/get-categories-tree.action";
 import { getCategoryChildrenAction } from "@/modules/categories/ui/actions/get-category-children.action";
-import { CategoriesMockService } from "@/modules/categories/infra/mock/categories.mock";
+import { getCategoryBasicInfoAction } from "@/modules/categories/ui/actions/get-category-basic-info.action";
 
 export function useCategoriesMasterList(data: CategoryTreeDTO) {
   const router = useRouter();
@@ -212,35 +212,50 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
     return Number.isInteger(parsed) ? parsed : null;
   }, [segment]);
 
+  const [activeParentId, setActiveParentId] = React.useState<number | null>(null);
+
   // Carrega automaticamente as subcategorias se a categoria ativa (ou seu pai) estiver sem filhas em memória
   React.useEffect(() => {
-    if (!activeId) return;
+    if (!activeId) {
+      setActiveParentId(null);
+      return;
+    }
 
     // Caso 1: A categoria ativa é uma categoria-pai na lista
     const activeParent = items.find((cat) => cat.id === activeId);
-    if (
-      activeParent &&
-      (activeParent.childrenCount ?? 0) > 0 &&
-      (!activeParent.children || activeParent.children.length === 0) &&
-      !loadingChildrenMap[activeParent.id]
-    ) {
-      void onFetchChildren(activeParent.id);
+    if (activeParent) {
+      setActiveParentId(null);
+      if (
+        (activeParent.childrenCount ?? 0) > 0 &&
+        (!activeParent.children || activeParent.children.length === 0) &&
+        !loadingChildrenMap[activeParent.id]
+      ) {
+        void onFetchChildren(activeParent.id);
+      }
       return;
     }
 
     // Caso 2: A categoria ativa é uma subcategoria (filha)
-    const found = CategoriesMockService.findCategoryById(activeId);
-    if (found?.parent) {
-      const parentId = found.parent.id;
-      const parentInList = items.find((i) => i.id === parentId);
-      if (
-        parentInList &&
-        (!parentInList.children || parentInList.children.length === 0) &&
-        !loadingChildrenMap[parentId]
-      ) {
-        void onFetchChildren(parentId);
+    let isCancelled = false;
+    void getCategoryBasicInfoAction({ id: activeId }).then((res) => {
+      if (isCancelled || !res.success || !res.data) return;
+      const parentId = res.data.parentId;
+      if (parentId) {
+        setActiveParentId(parentId);
+        const parentInList = items.find((i) => i.id === parentId);
+        if (
+          parentInList &&
+          (!parentInList.children || parentInList.children.length === 0) &&
+          !loadingChildrenMap[parentId]
+        ) {
+          void onFetchChildren(parentId);
+        }
       }
-    }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
   }, [activeId, items, loadingChildrenMap, onFetchChildren]);
 
   const loadingChildrenIds = React.useMemo(() => {
@@ -260,6 +275,7 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
     dateRange,
     onChangeDateRange,
     activeId,
+    activeParentId,
     loadingChildrenIds,
     onFetchChildren,
   };

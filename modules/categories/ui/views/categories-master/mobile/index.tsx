@@ -26,6 +26,7 @@ export default function CategoriesMasterViewMobile({
   dateRange,
   onChangeDateRange,
   activeId,
+  activeParentId,
   loadingChildrenIds,
   onFetchChildren,
   onOpenAddModal,
@@ -103,6 +104,7 @@ export default function CategoriesMasterViewMobile({
       <CategoryTree
         items={items}
         activeId={activeId}
+        activeParentId={activeParentId}
         loadingChildrenIds={loadingChildrenIds}
         onFetchChildren={onFetchChildren}
         renderItemActions={(item: CategoryItem) => (
