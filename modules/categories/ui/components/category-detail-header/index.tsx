@@ -99,6 +99,8 @@ export function CategoryDetailHeader({
         color: basicInfo.color,
         amount: 0,
         parentId: basicInfo.parentId,
+        childrenCount: 0,
+        children: [],
       }
     );
   }, [basicInfo, category]);

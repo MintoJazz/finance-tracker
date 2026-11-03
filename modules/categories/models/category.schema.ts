@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Page, PageRequest } from "@/types/pagination.types";
 
 /**
  * Representa a aparência visual de uma categoria, espelhando o modelo BalanceAppearance do Prisma.
@@ -18,7 +19,8 @@ export interface CategoryItem {
   appearance?: CategoryAppearance;
   amount: number; // em centavos (ex: 184200 = R$ 1.842,00)
   parentId?: number | null;
-  children?: CategoryItem[];
+  childrenCount: number; // quantidade de subcategorias filhas
+  children: CategoryItem[]; // array de filhas (vazio na carga inicial, injetado ao expandir)
 }
 
 export const CategoryItemSchema: z.ZodType<CategoryItem> = z.lazy(() =>
@@ -30,25 +32,31 @@ export const CategoryItemSchema: z.ZodType<CategoryItem> = z.lazy(() =>
     appearance: CategoryAppearanceSchema.optional(),
     amount: z.number().int(),
     parentId: z.number().int().positive().nullable().optional(),
-    children: z.array(CategoryItemSchema).optional(),
+    childrenCount: z.number().int().nonnegative().default(0),
+    children: z.array(CategoryItemSchema).default([]),
   })
 );
 
-export const CategoryTreeDTOSchema = z.object({
-  period: z.object({
-    from: z.date(),
-    to: z.date(),
-  }),
-  totalAmount: z.number().int(),
-  items: z.array(CategoryItemSchema),
-});
-
-export type CategoryTreeDTO = z.infer<typeof CategoryTreeDTOSchema>;
+export interface CategoryTreeDTO {
+  period: {
+    from: Date;
+    to: Date;
+  };
+  totalAmount: number;
+  page: Page<CategoryItem>;
+  items?: CategoryItem[];
+}
 
 export const CategoryTreeFilterSchema = z.object({
   from: z.date().optional(),
   to: z.date().optional(),
   search: z.string().optional(),
+  pageRequest: z
+    .object({
+      page: z.number().int().positive(),
+      pageSize: z.number().int().positive(),
+    })
+    .optional(),
 });
 
 export type CategoryTreeFilter = z.infer<typeof CategoryTreeFilterSchema>;

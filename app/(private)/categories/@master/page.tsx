@@ -11,6 +11,7 @@ interface CategoriesMasterPageProps {
   searchParams?: Promise<{
     from?: string;
     to?: string;
+    search?: string;
   }>;
 }
 
@@ -33,7 +34,15 @@ export default async function CategoriesMasterPage(props: CategoriesMasterPagePr
     if (isValid(parsedTo)) to = parsedTo;
   }
 
-  const result = await getCategoriesTreeAction({ from, to });
+  const search = searchParams?.search?.trim() || undefined;
+
+  const result = await getCategoriesTreeAction({
+    from,
+    to,
+    search,
+    pageRequest: { page: 1, pageSize: 6 },
+  });
+
   if (!result.success || !result.data) {
     return (
       <ErrorView

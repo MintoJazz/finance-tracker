@@ -3,7 +3,7 @@
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { failure, success, type Result } from "@/types/result.types";
 import { getCategoriesTreeAction } from "./get-categories-tree.action";
-import { findCategoryInTree, type CategoryItem } from "@/modules/categories/models/category.schema";
+import { CategoriesMockService } from "@/modules/categories/infra/mock/categories.mock";
 import {
   type CategoryBasicInfoDTO,
 } from "@/modules/categories/models/category-tab.schema";
@@ -12,19 +12,6 @@ export interface GetCategoryBasicInfoParams {
   id?: number | string | null;
   from?: Date;
   to?: Date;
-}
-
-function findParentCategory(items: CategoryItem[], childId: number, parent: CategoryItem | null = null): CategoryItem | null {
-  for (const item of items) {
-    if (item.id === childId) {
-      return parent;
-    }
-    if (item.children && item.children.length > 0) {
-      const found = findParentCategory(item.children, childId, item);
-      if (found) return found;
-    }
-  }
-  return null;
 }
 
 export async function getCategoryBasicInfoAction(
@@ -59,16 +46,14 @@ export async function getCategoryBasicInfoAction(
   }
 
   const categoryId = Number(params.id);
-  const category = findCategoryInTree(treeResult.data.items, categoryId);
+  const found = CategoriesMockService.findCategoryById(categoryId);
 
-  if (!category) {
+  if (!found) {
     return failure("Categoria não encontrada");
   }
 
-  const isRoot = !category.parentId || (category.children && category.children.length > 0);
-  const parent = category.parentId
-    ? findParentCategory(treeResult.data.items, category.id)
-    : null;
+  const { category, parent } = found;
+  const isRoot = !category.parentId || category.childrenCount > 0;
 
   if (isRoot) {
     return success({
@@ -99,4 +84,3 @@ export async function getCategoryBasicInfoAction(
     defaultTab: "INDICATORS",
   });
 }
-

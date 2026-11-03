@@ -4,9 +4,18 @@ import type { CategoryActionContext } from "@/modules/categories/ui/components/c
 
 export interface CategoriesMasterCommonProps {
   data: CategoryTreeDTO;
+  items: CategoryItem[];
+  total: number;
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  sentinelRef: (node: HTMLDivElement | null) => void;
+  search: string;
+  onSearchChange: (value: string) => void;
   dateRange: DateRange;
   onChangeDateRange: (range: DateRange | undefined) => void;
   activeId: number | null;
+  loadingChildrenIds: number[];
+  onFetchChildren: (categoryId: number) => Promise<void>;
   isAddModalOpen: boolean;
   onOpenAddModal: () => void;
   onCloseAddModal: () => void;

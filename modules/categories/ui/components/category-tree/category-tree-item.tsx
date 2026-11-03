@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMasterDetail } from "@/components/master-detail";
 import { CategoryIcon } from "@/modules/movements/ui/components/category-badge/category-icon";
@@ -25,6 +25,7 @@ export interface CategoryTreeItemProps {
   level?: number;
   isActive?: boolean;
   isExpanded?: boolean;
+  isLoadingChildren?: boolean;
   onToggleExpand?: (id: number) => void;
   actionTrigger?: React.ReactNode;
   className?: string;
@@ -35,6 +36,7 @@ export function CategoryTreeItem({
   level = 0,
   isActive = false,
   isExpanded = false,
+  isLoadingChildren = false,
   onToggleExpand,
   actionTrigger,
   className,
@@ -43,7 +45,9 @@ export function CategoryTreeItem({
   const searchParams = useSearchParams();
   const { isMobile, closeMaster } = useMasterDetail();
 
-  const hasChildren = Boolean(item.children && item.children.length > 0);
+  const hasChildren = (item.childrenCount ?? (item.children?.length ?? 0)) > 0;
+  const hasChildrenLoaded = Boolean(item.children && item.children.length > 0);
+  const isEffectivelyExpanded = isExpanded && hasChildrenLoaded;
   const isSubitem = level > 0;
 
   // Resolve a aparência da categoria (cor e ícone)
@@ -123,19 +127,42 @@ export function CategoryTreeItem({
         <ListItemFooter>
           <ListItemFooterLeft>
             <ListItemFooterInfo
-              icon={isExpanded ? ChevronDown : ChevronRight}
-              className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors select-none text-xs font-medium"
-              onClick={handleToggle}
+              icon={
+                isLoadingChildren
+                  ? () => <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
+                  : isEffectivelyExpanded
+                  ? ChevronDown
+                  : ChevronRight
+              }
+              className={cn(
+                "text-muted-foreground transition-colors select-none text-xs font-medium",
+                isLoadingChildren
+                  ? "cursor-default"
+                  : "cursor-pointer hover:text-foreground"
+              )}
+              onClick={isLoadingChildren ? undefined : handleToggle}
             >
               <button
                 type="button"
-                className="hover:underline focus-visible:outline-none"
-                onClick={handleToggle}
-                aria-label={isExpanded ? "Ocultar subcategorias" : "Exibir subcategorias"}
+                disabled={isLoadingChildren}
+                className={cn(
+                  "focus-visible:outline-none",
+                  !isLoadingChildren && "hover:underline"
+                )}
+                onClick={isLoadingChildren ? undefined : handleToggle}
+                aria-label={
+                  isLoadingChildren
+                    ? "Carregando subcategorias"
+                    : isEffectivelyExpanded
+                    ? "Ocultar subcategorias"
+                    : "Exibir subcategorias"
+                }
               >
-                {isExpanded
+                {isLoadingChildren
+                  ? "Carregando subcategorias..."
+                  : isEffectivelyExpanded
                   ? "Ocultar subcategorias"
-                  : `${item.children?.length} ${item.children?.length === 1 ? "subcategoria" : "subcategorias"}`}
+                  : `${item.childrenCount} ${item.childrenCount === 1 ? "subcategoria" : "subcategorias"}`}
               </button>
             </ListItemFooterInfo>
           </ListItemFooterLeft>

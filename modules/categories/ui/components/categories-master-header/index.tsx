@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Plus, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export interface CategoriesMasterHeaderProps {
@@ -16,6 +17,7 @@ export interface CategoriesMasterHeaderProps {
 
 export function CategoriesMasterHeader({
   title = "Categorias",
+  totalCount,
   onAddClick,
   navigationAction,
   className,
@@ -27,6 +29,11 @@ export function CategoriesMasterHeader({
         <h2 className="text-base font-semibold tracking-tight text-foreground truncate">
           {title}
         </h2>
+        {totalCount !== undefined && (
+          <Badge variant="outline" className="tabular-nums text-xs">
+            {totalCount}
+          </Badge>
+        )}
       </div>
 
       <div className="flex items-center gap-1.5 shrink-0">
