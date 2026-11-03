@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import type { BalanceWhereInput } from "@/prisma/generated/prisma/models";
 import type { Page, PageRequest } from "@/types/pagination.types";
-import type { CategoryItem } from "@/modules/categories/models/category.schema";
+import type {
+  CategoryItem,
+  ArchivedCategoryGroup,
+} from "@/modules/categories/models/category.schema";
 import type {
   CategoryDetailFoundDTO,
   ICategoryQueries,
@@ -144,6 +147,73 @@ export class CategoryPrismaQueries implements ICategoryQueries {
       parentName: found.parent?.name ?? null,
       childrenCount: found._count.children,
     };
+  }
+
+  async listArchivedCategories(
+    contextId: number
+  ): Promise<ArchivedCategoryGroup[]> {
+    // 1. Busca todas as categorias e subcategorias arquivadas do contexto ativo
+    const archivedBalances = await prisma.balance.findMany({
+      where: {
+        contextId,
+        balanceType: "CATEGORY",
+        removedAt: { not: null },
+      },
+      select: {
+        id: true,
+        name: true,
+        parentId: true,
+        removedAt: true,
+      },
+      orderBy: { name: "asc" },
+    });
+
+    if (archivedBalances.length === 0) {
+      return [];
+    }
+
+    // 2. Localiza IDs de pais ativos de subcategorias arquivadas
+    const archivedIdsSet = new Set(archivedBalances.map((b) => b.id));
+    const activeParentIdsNeeded = Array.from(
+      new Set(
+        archivedBalances
+          .map((b) => b.parentId)
+          .filter(
+            (parentId): parentId is number =>
+              parentId !== null && !archivedIdsSet.has(parentId)
+          )
+      )
+    );
+
+    // 3. Se houver pais ativos, busca-os em lote (apenas do mesmo contexto)
+    let activeParents: Array<{
+      id: number;
+      name: string;
+      parentId: number | null;
+      removedAt: Date | null;
+    }> = [];
+
+    if (activeParentIdsNeeded.length > 0) {
+      activeParents = await prisma.balance.findMany({
+        where: {
+          id: { in: activeParentIdsNeeded },
+          contextId,
+          balanceType: "CATEGORY",
+          parentId: null,
+          removedAt: null,
+        },
+        select: {
+          id: true,
+          name: true,
+          parentId: true,
+          removedAt: true,
+        },
+        orderBy: { name: "asc" },
+      });
+    }
+
+    // 4. Mapeia e agrupa os dados preservando regras de domínio
+    return CategoryMapper.toArchivedGroups(archivedBalances, activeParents);
   }
 }
 

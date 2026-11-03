@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Page, PageRequest } from "@/types/pagination.types";
+import type { Page } from "@/types/pagination.types";
 
 /**
  * Representa a aparência visual de uma categoria, espelhando o modelo BalanceAppearance do Prisma.
@@ -79,6 +79,22 @@ export type CategoryFormValues = z.infer<typeof CategoryFormSchema>;
 
 export const CreateCategorySchema = CategoryFormSchema;
 export type CreateCategoryFormValues = z.infer<typeof CreateCategorySchema>;
+
+export const ArchivedSubcategorySchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().min(1),
+});
+
+export type ArchivedSubcategory = z.infer<typeof ArchivedSubcategorySchema>;
+
+export const ArchivedCategoryGroupSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().min(1),
+  archived: z.boolean(),
+  children: z.array(ArchivedSubcategorySchema),
+});
+
+export type ArchivedCategoryGroup = z.infer<typeof ArchivedCategoryGroupSchema>;
 
 /**
  * Busca recursivamente uma categoria pelo ID na árvore de categorias.

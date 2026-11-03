@@ -10,6 +10,7 @@ import { GetCategoriesTreeUseCase } from "../../application/use-cases/get-catego
 import { GetCategoryChildrenUseCase } from "../../application/use-cases/get-category-children.use-case";
 import { CreateCategoryUseCase } from "../../application/use-cases/create-category.use-case";
 import { GetCategoryBasicInfoUseCase } from "../../application/use-cases/get-category-basic-info.use-case";
+import { GetArchivedCategoriesUseCase } from "../../application/use-cases/get-archived-categories.use-case";
 
 export class CategoryFactory {
   private static readonly categoryQueries: ICategoryQueries =
@@ -42,6 +43,12 @@ export class CategoryFactory {
 
   public static readonly makeGetCategoryBasicInfoUseCase = () =>
     new GetCategoryBasicInfoUseCase(
+      this.categoryQueries,
+      this.spaceAccessProvider
+    );
+
+  public static readonly makeGetArchivedCategoriesUseCase = () =>
+    new GetArchivedCategoriesUseCase(
       this.categoryQueries,
       this.spaceAccessProvider
     );

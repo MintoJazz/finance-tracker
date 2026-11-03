@@ -1,5 +1,8 @@
 import type { Page, PageRequest } from "@/types/pagination.types";
-import type { CategoryItem } from "@/modules/categories/models/category.schema";
+import type {
+  CategoryItem,
+  ArchivedCategoryGroup,
+} from "@/modules/categories/models/category.schema";
 
 export interface CategoryDetailFoundDTO {
   id: number;
@@ -27,5 +30,9 @@ export interface ICategoryQueries {
     contextId: number,
     categoryId: number
   ): Promise<CategoryDetailFoundDTO | null>;
+
+  listArchivedCategories(
+    contextId: number
+  ): Promise<ArchivedCategoryGroup[]>;
 }
 
