@@ -72,6 +72,25 @@ export const routes = defineRoutes({
     label: () => "",
     parent: "contractProfile",
   },
+  categories: {
+    pattern: "/categories",
+    label: "Categorias",
+  },
+  categoryCreate: {
+    pattern: "/categories/create",
+    label: "Nova categoria",
+    parent: "categories",
+  },
+  categoryArchived: {
+    pattern: "/categories/archived",
+    label: "Categorias Arquivadas",
+    parent: "categories",
+  },
+  categoryDetail: {
+    pattern: "/categories/[id]",
+    label: () => "",
+    parent: "categories",
+  },
 })
 
 export type RouteKey = keyof typeof routes

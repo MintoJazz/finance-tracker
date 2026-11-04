@@ -12,6 +12,7 @@ import { CategoriesMasterHeader } from "@/modules/categories/ui/components/categ
 import { CategoriesMasterFilter } from "@/modules/categories/ui/components/categories-master-filter";
 import { CategoryTree } from "@/modules/categories/ui/components/category-tree/category-tree";
 import { CategoryActionsDrawer } from "@/modules/categories/ui/components/category-actions-drawer";
+import { ArchiveCategoryModalViewMobile } from "@/modules/categories/ui/views/archive-category-modal";
 import type { CategoryItem } from "@/modules/categories/models/category.schema";
 import type { CategoriesMasterMobileProps } from "../types";
 
@@ -31,6 +32,7 @@ export default function CategoriesMasterViewMobile({
   onFetchChildren,
   onOpenAddModal,
   actionContext,
+  archiveContext,
   activeCategoryForActions,
   isActionsDrawerOpen,
   onOpenActions,
@@ -164,6 +166,8 @@ export default function CategoriesMasterViewMobile({
         onOpenChange={(open: boolean) => !open && onCloseActions()}
         context={actionContext}
       />
+
+      <ArchiveCategoryModalViewMobile {...archiveContext} />
     </div>
   );
 }

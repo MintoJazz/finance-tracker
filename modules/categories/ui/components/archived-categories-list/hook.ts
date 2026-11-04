@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { toast } from "@/components/ui/toast";
 import type {
   ArchivedCategoryGroup,
   ArchivedSubcategory,
   RestoreRequest,
 } from "./types";
 import { getArchivedCategoriesAction } from "@/modules/categories/ui/actions/get-archived-categories.action";
+import { restoreCategoryAction } from "@/modules/categories/ui/actions/restore-category.action";
+import { restoreSubcategoryAction } from "@/modules/categories/ui/actions/restore-subcategory.action";
 
 interface UseArchivedCategoriesListParams {
   initialItems?: ArchivedCategoryGroup[];
@@ -48,12 +51,56 @@ export function useArchivedCategoriesList({
   }, [fetchCategories, initialItems]);
 
   const dispatchRestore = useCallback(
-    (request: RestoreRequest) => {
-      // TODO: Na próxima entrega, este handler abrirá o dialog de confirmação correspondente
-      console.info("[ArchivedCategories] Solicitação de restauração recebida:", request);
-      onRestore?.(request);
+    async (request: RestoreRequest) => {
+      try {
+        if (onRestore) {
+          onRestore(request);
+          return;
+        }
+
+        if (request.kind === "category") {
+          const result = await restoreCategoryAction({ id: request.categoryId });
+          if (!result.success) {
+            toast.add({
+              type: "error",
+              title: "Erro ao restaurar categoria",
+              description: result.error ?? "Não foi possível restaurar a categoria.",
+            });
+            return;
+          }
+          toast.add({
+            type: "success",
+            title: "Categoria restaurada",
+            description: `A categoria "${result.data?.name}" foi restaurada com sucesso.`,
+          });
+          await fetchCategories();
+        } else {
+          const result = await restoreSubcategoryAction({ id: request.subcategoryId });
+          if (!result.success) {
+            toast.add({
+              type: "error",
+              title: "Erro ao restaurar subcategoria",
+              description: result.error ?? "Não foi possível restaurar a subcategoria.",
+            });
+            return;
+          }
+          toast.add({
+            type: "success",
+            title: "Subcategoria restaurada",
+            description: `A subcategoria "${result.data?.name}" foi restaurada com sucesso.`,
+          });
+          await fetchCategories();
+        }
+      } catch (err) {
+        console.error("[ArchivedCategories] Erro ao restaurar:", err);
+        toast.add({
+          type: "error",
+          title: "Erro inesperado",
+          description: "Ocorreu um erro ao tentar restaurar.",
+        });
+      }
     },
-    [onRestore]
+    [onRestore, fetchCategories]
   );
 
   const handleRestoreCategory = useCallback(

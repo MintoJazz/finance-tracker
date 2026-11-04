@@ -1,6 +1,7 @@
 import type { DateRange } from "react-day-picker";
 import type { CategoryItem, CategoryTreeDTO } from "@/modules/categories/models/category.schema";
 import type { CategoryActionContext } from "@/modules/categories/ui/components/category-actions";
+import type { ArchiveCategoryModalProps } from "@/modules/categories/ui/views/archive-category-modal/types";
 
 export interface CategoriesMasterCommonProps {
   data: CategoryTreeDTO;
@@ -19,6 +20,7 @@ export interface CategoriesMasterCommonProps {
   onFetchChildren: (categoryId: number) => Promise<void>;
   onOpenAddModal: () => void;
   actionContext: CategoryActionContext;
+  archiveContext: ArchiveCategoryModalProps;
 }
 
 export type CategoriesMasterDesktopProps = CategoriesMasterCommonProps;

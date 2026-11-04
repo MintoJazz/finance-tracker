@@ -6,6 +6,7 @@ import type {
 } from "@/modules/categories/models/category.schema";
 import { failure, success, type Result } from "@/types/result.types";
 import type { ICategoryRepository } from "../interfaces/category-repository.interface";
+import { CategoryDomainError } from "../policies/category.policy";
 
 export interface CreateCategoryUseCaseDTO {
   session: SessionPayload;
@@ -35,25 +36,6 @@ export class CreateCategoryUseCase {
         );
       }
 
-      if (data.parentId) {
-        const parent = await this.categoryRepository.findParentCategory(
-          session.contextId,
-          data.parentId
-        );
-
-        if (!parent) {
-          return failure("Categoria pai não encontrada no contexto atual.");
-        }
-
-        // Regra de profundidade de 2 níveis: categorias raiz possuem parentId === null.
-        // Se a categoria indicada já possuir um parentId, rejeitamos a operação.
-        if (parent.parentId !== null) {
-          return failure(
-            "Não é permitido criar subcategorias dentro de outra subcategoria."
-          );
-        }
-      }
-
       const created = await this.categoryRepository.create(
         session.contextId,
         data
@@ -61,9 +43,11 @@ export class CreateCategoryUseCase {
 
       return success(created);
     } catch (err) {
+      if (err instanceof CategoryDomainError) {
+        return failure(err.message);
+      }
       console.error("[CreateCategoryUseCase] Erro inesperado:", err);
       return failure("Ocorreu um erro interno ao criar a categoria.");
     }
   }
 }
-

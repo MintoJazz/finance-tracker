@@ -65,26 +65,6 @@ export function ContractCycleFiltersForm({
                 <BadgeCarouselContent />
             </BadgeCarousel>
 
-            {/* 2. Toggle Ciclos Projetados */}
-            <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 p-2.5">
-                <div className="flex items-center gap-2">
-                    <Sparkles className="size-4 text-indigo-500" />
-                    <Label
-                        htmlFor="include-projected-toggle"
-                        className="text-xs font-medium cursor-pointer"
-                    >
-                        Incluir ciclos projetados
-                    </Label>
-                </div>
-                <Switch
-                    id="include-projected-toggle"
-                    checked={values.includeProjected !== false}
-                    onCheckedChange={(checked) =>
-                        onChange({ includeProjected: checked })
-                    }
-                />
-            </div>
-
             {/* 3. Reset Button */}
             {!hideResetButton && hasActiveFilters && onReset && (
                 <Button

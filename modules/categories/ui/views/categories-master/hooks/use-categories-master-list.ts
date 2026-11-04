@@ -28,9 +28,10 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
   React.useEffect(() => {
     const currentParam = searchParams.get("search") ?? "";
     if (currentParam !== search && debouncedSearch === currentParam) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearch(currentParam);
     }
-  }, [searchParams]);
+  }, [searchParams, search, debouncedSearch]);
 
   // 2. Filtro de Período (Sincronizado via URL)
   const dateRange = React.useMemo<DateRange>(() => {
@@ -47,7 +48,7 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
       from: data.period.from,
       to: data.period.to,
     };
-  }, [searchParams, data.period]);
+  }, [searchParams, data.period.from, data.period.to]);
 
   const onChangeDateRange = React.useCallback(
     (range: DateRange | undefined) => {
@@ -73,6 +74,7 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
 
   // Se `data.page` mudar do servidor (ex: navegação com full reload), sincroniza `pageData`
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPageData(data.page);
   }, [data.page]);
 
@@ -104,6 +106,11 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
 
   // Aplica filtro de busca e período ativamente no cliente e sincroniza URL
   const isFirstMount = React.useRef(true);
+  const lastFiltersRef = React.useRef({
+    search: debouncedSearch,
+    from: dateRange?.from instanceof Date ? dateRange.from.getTime() : undefined,
+    to: dateRange?.to instanceof Date ? dateRange.to.getTime() : undefined,
+  });
 
   React.useEffect(() => {
     // No primeiro mount, não precisa refazer a query inicial do servidor a menos que haja discrepância
@@ -126,6 +133,24 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     }
+
+    const currentFromTime = dateRange?.from instanceof Date ? dateRange.from.getTime() : undefined;
+    const currentToTime = dateRange?.to instanceof Date ? dateRange.to.getTime() : undefined;
+
+    const hasChanged =
+      lastFiltersRef.current.search !== debouncedSearch ||
+      lastFiltersRef.current.from !== currentFromTime ||
+      lastFiltersRef.current.to !== currentToTime;
+
+    if (!hasChanged) {
+      return;
+    }
+
+    lastFiltersRef.current = {
+      search: debouncedSearch,
+      from: currentFromTime,
+      to: currentToTime,
+    };
 
     // Executa a busca da página 1 com os novos filtros
     const fetchFiltered = async () => {
@@ -150,14 +175,18 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, dateRange]);
+  }, [debouncedSearch, dateRange, pathname, router, searchParams]);
 
   // 4. Lazy Loading das Subcategorias em Memória
   const [loadingChildrenMap, setLoadingChildrenMap] = React.useState<Record<number, boolean>>({});
+  const loadingChildrenRef = React.useRef(loadingChildrenMap);
+  React.useEffect(() => {
+    loadingChildrenRef.current = loadingChildrenMap;
+  }, [loadingChildrenMap]);
 
   const onFetchChildren = React.useCallback(
     async (parentId: number) => {
-      if (loadingChildrenMap[parentId]) return;
+      if (loadingChildrenRef.current[parentId]) return;
 
       setLoadingChildrenMap((prev) => ({ ...prev, [parentId]: true }));
       try {
@@ -187,7 +216,7 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
         setLoadingChildrenMap((prev) => ({ ...prev, [parentId]: false }));
       }
     },
-    [dateRange, loadingChildrenMap, setItems]
+    [dateRange, setItems]
   );
 
   // Sincroniza subcategorias em memória quando `data.page` revalida no servidor (ex: após criar subcategoria)
@@ -195,15 +224,14 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
     for (const freshRoot of data.page.data) {
       const currentInList = items.find((i) => i.id === freshRoot.id);
       if (
-        currentInList &&
-        currentInList.children &&
+        currentInList?.children &&
         currentInList.children.length > 0 &&
         currentInList.children.length !== freshRoot.childrenCount
       ) {
         void onFetchChildren(freshRoot.id);
       }
     }
-  }, [data.page]);
+  }, [data.page, items, onFetchChildren]);
 
   // 5. Categoria Ativa (URL segment)
   const activeId = React.useMemo(() => {
@@ -212,41 +240,48 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
     return Number.isInteger(parsed) ? parsed : null;
   }, [segment]);
 
-  const [activeParentId, setActiveParentId] = React.useState<number | null>(null);
+  // Se a subcategoria já estiver em memória, deriva o parentId diretamente
+  const resolvedParentId = React.useMemo(() => {
+    if (!activeId) return null;
+    const parent = items.find((cat) => cat.children?.some((child) => child.id === activeId));
+    return parent ? parent.id : null;
+  }, [activeId, items]);
+
+  const [fetchedParentId, setFetchedParentId] = React.useState<number | null>(null);
+
+  const activeParentId = activeId ? (resolvedParentId ?? fetchedParentId) : null;
 
   // Carrega automaticamente as subcategorias se a categoria ativa (ou seu pai) estiver sem filhas em memória
   React.useEffect(() => {
-    if (!activeId) {
-      setActiveParentId(null);
-      return;
-    }
+    if (!activeId) return;
 
     // Caso 1: A categoria ativa é uma categoria-pai na lista
     const activeParent = items.find((cat) => cat.id === activeId);
     if (activeParent) {
-      setActiveParentId(null);
       if (
         (activeParent.childrenCount ?? 0) > 0 &&
         (!activeParent.children || activeParent.children.length === 0) &&
-        !loadingChildrenMap[activeParent.id]
+        !loadingChildrenRef.current[activeParent.id]
       ) {
         void onFetchChildren(activeParent.id);
       }
       return;
     }
 
-    // Caso 2: A categoria ativa é uma subcategoria (filha)
+    if (resolvedParentId) return;
+
+    // Caso 2: A categoria ativa é uma subcategoria (filha) ainda não carregada
     let isCancelled = false;
     void getCategoryBasicInfoAction({ id: activeId }).then((res) => {
       if (isCancelled || !res.success || !res.data) return;
       const parentId = res.data.parentId;
       if (parentId) {
-        setActiveParentId(parentId);
+        setFetchedParentId((prev) => (prev !== parentId ? parentId : prev));
         const parentInList = items.find((i) => i.id === parentId);
         if (
           parentInList &&
           (!parentInList.children || parentInList.children.length === 0) &&
-          !loadingChildrenMap[parentId]
+          !loadingChildrenRef.current[parentId]
         ) {
           void onFetchChildren(parentId);
         }
@@ -256,7 +291,7 @@ export function useCategoriesMasterList(data: CategoryTreeDTO) {
     return () => {
       isCancelled = true;
     };
-  }, [activeId, items, loadingChildrenMap, onFetchChildren]);
+  }, [activeId, items, resolvedParentId, onFetchChildren]);
 
   const loadingChildrenIds = React.useMemo(() => {
     return Object.entries(loadingChildrenMap)

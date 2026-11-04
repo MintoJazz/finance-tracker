@@ -13,6 +13,7 @@ import { CategoriesMasterHeader } from "@/modules/categories/ui/components/categ
 import { CategoriesMasterFilter } from "@/modules/categories/ui/components/categories-master-filter";
 import { CategoryTree } from "@/modules/categories/ui/components/category-tree/category-tree";
 import { CATEGORY_ACTIONS } from "@/modules/categories/ui/components/category-actions";
+import { ArchiveCategoryModalViewDesktop } from "@/modules/categories/ui/views/archive-category-modal";
 import type { CategoryItem } from "@/modules/categories/models/category.schema";
 import type { CategoriesMasterDesktopProps } from "../types";
 
@@ -32,6 +33,7 @@ export default function CategoriesMasterViewDesktop({
   onFetchChildren,
   onOpenAddModal,
   actionContext,
+  archiveContext,
 }: CategoriesMasterDesktopProps) {
   return (
     <div className="flex flex-col gap-4 py-4 w-full">
@@ -142,6 +144,8 @@ export default function CategoriesMasterViewDesktop({
           </p>
         </div>
       )}
+
+      <ArchiveCategoryModalViewDesktop {...archiveContext} />
     </div>
   );
 }

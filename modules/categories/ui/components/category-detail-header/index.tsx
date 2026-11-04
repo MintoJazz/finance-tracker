@@ -7,6 +7,8 @@ import { format, isValid, parse } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { useMasterDetail } from "@/components/master-detail";
+import { useArchiveRestore } from "@/hooks/use-archive-restore";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { CategoryIcon } from "@/modules/movements/ui/components/category-badge/category-icon";
 import { getCategoryTheme } from "@/modules/movements/ui/components/category-badge";
 import type { CategoryBasicInfoDTO } from "@/modules/categories/models/category-tab.schema";
@@ -18,6 +20,12 @@ import {
   CATEGORY_ACTIONS,
   type CategoryActionContext,
 } from "@/modules/categories/ui/components/category-actions";
+import { archiveCategoryAction } from "@/modules/categories/ui/actions/archive-category.action";
+import { archiveSubcategoryAction } from "@/modules/categories/ui/actions/archive-subcategory.action";
+import {
+  ArchiveCategoryModalViewDesktop,
+  ArchiveCategoryModalViewMobile,
+} from "@/modules/categories/ui/views/archive-category-modal";
 import { cn } from "@/lib/utils";
 
 export interface CategoryDetailHeaderProps {
@@ -108,6 +116,41 @@ export function CategoryDetailHeader({
     );
   }, [basicInfo, category]);
 
+  const isMobile = useIsMobile();
+  const [targetCategory, setTargetCategory] = React.useState<CategoryItem | null>(null);
+
+  const { archiveContext: baseArchiveContext, onArchive: triggerArchive } =
+    useArchiveRestore<CategoryItem>({
+      find: (target) => {
+        if (targetCategory && targetCategory.id === target.id) {
+          return targetCategory;
+        }
+        if (basicInfo.id === target.id) {
+          return rowLikeCategory ?? undefined;
+        }
+        return undefined;
+      },
+      entityName: basicInfo.parentId ? "Subcategoria" : "Categoria",
+      onArchiveConfirm: async (cat) => {
+        if (cat.parentId) {
+          const result = await archiveSubcategoryAction({ id: cat.id });
+          if (!result.success) throw new Error(result.error);
+        } else {
+          const result = await archiveCategoryAction({ id: cat.id });
+          if (!result.success) throw new Error(result.error);
+        }
+        router.push("/categories");
+      },
+    });
+
+  const onArchive = React.useCallback(
+    (cat: CategoryItem) => {
+      setTargetCategory(cat);
+      triggerArchive(cat);
+    },
+    [triggerArchive]
+  );
+
   const actionContext = React.useMemo<CategoryActionContext>(
     () => ({
       onAddSubcategory: (cat: CategoryItem) => {
@@ -116,11 +159,24 @@ export function CategoryDetailHeader({
       onEdit: (cat: CategoryItem) => {
         console.log("[DetailHeader] Editar categoria:", cat.name);
       },
-      onArchive: (cat: CategoryItem) => {
-        console.log("[DetailHeader] Arquivar categoria:", cat.name);
+      onArchive,
+    }),
+    [router, onArchive]
+  );
+
+  const archiveContext = React.useMemo(
+    () => ({
+      ...baseArchiveContext,
+      categoryName: targetCategory?.name ?? baseArchiveContext.itemName ?? basicInfo.name,
+      isSubcategory: Boolean(
+        (targetCategory && targetCategory.parentId !== null) || basicInfo.parentId !== null
+      ),
+      onClose: () => {
+        baseArchiveContext.onClose();
+        setTargetCategory(null);
       },
     }),
-    [router]
+    [baseArchiveContext, targetCategory, basicInfo.name, basicInfo.parentId]
   );
 
   return (
@@ -283,6 +339,12 @@ export function CategoryDetailHeader({
           </div>
         )}
       </div>
+
+      {isMobile ? (
+        <ArchiveCategoryModalViewMobile {...archiveContext} />
+      ) : (
+        <ArchiveCategoryModalViewDesktop {...archiveContext} />
+      )}
     </div>
   );
 }

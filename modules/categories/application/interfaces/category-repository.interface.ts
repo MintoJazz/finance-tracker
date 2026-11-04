@@ -1,4 +1,11 @@
-import type { CategoryItem } from "@/modules/categories/models/category.schema";
+import type {
+  CategoryItem,
+  CategoryEntity,
+  ArchiveCategoryResult,
+  ArchiveSubcategoryResult,
+  RestoreCategoryResult,
+  RestoreSubcategoryResult,
+} from "@/modules/categories/models/category.schema";
 
 export interface CreateCategoryRepositoryDTO {
   name: string;
@@ -16,6 +23,30 @@ export interface ICategoryRepository {
   findParentCategory(
     contextId: number,
     parentId: number
-  ): Promise<{ id: number; parentId: number | null } | null>;
-}
+  ): Promise<{ id: number; parentId: number | null; removedAt: Date | null } | null>;
 
+  findByIdAndContextId(
+    id: number,
+    contextId: number
+  ): Promise<CategoryEntity | null>;
+
+  archiveCategory(
+    id: number,
+    contextId: number
+  ): Promise<ArchiveCategoryResult>;
+
+  archiveSubcategory(
+    id: number,
+    contextId: number
+  ): Promise<ArchiveSubcategoryResult>;
+
+  restoreCategory(
+    id: number,
+    contextId: number
+  ): Promise<RestoreCategoryResult>;
+
+  restoreSubcategory(
+    id: number,
+    contextId: number
+  ): Promise<RestoreSubcategoryResult>;
+}

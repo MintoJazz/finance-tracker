@@ -80,6 +80,71 @@ export type CategoryFormValues = z.infer<typeof CategoryFormSchema>;
 export const CreateCategorySchema = CategoryFormSchema;
 export type CreateCategoryFormValues = z.infer<typeof CreateCategorySchema>;
 
+export const CategoryEntitySchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().min(1),
+  contextId: z.number().int().positive(),
+  parentId: z.number().int().positive().nullable(),
+  removedAt: z.date().nullable(),
+  isArchived: z.boolean(),
+});
+
+export type CategoryEntity = z.infer<typeof CategoryEntitySchema>;
+
+export const ArchiveCategorySchema = z.object({
+  id: z.number().int().positive("ID da categoria inválido"),
+});
+
+export type ArchiveCategoryInput = z.infer<typeof ArchiveCategorySchema>;
+
+export const ArchiveCategoryResultSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  archivedSubcategoriesCount: z.number().int().nonnegative(),
+});
+
+export type ArchiveCategoryResult = z.infer<typeof ArchiveCategoryResultSchema>;
+
+export const ArchiveSubcategorySchema = z.object({
+  id: z.number().int().positive("ID da subcategoria inválido"),
+});
+
+export type ArchiveSubcategoryInput = z.infer<typeof ArchiveSubcategorySchema>;
+
+export const ArchiveSubcategoryResultSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+export type ArchiveSubcategoryResult = z.infer<typeof ArchiveSubcategoryResultSchema>;
+
+export const RestoreCategorySchema = z.object({
+  id: z.number().int().positive("ID da categoria inválido"),
+});
+
+export type RestoreCategoryInput = z.infer<typeof RestoreCategorySchema>;
+
+export const RestoreCategoryResultSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  remainingArchivedSubcategoriesCount: z.number().int().nonnegative().optional(),
+});
+
+export type RestoreCategoryResult = z.infer<typeof RestoreCategoryResultSchema>;
+
+export const RestoreSubcategorySchema = z.object({
+  id: z.number().int().positive("ID da subcategoria inválido"),
+});
+
+export type RestoreSubcategoryInput = z.infer<typeof RestoreSubcategorySchema>;
+
+export const RestoreSubcategoryResultSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+export type RestoreSubcategoryResult = z.infer<typeof RestoreSubcategoryResultSchema>;
+
 export const ArchivedSubcategorySchema = z.object({
   id: z.number().int().positive(),
   name: z.string().min(1),
