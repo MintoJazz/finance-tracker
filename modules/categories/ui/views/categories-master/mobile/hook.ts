@@ -68,8 +68,8 @@ export function useMobileCategoriesMaster(
         router.push(`/categories/create?parentId=${cat.id}`);
       },
       onEdit: (cat: CategoryItem) => {
-        console.log("[Mobile] Editar categoria:", cat.name);
         setIsActionsDrawerOpen(false);
+        router.push(`/categories/${cat.id}/edit`);
       },
       onArchive,
     }),

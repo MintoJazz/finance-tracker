@@ -6,6 +6,7 @@ import type {
   ArchiveSubcategoryResult,
   RestoreCategoryResult,
   RestoreSubcategoryResult,
+  UpdateCategoryInput,
 } from "@/modules/categories/models/category.schema";
 import type {
   CreateCategoryRepositoryDTO,
@@ -131,6 +132,72 @@ export class CategoryPrismaRepository implements ICategoryRepository {
       });
 
       return CategoryMapper.toItem(created);
+    });
+  }
+
+  async update(
+    contextId: number,
+    data: UpdateCategoryInput
+  ): Promise<CategoryItem> {
+    return await prisma.$transaction(async (tx) => {
+      const existing = await tx.balance.findFirst({
+        where: {
+          id: data.id,
+          contextId,
+          balanceType: "CATEGORY",
+        },
+        select: {
+          id: true,
+          name: true,
+          contextId: true,
+          parentId: true,
+          removedAt: true,
+        },
+      });
+
+      if (!existing) {
+        throw new CategoryDomainError(
+          "Categoria não encontrada no contexto atual.",
+          "NOT_FOUND"
+        );
+      }
+
+      const entity: CategoryEntity = {
+        id: existing.id,
+        name: existing.name,
+        contextId: existing.contextId,
+        parentId: existing.parentId,
+        removedAt: existing.removedAt,
+        isArchived: existing.removedAt !== null,
+      };
+
+      CategoryPolicy.validateCanUpdateCategory(entity, data);
+
+      const updated = await tx.balance.update({
+        where: {
+          id: data.id,
+        },
+        data: {
+          name: data.name.trim(),
+          appearance: {
+            upsert: {
+              create: {
+                icon: data.icon ?? null,
+                color: data.color ?? null,
+              },
+              update: {
+                icon: data.icon ?? null,
+                color: data.color ?? null,
+              },
+            },
+          },
+        },
+        include: {
+          appearance: true,
+        },
+      });
+
+      return CategoryMapper.toItem(updated);
     });
   }
 

@@ -178,5 +178,29 @@ export class CategoryPolicy {
       }
     }
   }
+
+  /**
+   * Valida atualização de uma categoria existente.
+   * Não é permitido editar categorias arquivadas ou com nome em branco.
+   */
+  static validateCanUpdateCategory(
+    category: CategoryEntity,
+    data: { name: string }
+  ): void {
+    if (category.removedAt !== null || category.isArchived) {
+      throw new CategoryDomainError(
+        "Não é possível editar uma categoria arquivada.",
+        "ALREADY_ARCHIVED"
+      );
+    }
+
+    const trimmed = data.name.trim();
+    if (!trimmed) {
+      throw new CategoryDomainError(
+        "O nome da categoria é obrigatório.",
+        "EMPTY_NAME"
+      );
+    }
+  }
 }
 

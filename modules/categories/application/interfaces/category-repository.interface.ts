@@ -5,6 +5,7 @@ import type {
   ArchiveSubcategoryResult,
   RestoreCategoryResult,
   RestoreSubcategoryResult,
+  UpdateCategoryInput,
 } from "@/modules/categories/models/category.schema";
 
 export interface CreateCategoryRepositoryDTO {
@@ -18,6 +19,11 @@ export interface ICategoryRepository {
   create(
     contextId: number,
     data: CreateCategoryRepositoryDTO
+  ): Promise<CategoryItem>;
+
+  update(
+    contextId: number,
+    data: UpdateCategoryInput
   ): Promise<CategoryItem>;
 
   findParentCategory(

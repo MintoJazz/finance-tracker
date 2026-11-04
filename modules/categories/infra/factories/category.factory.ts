@@ -9,6 +9,7 @@ import { CategoryPrismaRepository } from "../repositories/category-prisma.reposi
 import { GetCategoriesTreeUseCase } from "../../application/use-cases/get-categories-tree.use-case";
 import { GetCategoryChildrenUseCase } from "../../application/use-cases/get-category-children.use-case";
 import { CreateCategoryUseCase } from "../../application/use-cases/create-category.use-case";
+import { UpdateCategoryUseCase } from "../../application/use-cases/update-category.use-case";
 import { GetCategoryBasicInfoUseCase } from "../../application/use-cases/get-category-basic-info.use-case";
 import { GetArchivedCategoriesUseCase } from "../../application/use-cases/get-archived-categories.use-case";
 import { ArchiveCategoryUseCase } from "../../application/use-cases/archive-category.use-case";
@@ -41,6 +42,12 @@ export class CategoryFactory {
 
   public static readonly makeCreateCategoryUseCase = () =>
     new CreateCategoryUseCase(
+      this.categoryRepository,
+      this.spaceAccessProvider
+    );
+
+  public static readonly makeUpdateCategoryUseCase = () =>
+    new UpdateCategoryUseCase(
       this.categoryRepository,
       this.spaceAccessProvider
     );

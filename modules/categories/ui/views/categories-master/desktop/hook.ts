@@ -61,7 +61,7 @@ export function useDesktopCategoriesMaster(
         router.push(`/categories/create?parentId=${cat.id}`);
       },
       onEdit: (cat: CategoryItem) => {
-        console.log("[Desktop] Editar categoria:", cat.name);
+        router.push(`/categories/${cat.id}/edit`);
       },
       onArchive,
     }),

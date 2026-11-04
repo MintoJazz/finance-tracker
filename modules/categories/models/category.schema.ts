@@ -80,6 +80,11 @@ export type CategoryFormValues = z.infer<typeof CategoryFormSchema>;
 export const CreateCategorySchema = CategoryFormSchema;
 export type CreateCategoryFormValues = z.infer<typeof CreateCategorySchema>;
 
+export const UpdateCategorySchema = CategoryFormSchema.extend({
+  id: z.number().int().positive("ID da categoria inválido"),
+});
+export type UpdateCategoryInput = z.infer<typeof UpdateCategorySchema>;
+
 export const CategoryEntitySchema = z.object({
   id: z.number().int().positive(),
   name: z.string().min(1),

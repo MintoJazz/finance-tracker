@@ -157,7 +157,7 @@ export function CategoryDetailHeader({
         router.push(`/categories/create?parentId=${cat.id}`);
       },
       onEdit: (cat: CategoryItem) => {
-        console.log("[DetailHeader] Editar categoria:", cat.name);
+        router.push(`/categories/${cat.id}/edit`);
       },
       onArchive,
     }),
