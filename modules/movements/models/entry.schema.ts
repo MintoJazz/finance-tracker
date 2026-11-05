@@ -10,7 +10,6 @@ export const EntryTypeEnumSchema = z.enum([
     "CLAIM_OPENING",
     "CLAIM_PAYMENT",
     "CLAIM_RECEIPT",
-    "CLAIM_ACCEPTANCE",
 ]);
 
 export type EntryTypeEnum = z.infer<typeof EntryTypeEnumSchema>;

@@ -79,6 +79,9 @@ async function runCheck() {
   const diegoContext = await prisma.financialContext.findFirst({
     where: { name: "Finanças do Diego" },
   });
+  const eduardaContext = await prisma.financialContext.findFirst({
+    where: { name: "Finanças da Eduarda" },
+  });
 
   if (!anaContext) {
     throw new Error("Contexto da Ana não encontrado! Execute a seed primeiro.");
@@ -189,12 +192,14 @@ async function runCheck() {
       scenario: "5. Estorno no Cartão (REVERSAL)",
       entryDescription: reversalCartao.description,
       contextName: "Ana",
-      expectedKind: "category (ideal)",
+      expectedKind: "category",
       expectedCatOrCreditName: "Lazer & Assinaturas",
       actualKind: row?.kind || "none",
       actualCatOrCreditName: catName,
-      status: row?.kind === "none" ? "DIVERGENCE_KNOWN" : "MATCH",
-      divergenceReason: "View não cobre tipo REVERSAL em CTE own nem herda de reversesEntryId",
+      status:
+        row?.kind === "category" && catName === "Lazer & Assinaturas"
+          ? "MATCH"
+          : "UNEXPECTED_DIFF",
     });
   }
 
@@ -235,12 +240,14 @@ async function runCheck() {
       scenario: "7. Provisão Contrato (ACCRUAL)",
       entryDescription: accrualAluguel.description,
       contextName: "Ana",
-      expectedKind: "category (ideal)",
+      expectedKind: "category",
       expectedCatOrCreditName: "Moradia & Contas",
       actualKind: row?.kind || "none",
       actualCatOrCreditName: catName,
-      status: row?.kind === "none" ? "DIVERGENCE_KNOWN" : "MATCH",
-      divergenceReason: "CTE own da view só inclui DIRECT e CLAIM_RECEIPT",
+      status:
+        row?.kind === "category" && catName === "Moradia & Contas"
+          ? "MATCH"
+          : "UNEXPECTED_DIFF",
     });
   }
 
@@ -296,63 +303,82 @@ async function runCheck() {
     where: { description: { contains: "Cobrança Almoço Restaurante (Ana -> Diego)" } },
   });
   if (claimOpenBilateral) {
-    // Contexto Ana (Credora)
+    // Contexto Ana (Credora): herda categoria raiz do receivable.parentId
     const rowAna = await getViewRow(claimOpenBilateral.id, anaContext.id);
     const catAna = await getBalanceName(rowAna?.categoryBalanceId ?? null);
     results.push({
       scenario: "10a. Cobrança Raiz (Ctx Credor)",
       entryDescription: claimOpenBilateral.description,
       contextName: "Ana",
-      expectedKind: "link / real_cat",
+      expectedKind: "category",
       expectedCatOrCreditName: "Alimentação & Mercado",
       actualKind: rowAna?.kind || "none",
       actualCatOrCreditName: catAna,
       status:
-        rowAna?.kind === "none"
-          ? "DIVERGENCE_KNOWN"
-          : "MATCH",
-      divergenceReason:
-        rowAna?.kind === "none"
-          ? "CLAIM_OPENING não está em CTE own; par ±x com DEBIT negativo cai em real_cat mas e.type não é DIRECT nem CLAIM_RECEIPT"
-          : undefined,
+        rowAna?.kind === "category" && catAna?.includes("Alimentação")
+          ? "MATCH"
+          : "UNEXPECTED_DIFF",
     });
 
-    // Contexto Diego (Devedor)
+    // Contexto Diego (Devedor): herda categoria após aceite via payable.parentId
     if (diegoContext) {
       const rowDiego = await getViewRow(claimOpenBilateral.id, diegoContext.id);
+      const catDiego = await getBalanceName(rowDiego?.categoryBalanceId ?? null);
       results.push({
-        scenario: "10b. Cobrança Raiz (Ctx Devedor)",
+        scenario: "10b. Cobrança Raiz Aceita (Ctx Devedor)",
         entryDescription: claimOpenBilateral.description,
         contextName: "Diego",
-        expectedKind: "none",
-        expectedCatOrCreditName: undefined,
+        expectedKind: "category",
+        expectedCatOrCreditName: "Alimentação & Mercado",
         actualKind: rowDiego?.kind || "none",
-        actualCatOrCreditName: undefined,
-        status: rowDiego?.kind === "none" ? "MATCH" : "UNEXPECTED_DIFF",
+        actualCatOrCreditName: catDiego,
+        status:
+          rowDiego?.kind === "category" && catDiego?.includes("Alimentação")
+            ? "MATCH"
+            : "UNEXPECTED_DIFF",
       });
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Cenário 11: Cobrança Bilateral - Aceite (CLAIM_ACCEPTANCE)
-  // ---------------------------------------------------------------------------
-  const claimAcceptBilateral = await prisma.entry.findFirst({
-    where: { description: { contains: "Aceite Cobrança Almoço Restaurante" } },
+  // Cobrança Pendente de Aceite (Eduarda ainda não aceitou, payable.parentId é NULL)
+  const claimOpenPending = await prisma.entry.findFirst({
+    where: { description: { contains: "Cobrança Café Compartilhado (Ana -> Eduarda)" } },
   });
-  if (claimAcceptBilateral && diegoContext) {
-    const rowDiego = await getViewRow(claimAcceptBilateral.id, diegoContext.id);
-    const catDiego = await getBalanceName(rowDiego?.categoryBalanceId ?? null);
+  if (claimOpenPending && eduardaContext) {
+    const rowEduarda = await getViewRow(claimOpenPending.id, eduardaContext.id);
     results.push({
-      scenario: "11. Aceite Cobrança (Ctx Devedor)",
-      entryDescription: claimAcceptBilateral.description,
-      contextName: "Diego",
-      expectedKind: "none (view) / link (ideal)",
+      scenario: "10c. Cobrança Pendente (Ctx Devedor)",
+      entryDescription: claimOpenPending.description,
+      contextName: "Eduarda",
+      expectedKind: "none",
       expectedCatOrCreditName: undefined,
-      actualKind: rowDiego?.kind || "none",
+      actualKind: rowEduarda?.kind || "none",
+      actualCatOrCreditName: undefined,
+      status: rowEduarda?.kind === "none" ? "MATCH" : "UNEXPECTED_DIFF",
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cenário 11: Cobrança Bilateral - Aceite (Estrutural via parentId)
+  // ---------------------------------------------------------------------------
+  const payableDiego = await prisma.balance.findFirst({
+    where: {
+      contextId: diegoContext?.id,
+      name: { contains: "Cobrança Almoço Diego (A Pagar)" },
+    },
+  });
+  if (payableDiego && diegoContext) {
+    const catDiego = await getBalanceName(payableDiego.parentId);
+    results.push({
+      scenario: "11. Aceite Cobrança (ParentId no Devedor)",
+      entryDescription: "Aceite estrutural de Cobrança Almoço Diego",
+      contextName: "Diego",
+      expectedKind: "category",
+      expectedCatOrCreditName: "Alimentação & Mercado",
+      actualKind: payableDiego.parentId ? "category" : "none",
       actualCatOrCreditName: catDiego,
       status:
-        rowDiego?.kind === "none" ? "MATCH" : "UNEXPECTED_DIFF",
-      divergenceReason: "CLAIM_ACCEPTANCE não é projetado diretamente em vw_entry_category (ele serve como CTE intermediário para payment)",
+        catDiego?.includes("Alimentação") ? "MATCH" : "UNEXPECTED_DIFF",
     });
   }
 
@@ -369,18 +395,14 @@ async function runCheck() {
       scenario: "12. Pagamento Cobrança (Ctx Devedor)",
       entryDescription: claimPayBilateral.description,
       contextName: "Diego",
-      expectedKind: "category (ideal) / none (atual)",
-      expectedCatOrCreditName: "Alimentação & Mercado (Diego)",
+      expectedKind: "category",
+      expectedCatOrCreditName: "Alimentação & Mercado",
       actualKind: rowDiego?.kind || "none",
       actualCatOrCreditName: catDiego,
       status:
-        rowDiego?.kind === "category"
+        rowDiego?.kind === "category" && catDiego?.includes("Alimentação")
           ? "MATCH"
-          : "DIVERGENCE_KNOWN",
-      divergenceReason:
-        rowDiego?.kind === "none"
-          ? "CTE link_cat falha quando DEBIT é negativo no par ±x (credit <> debit), impedindo o CTE payment de resolver a categoria"
-          : undefined,
+          : "UNEXPECTED_DIFF",
     });
   }
 
@@ -414,7 +436,7 @@ async function runCheck() {
         scenario: "13b. Recebimento Cobrança (Ctx Devedor)",
         entryDescription: claimReceiveBilateral.description,
         contextName: "Diego",
-        expectedKind: "category (ônus)",
+        expectedKind: "category",
         expectedCatOrCreditName: "Alimentação",
         actualKind: rowDiego?.kind || "none",
         actualCatOrCreditName: catDiego,
@@ -433,25 +455,21 @@ async function runCheck() {
     where: { description: { contains: "Recebimento Pix Ingresso Festival de Carla" } },
   });
   if (claimReceiveCascata) {
-    // No contexto da Ana (Intermediária): espera-se pass-through ou none dependendo de link_cat
+    // No contexto da Ana (Intermediária): espera-se pass-through via parentId
     const rowAna = await getViewRow(claimReceiveCascata.id, anaContext.id);
     const catAna = await getBalanceName(rowAna?.categoryBalanceId ?? null);
     results.push({
       scenario: "14a. Cascata Passagem (Ctx Intermediário)",
       entryDescription: claimReceiveCascata.description,
       contextName: "Ana",
-      expectedKind: "pass-through (ideal) / category (atual)",
+      expectedKind: "pass-through",
       expectedCatOrCreditName: "Lazer & Assinaturas",
       actualKind: rowAna?.kind || "none",
       actualCatOrCreditName: catAna,
       status:
-        rowAna?.kind === "pass-through"
+        rowAna?.kind === "pass-through" && catAna?.includes("Lazer")
           ? "MATCH"
-          : "DIVERGENCE_KNOWN",
-      divergenceReason:
-        rowAna?.kind !== "pass-through"
-          ? `CTE link_cat requer credit = debit (falha com DEBIT negativo no banco). Caiu como '${rowAna?.kind}'.`
-          : undefined,
+          : "UNEXPECTED_DIFF",
     });
 
     // No contexto do Bruno (Credor raiz): alívio de 100
@@ -463,7 +481,7 @@ async function runCheck() {
         entryDescription: claimReceiveCascata.description,
         contextName: "Bruno",
         expectedKind: "category",
-        expectedCatOrCreditName: "Lazer & Cultura",
+        expectedCatOrCreditName: "Lazer & Diversão",
         actualKind: rowBruno?.kind || "none",
         actualCatOrCreditName: catBruno,
         status:
@@ -482,7 +500,7 @@ async function runCheck() {
         entryDescription: claimReceiveCascata.description,
         contextName: "Carla",
         expectedKind: "category",
-        expectedCatOrCreditName: "Lazer & Cultura",
+        expectedCatOrCreditName: "Lazer & Diversão",
         actualKind: rowCarla?.kind || "none",
         actualCatOrCreditName: catCarla,
         status:

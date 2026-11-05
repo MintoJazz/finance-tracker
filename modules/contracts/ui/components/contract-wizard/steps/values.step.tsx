@@ -10,6 +10,7 @@ import {
 } from "@/modules/contracts/models/contract-form.schema";
 
 const FREQUENCY_OPTIONS = [
+  { value: "ONCE", label: "Pontual" },
   { value: "WEEKLY", label: "Semanal" },
   { value: "MONTHLY", label: "Mensal" },
   { value: "YEARLY", label: "Anual" },

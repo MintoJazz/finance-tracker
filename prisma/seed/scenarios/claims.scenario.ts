@@ -17,7 +17,7 @@ export async function seedClaimsScenario(
   const claimFactory = new ClaimSeedFactory(factory.prisma);
 
   const { ana, others } = data;
-  const { bruno, carla, diego } = others;
+  const { bruno, carla, diego, eduarda } = others;
 
   // Localizar categorias de terceiros
   const diegoCatAlim = diego.categories.find((c) =>
@@ -61,7 +61,7 @@ export async function seedClaimsScenario(
     date: "2026-08-10T14:00:00Z",
   });
 
-  // Passo 2: Aceite (CLAIM_ACCEPTANCE) por Diego ancorado em Alimentação do Diego
+  // Passo 2: Aceite pelo Devedor Diego atribuindo sua categoria
   const entryAcceptDiego = await claimFactory.acceptClaim({
     payableId: claimAnaDiegoAccounts.payable.id,
     categoryDId: diegoCatAlim.id,
@@ -135,7 +135,7 @@ export async function seedClaimsScenario(
   });
 
   // Passo 2: Abertura Filho/Cascata (CLAIM_OPENING) Ana repassa R$ 100,00 para Carla
-  // par ±100 no payable Bruno-Ana da Ana
+  // Conecta o childReceivable diretamente ao parentPayable da Ana via parentId
   const entryOpeningAnaCarla = await claimFactory.openChildClaim({
     childPayableId: claimAnaCarlaAccounts.payable.id,
     childReceivableId: claimAnaCarlaAccounts.receivable.id,
@@ -145,7 +145,7 @@ export async function seedClaimsScenario(
     date: "2026-08-15T14:00:00Z",
   });
 
-  // Passo 3: Aceite (CLAIM_ACCEPTANCE) por Carla de R$ 100,00 ancorado no Lazer da Carla
+  // Passo 3: Aceite por Carla de R$ 100,00 ancorado no Lazer da Carla
   const entryAcceptCarla = await claimFactory.acceptClaim({
     payableId: claimAnaCarlaAccounts.payable.id,
     categoryDId: carlaCatLazer.id,
@@ -163,7 +163,7 @@ export async function seedClaimsScenario(
     date: "2026-08-16T10:00:00Z",
   });
 
-  // Passo 5: Aceite (CLAIM_ACCEPTANCE) por Ana da sua parte restante (R$ 200,00) em Lazer
+  // Passo 5: Aceite por Ana da sua parte restante (R$ 200,00) em Lazer
   const entryAcceptAna = await claimFactory.acceptClaim({
     payableId: claimBrunoAnaAccounts.payable.id,
     categoryDId: ana.categories.catLazer.id,
@@ -182,7 +182,7 @@ export async function seedClaimsScenario(
   });
 
   // Passo 7: Recebimento (CLAIM_RECEIPT) por Ana de R$ 100,00 da Carla
-  // Alívio na base do Bruno (100), ônus na Carla (100), e par de passagem ±100 em Lazer da Ana
+  // Alívio na base do Bruno (100) e ônus na Carla (100)
   const entryReceiveAnaCarla = await claimFactory.receiveClaim({
     receivableId: claimAnaCarlaAccounts.receivable.id,
     walletCId: ana.wallets.nubank.id,
@@ -195,10 +195,6 @@ export async function seedClaimsScenario(
     },
     onusCategory: {
       categoryId: carlaCatLazer.id,
-      amount: 10000,
-    },
-    passThroughCategory: {
-      categoryId: ana.categories.catLazer.id,
       amount: 10000,
     },
   });
@@ -221,6 +217,38 @@ export async function seedClaimsScenario(
     },
   });
 
+  // =========================================================================
+  // ÁRVORE 3: COBRANÇA PENDENTE DE ACEITE (Ana -> Eduarda) - R$ 50,00
+  // =========================================================================
+
+  // Passo 0: Despesa original da Ana no Nubank em Alimentação
+  await ana.space.addDirectEntry({
+    balanceId: ana.wallets.nubank.id,
+    counterpartBalanceId: ana.categories.catAlimentacao.id,
+    description: "Café da Tarde - Conta Eduarda",
+    amount: 5000,
+    direction: MovementDirection.DEBIT,
+    date: "2026-08-20T16:00:00Z",
+  });
+
+  // Criar contas de cobrança bilaterais entre Ana e Eduarda
+  const claimAnaEduardaAccounts = await claimFactory.createClaimAccounts({
+    creditorContextId: ana.party.id,
+    debtorContextId: eduarda.party.id,
+    name: "Cobrança Café Eduarda",
+  });
+
+  // Passo 1: Abertura Raiz (CLAIM_OPENING) ancorada em Alimentação da Ana
+  // Eduarda NÃO aceita (payable permanece com parentId = null)
+  const entryOpeningAnaEduarda = await claimFactory.openRootClaim({
+    payableId: claimAnaEduardaAccounts.payable.id,
+    receivableId: claimAnaEduardaAccounts.receivable.id,
+    anchorCategoryId: ana.categories.catAlimentacao.id,
+    amount: 5000,
+    description: "Cobrança Café Compartilhado (Ana -> Eduarda)",
+    date: "2026-08-20T16:30:00Z",
+  });
+
   return {
     bilateralTree: {
       entryOpeningAnaDiego,
@@ -237,6 +265,9 @@ export async function seedClaimsScenario(
       entryPayAna,
       entryReceiveAnaCarla,
       entryReceiveBrunoAna,
+    },
+    pendingTree: {
+      entryOpeningAnaEduarda,
     },
   };
 }

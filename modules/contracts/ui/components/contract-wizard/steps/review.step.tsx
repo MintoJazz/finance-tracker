@@ -20,6 +20,7 @@ import {
 import type { ContractFormValues } from "@/modules/contracts/models/contract-form.schema";
 
 const FREQUENCY_LABELS: Record<string, string> = {
+  ONCE: "Pontual",
   WEEKLY: "Semanal",
   MONTHLY: "Mensal",
   YEARLY: "Anual",

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { DataTable } from "@/components/data-table";
-import { EmptyCreditMovementTable } from "@/modules/movements/ui/components/credit-movement-table/empty";
+import { EmptyContractCycleEntryTable } from "./empty";
 import { CycleEntryRow } from "@/modules/cycles/models/contract-cycle.schema";
 import { CONTRACT_CYCLE_ENTRY_COLUMNS } from "./columns";
 import {
@@ -62,7 +62,7 @@ export function ContractCycleEntryTable({
 
     if (entries.length === 0) {
         return (
-            <EmptyCreditMovementTable
+            <EmptyContractCycleEntryTable
                 hasFilters={hasFilters}
                 onClearFilters={onClearFilters}
             />

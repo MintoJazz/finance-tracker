@@ -21,6 +21,7 @@ import type {
 } from "@/modules/contracts/models/contract-form.schema";
 
 const FREQUENCY_ITEMS: Record<string, string> = {
+  ONCE: "Pontual",
   WEEKLY: "Semanal",
   MONTHLY: "Mensal",
   YEARLY: "Anual",
@@ -104,6 +105,7 @@ export const contractFormFields: FormField<ContractFormValues>[] = [
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="ONCE">Pontual</SelectItem>
               <SelectItem value="WEEKLY">Semanal</SelectItem>
               <SelectItem value="MONTHLY">Mensal</SelectItem>
               <SelectItem value="YEARLY">Anual</SelectItem>

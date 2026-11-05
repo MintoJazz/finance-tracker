@@ -98,7 +98,9 @@ export const CONTRACT_CYCLE_COLUMNS: ColumnDef<ContractCycleItem>[] = [
                         </span>
                     </div>
                     <span className="text-xs text-muted-foreground truncate">
-                        {formatDate(new Date(cycle.from))} a {formatDate(new Date(cycle.to))}
+                        {cycle.from === cycle.to
+                            ? formatDate(cycle.from)
+                            : `${formatDate(cycle.from)} a ${formatDate(cycle.to)}`}
                     </span>
                 </div>
             );

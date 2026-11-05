@@ -36,34 +36,54 @@ export class ContractCycleProfilePrismaQueries
         from: Date,
         to: Date
     ): Promise<RawCycleEntry[]> {
+        const balance = await prisma.balance.findUnique({
+            where: { id: agreementBalanceId },
+            select: {
+                agreement: {
+                    select: {
+                        rules: {
+                            select: { frequency: true },
+                            take: 1,
+                        },
+                    },
+                },
+            },
+        });
+
+        const isOnce = balance?.agreement?.rules[0]?.frequency === "ONCE";
         const start = startOfDay(from);
         const end = endOfDay(to);
 
-        const entries = await prisma.entry.findMany({
-            where: {
-                movements: {
-                    some: {
-                        balanceId: agreementBalanceId,
-                        balance: { contextId },
+        const whereCondition: any = {
+            movements: {
+                some: {
+                    balanceId: agreementBalanceId,
+                    balance: { contextId },
+                },
+            },
+        };
+
+        if (!isOnce) {
+            whereCondition.OR = [
+                {
+                    competanceDate: {
+                        not: null,
+                        gte: start,
+                        lte: end,
                     },
                 },
-                OR: [
-                    {
-                        competanceDate: {
-                            not: null,
-                            gte: start,
-                            lte: end,
-                        },
+                {
+                    competanceDate: null,
+                    dueDate: {
+                        gte: start,
+                        lte: end,
                     },
-                    {
-                        competanceDate: null,
-                        dueDate: {
-                            gte: start,
-                            lte: end,
-                        },
-                    },
-                ],
-            },
+                },
+            ];
+        }
+
+        const entries = await prisma.entry.findMany({
+            where: whereCondition,
             include: {
                 reversedBy: {
                     select: { id: true },
@@ -77,7 +97,7 @@ export class ContractCycleProfilePrismaQueries
                                 balanceType: true,
                                 agreement: {
                                     select: {
-                                        id: true,
+                                        balanceId: true,
                                         balance: {
                                             select: {
                                                 name: true,
@@ -117,7 +137,7 @@ export class ContractCycleProfilePrismaQueries
                     balanceType: m.balance.balanceType,
                     agreement: m.balance.agreement
                         ? {
-                              id: m.balance.agreement.id,
+                              id: m.balance.id,
                               balance: {
                                   name: m.balance.agreement.balance.name,
                               },

@@ -50,11 +50,6 @@ export const ENTRY_TYPE_CONFIG: Record<
         className:
             "border-indigo-500/30 text-indigo-700 dark:text-indigo-400 bg-indigo-500/10",
     },
-    CLAIM_ACCEPTANCE: {
-        label: "Repactuação",
-        className:
-            "border-indigo-500/30 text-indigo-700 dark:text-indigo-400 bg-indigo-500/10",
-    },
     REVERSAL: {
         label: "Estorno",
         className:
@@ -99,7 +94,6 @@ export function getEntryCategoryClassification(
                 kind: "credit-settlement",
             };
         case "CLAIM_OPENING":
-        case "CLAIM_ACCEPTANCE":
         case "TRANSFER":
             return {
                 kind: "pass-through",

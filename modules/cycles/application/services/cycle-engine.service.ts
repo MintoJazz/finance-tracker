@@ -107,6 +107,26 @@ export class CycleEngineService {
                     const ruleEnd = nextRule ? startOfDay(nextRule.effectiveFrom) : null;
                     const currentPeriodStart = this.resolveCurrentPeriodStart(rule.frequency, today);
 
+                    if (rule.frequency === "ONCE") {
+                        const boundaries = strategy.getCycleBoundaries(rule.effectiveFrom, rule);
+                        const dueDateInWindow =
+                            !isBefore(boundaries.dueDate, winFrom) &&
+                            !isAfter(boundaries.dueDate, winTo);
+                        const isNotPastPeriod = !isBefore(boundaries.dueDate, currentPeriodStart);
+
+                        if (dueDateInWindow && isNotPastPeriod) {
+                            if (!bucketsByKey.has(boundaries.cycleKey)) {
+                                bucketsByKey.set(boundaries.cycleKey, {
+                                    boundaries,
+                                    rule,
+                                    source,
+                                    entries: [],
+                                });
+                            }
+                        }
+                        continue;
+                    }
+
                     // Projeções iniciam a partir do período corrente em diante (sem projetar meses retroativos passados)
                     const effectiveProjectionStart = isAfter(winFrom, currentPeriodStart)
                         ? winFrom
@@ -422,10 +442,12 @@ export class CycleEngineService {
      * Determina o início do período corrente com base na frequência da regra de ciclo.
      */
     private resolveCurrentPeriodStart(
-        frequency: "MONTHLY" | "WEEKLY" | "YEARLY",
+        frequency: "ONCE" | "MONTHLY" | "WEEKLY" | "YEARLY",
         today: Date
     ): Date {
         switch (frequency) {
+            case "ONCE":
+                return today;
             case "WEEKLY":
                 return startOfWeek(today, { weekStartsOn: 1 });
             case "YEARLY":

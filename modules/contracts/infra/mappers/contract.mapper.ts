@@ -1,4 +1,5 @@
 import { ContractSummaryItem } from "@/modules/contracts/models/contract.schema";
+import { toCivilDate } from "@/lib/formatters";
 
 // Type based on what Prisma will return with include
 type RawContractBalance = {
@@ -7,7 +8,7 @@ type RawContractBalance = {
     balanceType: string;
     removedAt: Date | null;
     agreement?: {
-        id: number;
+        balanceId: number;
         startsAt: Date;
         endsAt: Date | null;
         includeInProjection: boolean;
@@ -35,20 +36,22 @@ export class ContractMapper {
             agreement.amountEntries?.reduce((sum, e) => sum + e.amount, 0) ?? 0
         );
 
-        const effectiveDate = currentRule?.effectiveFrom ?? agreement.startsAt;
-        const dueMonth = effectiveDate ? new Date(effectiveDate).getMonth() + 1 : null;
+        const startsAt = toCivilDate(agreement.startsAt);
+        const endsAt = agreement.endsAt ? toCivilDate(agreement.endsAt) : null;
+        const effectiveDate = currentRule?.effectiveFrom ? toCivilDate(currentRule.effectiveFrom) : startsAt;
+        const dueMonth = effectiveDate ? effectiveDate.getMonth() + 1 : null;
 
         return {
-            id: agreement.id,
+            id: balance.id,
             balanceId: balance.id,
             name: balance.name,
             type: balance.balanceType as "PAYABLE" | "RECEIVABLE",
             value,
-            frequency: (currentRule?.frequency as "WEEKLY" | "MONTHLY" | "YEARLY") ?? "MONTHLY",
+            frequency: (currentRule?.frequency as "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY") ?? "MONTHLY",
             dueDay: currentRule?.dueDay ?? 1,
             dueMonth,
-            startsAt: agreement.startsAt,
-            endsAt: agreement.endsAt,
+            startsAt,
+            endsAt,
             includeInProjection: agreement.includeInProjection,
             isArchived: balance.removedAt !== null,
         };

@@ -74,7 +74,9 @@ export function ContractCycleListItem({
                         </span>
                     </ListItemTitle>
                     <ListItemSubtitle>
-                        {formatDate(new Date(cycle.from))} a {formatDate(new Date(cycle.to))}
+                        {cycle.from === cycle.to
+                            ? formatDate(cycle.from)
+                            : `${formatDate(cycle.from)} a ${formatDate(cycle.to)}`}
                     </ListItemSubtitle>
                 </ListItemContent>
 

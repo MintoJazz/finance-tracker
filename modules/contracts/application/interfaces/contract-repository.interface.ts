@@ -1,9 +1,11 @@
+import { ContractBalanceTypeEnum, ContractFrequencyEnum, ContractTypeEnum } from "../../models/contract.schema";
+
 export interface CreateContractRepositoryDTO {
     contextId: number;
     name: string;
-    type: "PAYABLE" | "RECEIVABLE";
+    type: ContractTypeEnum;
     value: number;
-    frequency: "WEEKLY" | "MONTHLY" | "YEARLY";
+    frequency: ContractFrequencyEnum;
     validity: {
         from: Date;
         to?: Date;
@@ -27,7 +29,7 @@ export interface CreatedContractResult {
 export interface ContractRuleData {
     id: number;
     effectiveFrom: Date;
-    frequency: "WEEKLY" | "MONTHLY" | "YEARLY";
+    frequency: ContractFrequencyEnum;
     interval: number;
     dueDay: number;
     closingDay: number | null;
@@ -44,7 +46,7 @@ export interface ContractAdjustmentData {
     id: number;
     balanceId: number;
     name: string;
-    balanceType: "PAYABLE" | "RECEIVABLE" | "COMMITMENT" | "CREDIT";
+    balanceType: ContractBalanceTypeEnum;
     startsAt: Date;
     endsAt: Date | null;
     includeInProjection: boolean;
@@ -61,7 +63,7 @@ export interface AdjustContractLimitsRepositoryDTO {
 
 export interface AdjustContractScheduleRepositoryDTO {
     effectiveFrom: Date;
-    frequency: "WEEKLY" | "MONTHLY" | "YEARLY";
+    frequency: "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY";
     interval?: number;
     dueDay: number;
     closingDay: number | null;

@@ -16,7 +16,6 @@ export type EntryTypeData =
     | "CLAIM_PAYMENT"
     | "CLAIM_RECEIPT"
     | "ADJUSTMENT"
-    | "CLAIM_ACCEPTANCE"
     | "REVERSAL";
 
 /**
@@ -38,7 +37,7 @@ export interface CycleRuleWithEntriesData {
     id: number;
     agreementId: number;
     effectiveFrom: Date;
-    frequency: "WEEKLY" | "MONTHLY" | "YEARLY";
+    frequency: "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY";
     interval: number;
     closingDay: number | null;
     dueDay: number;
@@ -54,7 +53,7 @@ export interface AgreementCycleSourceData {
     agreementId: number;
     balanceId: number;
     balanceName: string;
-    balanceType: "CREDIT" | "COMMITMENT" | "PAYABLE" | "RECEIVABLE";
+    balanceType: "CREDIT" | "PAYABLE" | "RECEIVABLE";
     includeInProjection: boolean;
     startsAt: Date;
     endsAt: Date | null;

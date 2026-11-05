@@ -133,7 +133,7 @@ export class CardPrismaRepository implements ICardRepository {
       if (delta !== 0) {
         await tx.agreementAmountEntry.create({
           data: {
-            agreementId: agreement.id,
+            agreementId: agreement.balanceId,
             amount: delta,
             effectiveAt: new Date(),
             reason: "Ajuste de limite",
@@ -152,7 +152,7 @@ export class CardPrismaRepository implements ICardRepository {
         const todayRule = await tx.cycleRule.findUnique({
           where: {
             agreementId_effectiveFrom: {
-              agreementId: agreement.id,
+              agreementId: agreement.balanceId,
               effectiveFrom: today,
             },
           },
@@ -169,7 +169,7 @@ export class CardPrismaRepository implements ICardRepository {
         } else {
           await tx.cycleRule.create({
             data: {
-              agreementId: agreement.id,
+              agreementId: agreement.balanceId,
               effectiveFrom: today,
               frequency: "MONTHLY",
               interval: 1,

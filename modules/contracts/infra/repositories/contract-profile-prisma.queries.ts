@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { addMonths, subMonths } from "date-fns";
+import { toCivilDate } from "@/lib/formatters";
 import {
     ContractRawData,
     IContractProfileQueries,
@@ -40,30 +41,16 @@ export class ContractProfilePrismaQueries implements IContractProfileQueries {
             },
         };
 
-        let agreement = null;
+        const targetBalanceId = identifier.balanceId ?? identifier.agreementId;
+        if (!targetBalanceId) return null;
 
-        // 1. Busca prioritária pelo identificador de contrato (agreementId)
-        if (identifier.agreementId) {
-            agreement = await prisma.agreement.findFirst({
-                where: {
-                    id: identifier.agreementId,
-                    balance: { contextId },
-                },
-                include: includeConfig,
-            });
-        }
-
-        // 2. Fallback por balanceId caso não encontrado por agreementId ou se balanceId foi explicitado
-        if (!agreement && (identifier.balanceId || identifier.agreementId)) {
-            const fallbackBalanceId = identifier.balanceId ?? identifier.agreementId;
-            agreement = await prisma.agreement.findFirst({
-                where: {
-                    balanceId: fallbackBalanceId,
-                    balance: { contextId },
-                },
-                include: includeConfig,
-            });
-        }
+        const agreement = await prisma.agreement.findFirst({
+            where: {
+                balanceId: targetBalanceId,
+                balance: { contextId },
+            },
+            include: includeConfig,
+        });
 
         if (!agreement) return null;
 
@@ -85,7 +72,7 @@ export class ContractProfilePrismaQueries implements IContractProfileQueries {
             JOIN "Entry" e ON e.id = v."entryId"
             JOIN "Movement" m ON m."entryId" = e.id AND m."balanceId" = v."balanceId"
             LEFT JOIN "Entry" rev ON rev.id = e."reversesEntryId"
-            WHERE v."agreementId" = ${agreement.id}
+            WHERE v."balanceId" = ${agreement.balanceId}
               AND v."referenceDate" >= ${bufferFrom}
               AND v."referenceDate" <= ${bufferTo}
             GROUP BY v."cycleRuleId", v."referenceDate", e."type", rev."type", m."direction"
@@ -110,8 +97,8 @@ export class ContractProfilePrismaQueries implements IContractProfileQueries {
         const rules: CycleRuleWithEntriesData[] = agreement.rules.map((r) => ({
             id: r.id,
             agreementId: r.agreementId,
-            effectiveFrom: r.effectiveFrom,
-            frequency: r.frequency as "WEEKLY" | "MONTHLY" | "YEARLY",
+            effectiveFrom: toCivilDate(r.effectiveFrom),
+            frequency: r.frequency as "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY",
             interval: r.interval,
             closingDay: r.closingDay,
             dueDay: r.dueDay,
@@ -124,27 +111,26 @@ export class ContractProfilePrismaQueries implements IContractProfileQueries {
         }));
 
         const cycleSource: AgreementCycleSourceData = {
-            agreementId: agreement.id,
+            agreementId: agreement.balanceId,
             balanceId: agreement.balance.id,
             balanceName: agreement.balance.name,
             balanceType: agreement.balance.balanceType as
-                | "COMMITMENT"
                 | "PAYABLE"
                 | "RECEIVABLE"
                 | "CREDIT",
             includeInProjection: agreement.includeInProjection,
-            startsAt: agreement.startsAt,
-            endsAt: agreement.endsAt,
+            startsAt: toCivilDate(agreement.startsAt),
+            endsAt: agreement.endsAt ? toCivilDate(agreement.endsAt) : null,
             amountLog,
             rules,
         };
 
         const rawAgreement: RawContractAgreement = {
-            id: agreement.id,
+            id: agreement.balance.id,
             balanceId: agreement.balance.id,
             includeInProjection: agreement.includeInProjection,
-            startsAt: agreement.startsAt,
-            endsAt: agreement.endsAt,
+            startsAt: toCivilDate(agreement.startsAt),
+            endsAt: agreement.endsAt ? toCivilDate(agreement.endsAt) : null,
             createdAt: agreement.createdAt,
             balance: {
                 id: agreement.balance.id,
@@ -155,7 +141,7 @@ export class ContractProfilePrismaQueries implements IContractProfileQueries {
             rules: agreement.rules.map((r) => ({
                 id: r.id,
                 agreementId: r.agreementId,
-                effectiveFrom: r.effectiveFrom,
+                effectiveFrom: toCivilDate(r.effectiveFrom),
                 frequency: r.frequency,
                 interval: r.interval,
                 closingDay: r.closingDay,

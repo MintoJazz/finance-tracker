@@ -1,7 +1,7 @@
 import z from "zod";
 import { ContractTypeEnumSchema } from "@/modules/contracts/models/contract.schema";
 
-export const ContractFrequencyEnumSchema = z.enum(["WEEKLY", "MONTHLY", "YEARLY"]);
+export const ContractFrequencyEnumSchema = z.enum(["ONCE", "WEEKLY", "MONTHLY", "YEARLY"]);
 export type ContractFrequencyEnum = z.infer<typeof ContractFrequencyEnumSchema>;
 
 export const DateRangeSchema = z.object({

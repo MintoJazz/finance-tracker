@@ -10,8 +10,8 @@ Esta especificação define a separação arquitetural entre **Contratos** (regr
 
 O Contrato representa a **regra do jogo**. Ele não possui valor financeiro, apenas estabelece _se_ existe um vínculo de tempo, _quando_ o ciclo fecha e _quando_ vence.
 
-- **`Agreement`:** Entidade que decreta a existência de um vínculo em um `Balance` e sua vigência global (início e fim do contrato).
-- **`CycleRule`:** O motor de versionamento das regras. Define a frequência, dia de fechamento e dia de vencimento. O campo `effectiveFrom` garante que alterações contratuais (ex: mudar o vencimento para o dia 10) gerem uma nova regra sem corromper a leitura de ciclos passados.
+- **`Agreement`:** Entidade que decreta a existência de um vínculo em um `Balance` e sua vigência global (início e fim do contrato). Toda conta de obrigação ou direito (`PAYABLE` ou `RECEIVABLE`), seja ela recorrente (ex: aluguel, assinatura) ou pontual (ex: cobrança de rateio, empréstimo avulso), possui um `Agreement` atrelado e referencia sua categoria orçamentária padrão através de `Balance.parentId`.
+- **`CycleRule`:** O motor de versionamento das regras. Define a frequência (`ONCE` para obrigações pontuais, `MONTHLY`, `WEEKLY`, `YEARLY` para contínuos), intervalo, dia de fechamento e dia de vencimento. O campo `effectiveFrom` garante que alterações contratuais gerem uma nova regra sem corromper a leitura de ciclos passados. Obrigações pontuais (`ONCE`) geram exatamente $1$ ciclo no motor.
 
 ### B. A Obrigação (O Ciclo Financeiro Derivado)
 

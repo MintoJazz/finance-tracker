@@ -43,7 +43,7 @@ export const sidebarConfig = {
         items: [
           { title: "Carteiras", url: "/wallets" },
           { title: "Cartões", url: "/cards" },
-          { title: "Reservas", url: "#" },
+          // { title: "Reservas", url: "#" },
         ],
       },
       {
@@ -119,21 +119,9 @@ export const sidebarConfig = {
     actionGroups: [
       [
         {
-          id: "upgrade",
-          label: "Upgrade to Pro",
-          icon: SparklesIcon,
-        },
-      ],
-      [
-        {
           id: "account",
           label: "Account",
           icon: BadgeCheckIcon,
-        },
-        {
-          id: "billing",
-          label: "Billing",
-          icon: CreditCardIcon,
         },
         {
           id: "notifications",

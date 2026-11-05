@@ -18,7 +18,7 @@ export interface ContractDomainModel {
     name: string;
     type: "PAYABLE" | "RECEIVABLE";
     value: number; // em centavos
-    frequency: "WEEKLY" | "MONTHLY" | "YEARLY";
+    frequency: "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY";
     dueDay: number;
     dueMonth: number | null;
     closingDay: number | null;
@@ -52,7 +52,7 @@ export class ContractProfileMapper {
                 ? pastRules.at(-1) ?? null
                 : sortedRules[0] ?? null;
 
-        const frequency = (currentRule?.frequency as "WEEKLY" | "MONTHLY" | "YEARLY") ?? "MONTHLY";
+        const frequency = (currentRule?.frequency as "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY") ?? "MONTHLY";
         const dueDay = currentRule?.dueDay ?? 1;
         const closingDay = currentRule?.closingDay ?? null;
 

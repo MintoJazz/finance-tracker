@@ -17,11 +17,10 @@ export class CycleEntriesPrismaQueries implements ICycleEntriesQueries {
         const { contextId, identifier, from, to, pageRequest, q } = params;
 
         // 1. Localizar o acordo e garantir que pertence ao contexto
+        const targetBalanceId = identifier.balanceId ?? identifier.agreementId;
         const agreement = await prisma.agreement.findFirst({
-            where: identifier.agreementId
-                ? { id: identifier.agreementId, balance: { contextId } }
-                : { balanceId: identifier.balanceId, balance: { contextId } },
-            select: { id: true, balanceId: true },
+            where: { balanceId: targetBalanceId, balance: { contextId } },
+            select: { balanceId: true },
         });
 
         if (!agreement) {

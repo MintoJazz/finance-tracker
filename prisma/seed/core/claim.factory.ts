@@ -1,5 +1,6 @@
 import {
   BalanceType,
+  CycleFrequency,
   EntryType,
   MovementDirection,
 } from "../../generated/prisma/enums";
@@ -9,38 +10,21 @@ export class ClaimSeedFactory {
   constructor(private readonly prisma: PrismaClientInstance) {}
 
   /**
-   * Helper para gravar um Par de Ligação (±x) com efeito contábil líquido zero.
-   * Convenção: +x CREDIT e -x DEBIT (sinais opostos).
-   */
-  private createLinkPairMovements(balanceId: number, amount: number) {
-    const abs = Math.abs(amount);
-    return [
-      {
-        balanceId,
-        amount: abs,
-        direction: MovementDirection.CREDIT,
-      },
-      {
-        balanceId,
-        amount: -abs,
-        direction: MovementDirection.DEBIT,
-      },
-    ];
-  }
-
-  /**
    * Cria contas de cobrança bilaterais (RECEIVABLE no credor, PAYABLE no devedor).
    */
   async createClaimAccounts(params: {
     creditorContextId: number;
     debtorContextId: number;
     name: string;
+    receivableParentId?: number | null;
+    payableParentId?: number | null;
   }) {
     const receivable = await this.prisma.balance.create({
       data: {
         contextId: params.creditorContextId,
         name: `${params.name} (A Receber)`,
         balanceType: BalanceType.RECEIVABLE,
+        parentId: params.receivableParentId ?? null,
       },
     });
 
@@ -49,6 +33,7 @@ export class ClaimSeedFactory {
         contextId: params.debtorContextId,
         name: `${params.name} (A Pagar)`,
         balanceType: BalanceType.PAYABLE,
+        parentId: params.payableParentId ?? null,
       },
     });
 
@@ -58,7 +43,7 @@ export class ClaimSeedFactory {
   /**
    * Passo I. Abertura Raiz (CLAIM_OPENING):
    * Debita P (-x), Credita R (+x).
-   * Injeta par ±x na CATEGORY do Credor (âncora).
+   * Define parentId da CATEGORY no RECEIVABLE raiz. Sem pares de ligação nulos.
    */
   async openRootClaim(params: {
     payableId: number;
@@ -71,6 +56,14 @@ export class ClaimSeedFactory {
     const abs = Math.abs(params.amount);
     const date = new Date(params.date);
 
+    await this.prisma.balance.update({
+      where: { id: params.receivableId },
+      data: { parentId: params.anchorCategoryId },
+    });
+
+    await this.ensurePunctualAgreement(params.receivableId, abs, date);
+    await this.ensurePunctualAgreement(params.payableId, abs, date);
+
     const movements = [
       {
         balanceId: params.payableId,
@@ -82,7 +75,6 @@ export class ClaimSeedFactory {
         amount: abs,
         direction: MovementDirection.CREDIT,
       },
-      ...this.createLinkPairMovements(params.anchorCategoryId, abs),
     ];
 
     return this.prisma.entry.create({
@@ -99,7 +91,7 @@ export class ClaimSeedFactory {
   /**
    * Passo I. Abertura Filho/Cascata (CLAIM_OPENING):
    * Debita P (-x), Credita R (+x).
-   * Injeta par ±x no PAYABLE da cobrança pai (pertencente ao intermediário).
+   * Conecta childReceivable ao parentPayableId via parentId. Sem pares de ligação nulos.
    */
   async openChildClaim(params: {
     childPayableId: number;
@@ -112,6 +104,14 @@ export class ClaimSeedFactory {
     const abs = Math.abs(params.amount);
     const date = new Date(params.date);
 
+    await this.prisma.balance.update({
+      where: { id: params.childReceivableId },
+      data: { parentId: params.parentPayableId },
+    });
+
+    await this.ensurePunctualAgreement(params.childReceivableId, abs, date);
+    await this.ensurePunctualAgreement(params.childPayableId, abs, date);
+
     const movements = [
       {
         balanceId: params.childPayableId,
@@ -123,7 +123,6 @@ export class ClaimSeedFactory {
         amount: abs,
         direction: MovementDirection.CREDIT,
       },
-      ...this.createLinkPairMovements(params.parentPayableId, abs),
     ];
 
     return this.prisma.entry.create({
@@ -138,33 +137,19 @@ export class ClaimSeedFactory {
   }
 
   /**
-   * Passo II. Aceite (CLAIM_ACCEPTANCE):
-   * Sem fluxo financeiro.
-   * Injeta par ±x no PAYABLE atual e outro par ±x na CATEGORY_D do Devedor.
+   * Passo II. Aceite pelo Devedor:
+   * 100% estrutural. Define o parentId do PAYABLE para a CATEGORY_D escolhida pelo devedor.
    */
   async acceptClaim(params: {
     payableId: number;
     categoryDId: number;
-    amount: number;
-    description: string;
-    date: string | Date;
+    amount?: number;
+    description?: string;
+    date?: string | Date;
   }) {
-    const abs = Math.abs(params.amount);
-    const date = new Date(params.date);
-
-    const movements = [
-      ...this.createLinkPairMovements(params.payableId, abs),
-      ...this.createLinkPairMovements(params.categoryDId, abs),
-    ];
-
-    return this.prisma.entry.create({
-      data: {
-        description: params.description,
-        dueDate: date,
-        competanceDate: date,
-        type: EntryType.CLAIM_ACCEPTANCE,
-        movements: { create: movements },
-      },
+    return this.prisma.balance.update({
+      where: { id: params.payableId },
+      data: { parentId: params.categoryDId },
     });
   }
 
@@ -210,7 +195,6 @@ export class ClaimSeedFactory {
    * Passo IV. Recebimento (CLAIM_RECEIPT):
    * Credor debita R (-x) e credita WALLET_C (+x).
    * Alívio orçamentário na categoria de origem (DEBIT -x) e oneração no destino (CREDIT +x).
-   * No intermediário, se houver passagem, injeta um par ±x na categoria do intermediário.
    */
   async receiveClaim(params: {
     receivableId: number;
@@ -220,7 +204,6 @@ export class ClaimSeedFactory {
     date: string | Date;
     reliefCategory?: { categoryId: number; amount: number };
     onusCategory?: { categoryId: number; amount: number };
-    passThroughCategory?: { categoryId: number; amount: number };
   }) {
     const abs = Math.abs(params.amount);
     const date = new Date(params.date);
@@ -260,15 +243,6 @@ export class ClaimSeedFactory {
       });
     }
 
-    if (params.passThroughCategory) {
-      movements.push(
-        ...this.createLinkPairMovements(
-          params.passThroughCategory.categoryId,
-          params.passThroughCategory.amount
-        )
-      );
-    }
-
     return this.prisma.entry.create({
       data: {
         description: params.description,
@@ -278,5 +252,38 @@ export class ClaimSeedFactory {
         movements: { create: movements },
       },
     });
+  }
+
+  private async ensurePunctualAgreement(balanceId: number, amount: number, date: Date) {
+    const existing = await this.prisma.agreement.findUnique({
+      where: { balanceId },
+    });
+    if (!existing) {
+      const dueDay = date.getDate();
+      await this.prisma.agreement.create({
+        data: {
+          balanceId,
+          startsAt: date,
+          endsAt: date,
+          includeInProjection: true,
+          rules: {
+            create: {
+              effectiveFrom: date,
+              frequency: CycleFrequency.ONCE,
+              interval: 1,
+              dueDay,
+              closingDay: null,
+            },
+          },
+          amountEntries: {
+            create: {
+              amount,
+              effectiveAt: date,
+              reason: "Valor da Cobrança",
+            },
+          },
+        },
+      });
+    }
   }
 }

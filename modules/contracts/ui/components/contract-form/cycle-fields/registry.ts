@@ -4,6 +4,15 @@ import { MonthlyCycleFields } from "./strategies/monthly-cycle-fields";
 import { YearlyCycleFields } from "./strategies/yearly-cycle-fields";
 
 export const cycleFieldsRegistry: CycleFieldsRegistry = {
+  ONCE: {
+    Component: MonthlyCycleFields,
+    getDefaultSchedule: () => ({
+      dueDay: 10,
+      closingDay: null,
+      dueMonth: null,
+      closingMonth: null,
+    }),
+  },
   WEEKLY: {
     Component: WeeklyCycleFields,
     getDefaultSchedule: () => ({

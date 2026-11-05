@@ -124,9 +124,10 @@ export function ContractCycleDetails({
             {/* 4. Linha de apoio: Vencimento e Competência */}
             <div className="flex flex-col items-center gap-0.5 text-xs text-muted-foreground">
                 <p className="text-center">
-                    Vence {formatDate(new Date(cycle.dueDate))} • Competência{" "}
-                    {formatDate(new Date(cycle.range.from))} a{" "}
-                    {formatDate(new Date(cycle.range.to))}
+                    Vence {formatDate(cycle.dueDate)} • Competência{" "}
+                    {cycle.range.from === cycle.range.to
+                        ? formatDate(cycle.range.from)
+                        : `${formatDate(cycle.range.from)} a ${formatDate(cycle.range.to)}`}
                 </p>
                 {isProjected && (
                     <span className="italic">

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { EmptyCreditMovementList } from "@/modules/movements/ui/components/credit-movement-list/empty";
+import { EmptyContractCycleEntryTable } from "../contract-cycle-entry-table/empty";
 import { MovementList } from "@/modules/movements/ui/components/movement-list";
 import { CycleEntryRow } from "@/modules/cycles/models/contract-cycle.schema";
 import { orderEntriesWithReversals } from "../contract-cycle-entry-table";
@@ -36,7 +36,7 @@ export function ContractCycleEntryList({
 
     if (entries.length === 0) {
         return (
-            <EmptyCreditMovementList
+            <EmptyContractCycleEntryTable
                 hasFilters={hasFilters}
                 onClearFilters={onClearFilters}
                 className={className}

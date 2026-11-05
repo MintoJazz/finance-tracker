@@ -1,7 +1,7 @@
 import { CalendarRange, CalendarClock, CalendarFold, type LucideIcon } from "lucide-react";
 import { formatMoney } from "@/lib/formatters";
 
-export type ContractFrequencyType = "WEEKLY" | "MONTHLY" | "YEARLY";
+export type ContractFrequencyType = "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY";
 
 export const WEEKDAY_LABELS: Record<number, string> = {
   1: "Segunda-feira",
@@ -70,6 +70,23 @@ function resolveYearlyMonth(
 }
 
 export const FREQUENCY_THEMES: Record<ContractFrequencyType, FrequencyThemeConfig> = {
+  ONCE: {
+    type: "ONCE",
+    label: "Pontual",
+    adverb: "Pontualmente",
+    periodLabel: "Único",
+    pluralPeriodLabel: "Únicos",
+    recurrenceSuffix: "",
+    icon: CalendarClock,
+    iconClassName: "text-amber-500",
+    badgeClassName: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    pillClassName: "border-amber-500/20 bg-amber-500/5 text-amber-600",
+    formatDueDay: (input) => `Dia ${input.dueDay}`,
+    formatClosingDay: (input) => (input.closingDay ? `Dia ${input.closingDay}` : null),
+    formatSchedule: (input) => `Pontual • Dia ${input.dueDay}`,
+    formatRecurrenceValue: (cents) => formatMoney(cents),
+    formatPeriodCount: (count) => (count === 1 ? "1 ciclo" : `${count} ciclos`),
+  },
   WEEKLY: {
     type: "WEEKLY",
     label: "Semanal",
@@ -216,6 +233,7 @@ export function formatFrequencyRecurrenceValue(
 }
 
 export const FREQUENCY_LABELS: Record<ContractFrequencyType, string> = {
+  ONCE: FREQUENCY_THEMES.ONCE.label,
   WEEKLY: FREQUENCY_THEMES.WEEKLY.label,
   MONTHLY: FREQUENCY_THEMES.MONTHLY.label,
   YEARLY: FREQUENCY_THEMES.YEARLY.label,

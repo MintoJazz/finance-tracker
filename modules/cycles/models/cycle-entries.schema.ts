@@ -19,7 +19,6 @@ export const EntryTypeEnumSchema = z.enum([
     "CLAIM_PAYMENT",
     "CLAIM_RECEIPT",
     "ADJUSTMENT",
-    "CLAIM_ACCEPTANCE",
     "REVERSAL",
 ]);
 

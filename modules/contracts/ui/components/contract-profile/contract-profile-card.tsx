@@ -39,10 +39,16 @@ export function ContractProfileCard({
     const validityText = React.useMemo(() => {
         const startStr = formatDate(contract.startsAt);
         if (contract.endsAt) {
+            if (
+                contract.frequency === "ONCE" ||
+                formatDate(contract.startsAt) === formatDate(contract.endsAt)
+            ) {
+                return `Em ${startStr}`;
+            }
             return `${startStr} até ${formatDate(contract.endsAt)}`;
         }
         return `Desde ${startStr}`;
-    }, [contract.startsAt, contract.endsAt]);
+    }, [contract.startsAt, contract.endsAt, contract.frequency]);
 
     const dueDayText = theme.formatDueDay({
         dueDay: contract.dueDay,

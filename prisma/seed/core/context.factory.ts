@@ -140,6 +140,7 @@ export class FinancialContextFactory {
     name: string,
     options?: {
       type?: BalanceType;
+      parentId?: number | null;
       appearance?: {
         icon?: string | null;
         color?: string | null;
@@ -150,12 +151,15 @@ export class FinancialContextFactory {
       typeof options === "string" ? options : (options?.type ?? BalanceType.CATEGORY);
     const appearance =
       typeof options === "object" && options !== null ? options.appearance : undefined;
+    const parentId =
+      typeof options === "object" && options !== null ? (options.parentId ?? null) : null;
 
     return this.prisma.balance.create({
       data: {
         contextId: this.contextId,
         name,
         balanceType,
+        parentId,
         appearance: appearance
           ? {
               create: {
@@ -174,6 +178,7 @@ export class FinancialContextFactory {
   async addCategories(
     items: Array<{
       name: string;
+      parentId?: number | null;
       appearance?: { icon?: string | null; color?: string | null };
       type?: BalanceType;
     }>
@@ -183,6 +188,7 @@ export class FinancialContextFactory {
       results.push(
         await this.addCategory(item.name, {
           type: item.type,
+          parentId: item.parentId,
           appearance: item.appearance,
         })
       );
@@ -283,17 +289,7 @@ export class FinancialContextFactory {
     effectiveAt: string | Date;
     reason?: string;
   }) {
-    let targetAgreementId = params.agreementId;
-
-    if (!targetAgreementId && params.balanceId) {
-      const agreement = await this.prisma.agreement.findUnique({
-        where: { balanceId: params.balanceId },
-      });
-      if (!agreement) {
-        throw new Error(`Agreement não encontrado para balanceId ${params.balanceId}`);
-      }
-      targetAgreementId = agreement.id;
-    }
+    const targetAgreementId = params.balanceId ?? params.agreementId;
 
     if (!targetAgreementId) {
       throw new Error("É necessário fornecer agreementId ou balanceId");

@@ -22,11 +22,15 @@ export class ContractCycleProfileMapper {
     } | null): string {
         if (!rule) return "Sem regra definida";
         const freqMap: Record<string, string> = {
+            ONCE: "Pontual",
             MONTHLY: "Mensal",
             WEEKLY: "Semanal",
             YEARLY: "Anual",
         };
         const freq = freqMap[rule.frequency] ?? rule.frequency;
+        if (rule.frequency === "ONCE") {
+            return `Pontual, vence dia ${rule.dueDay}`;
+        }
         if (rule.closingDay != null) {
             return `${freq}, fecha dia ${rule.closingDay}, vence dia ${rule.dueDay}`;
         }
@@ -56,7 +60,7 @@ export class ContractCycleProfileMapper {
             if (counterpartMovement?.balance?.agreement) {
                 counterpart = {
                     label: counterpartMovement.balance.name,
-                    href: `/contracts/${counterpartMovement.balance.agreement.id}/cycle?from=${range.from}&to=${range.to}`,
+                    href: `/contracts/${counterpartMovement.balance.id}/cycle?from=${range.from}&to=${range.to}`,
                 };
             }
 

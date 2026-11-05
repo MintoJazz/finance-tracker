@@ -1,4 +1,5 @@
 enum CycleFrequency {
+  ONCE
   WEEKLY
   MONTHLY
   YEARLY
@@ -9,9 +10,8 @@ enum BalanceType {
   CREDIT
   RESERVE
   CATEGORY
-  COMMITMENT
-  RECEIVABLE
   PAYABLE
+  RECEIVABLE
 }
 
 model Balance {
@@ -38,8 +38,7 @@ model Balance {
 }
 
 model Agreement {
-  id                  Int       @id @default(autoincrement())
-  balanceId           Int       @unique
+  balanceId           Int       @id
   includeInProjection Boolean   @default(true)
   startsAt            DateTime  @db.Date
   endsAt              DateTime? @db.Date
@@ -61,7 +60,7 @@ model CycleRule {
   dueDay        Int
   createdAt     DateTime       @default(now())
 
-  agreement           Agreement            @relation(fields: [agreementId], references: [id], onDelete: Restrict)
+  agreement           Agreement            @relation(fields: [agreementId], references: [balanceId], onDelete: Restrict)
   entryCycleRuleViews EntryCycleRuleView[] // <-- ADICIONAR ESTA LINHA
 
   @@unique([agreementId, effectiveFrom])
@@ -76,7 +75,7 @@ model AgreementAmountEntry {
   reason      String?
   createdAt   DateTime @default(now())
 
-  agreement Agreement @relation(fields: [agreementId], references: [id], onDelete: Restrict)
+  agreement Agreement @relation(fields: [agreementId], references: [balanceId], onDelete: Restrict)
 
   @@index([agreementId, effectiveAt])
 }

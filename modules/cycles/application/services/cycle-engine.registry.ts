@@ -278,18 +278,64 @@ class YearlyCycleStrategy implements ICycleFrequencyStrategy {
     }
 }
 
+/**
+ * Estratégia Pontual (ONCE)
+ */
+class OnceCycleStrategy implements ICycleFrequencyStrategy {
+    resolveReferenceDate(rawRefDate: Date): Date {
+        return startOfDay(rawRefDate);
+    }
+
+    getCycleBoundaries(
+        _date: Date,
+        rule: CycleRuleWithEntriesData
+    ): CyclePeriodBoundaries {
+        const beginsAt = startOfDay(rule.effectiveFrom);
+        const endsAt = startOfDay(rule.effectiveFrom);
+
+        const daysInMonth = getDaysInMonth(rule.effectiveFrom);
+        const clampedDueDay = Math.min(Math.max(1, rule.dueDay), daysInMonth);
+        const dueDate = startOfDay(setDate(rule.effectiveFrom, clampedDueDay));
+
+        let closingDate: Date;
+        if (rule.closingDay !== null) {
+            const clampedClosingDay = Math.min(Math.max(1, rule.closingDay), daysInMonth);
+            closingDate = startOfDay(setDate(rule.effectiveFrom, clampedClosingDay));
+        } else {
+            closingDate = dueDate;
+        }
+
+        const cycleKey = `ONCE-${format(beginsAt, "yyyy-MM-dd")}`;
+        const label = "Pontual";
+
+        return {
+            cycleKey,
+            beginsAt,
+            endsAt,
+            closingDate,
+            dueDate,
+            label,
+        };
+    }
+
+    stepCycle(date: Date, steps: number): Date {
+        return startOfDay(addDays(date, steps));
+    }
+}
+
 export class CycleEngineRegistry {
     private static readonly strategies: Record<
-        "MONTHLY" | "WEEKLY" | "YEARLY",
+        "ONCE" | "MONTHLY" | "WEEKLY" | "YEARLY",
         ICycleFrequencyStrategy
     > = {
+        ONCE: new OnceCycleStrategy(),
         MONTHLY: new MonthlyCycleStrategy(),
         WEEKLY: new WeeklyCycleStrategy(),
         YEARLY: new YearlyCycleStrategy(),
     };
 
     static getStrategy(
-        frequency: "MONTHLY" | "WEEKLY" | "YEARLY"
+        frequency: "ONCE" | "MONTHLY" | "WEEKLY" | "YEARLY"
     ): ICycleFrequencyStrategy {
         const strategy = this.strategies[frequency];
         if (!strategy) {
