@@ -5,3 +5,9 @@ export {
   WizardDrawerLayout,
   type WizardDrawerLayoutProps,
 } from "./wizard-drawer"
+export {
+  WizardDialog,
+  type WizardDialogProps,
+  WizardDialogLayout,
+  type WizardDialogLayoutProps,
+} from "./wizard-dialog"

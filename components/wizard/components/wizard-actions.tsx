@@ -47,7 +47,7 @@ export function WizardNext({
   className,
   ...props
 }: WizardNextProps) {
-  const { step, isLast, isSubmitting, next } = useWizard()
+  const { step, isLast, isSubmitting, next, instanceId } = useWizard()
   const hasForm = "fields" in step && Boolean(step.fields)
 
   const defaultLabel = step.submitText ?? submitText ?? (isLast ? "Concluir" : "Continuar")
@@ -55,7 +55,7 @@ export function WizardNext({
   return (
     <Button
       type={hasForm ? "submit" : "button"}
-      form={hasForm ? wizardFormId(step.id) : undefined}
+      form={hasForm ? wizardFormId(step.id, instanceId) : undefined}
       onClick={hasForm ? undefined : () => next()}
       disabled={disabled ?? isSubmitting}
       variant={variant}

@@ -17,12 +17,16 @@ function FieldsStepForm<TData = any>({
   step: FieldsStep<TData, any, any>
   className?: string
 }) {
-  const { data, next, draftRef } = useWizard<TData>()
-  const formId = wizardFormId(step.id)
+  const { data, next, draftRef, instanceId } = useWizard<TData>()
+  const formId = wizardFormId(step.id, instanceId)
 
   const form = useForm({
     resolver: zodResolver(step.schema),
     defaultValues: data as any,
+    values: data as any,
+    resetOptions: {
+      keepDirtyValues: true,
+    },
   })
 
   // Registra o getter síncrono de rascunho para que botões externos de voltar salvem os dados atuais
@@ -71,7 +75,7 @@ export function WizardStepContent({ className, ...props }: WizardStepContentProp
       isFirstMountRef.current = false
       return
     }
-    sectionRef.current?.focus()
+    sectionRef.current?.focus({ preventScroll: true })
   }, [step.id])
 
   return (
@@ -80,7 +84,7 @@ export function WizardStepContent({ className, ...props }: WizardStepContentProp
       tabIndex={-1}
       aria-label={step.title}
       className={cn(
-        "w-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded animate-in fade-in-50 duration-200 motion-reduce:animate-none",
+        "w-full overflow-x-hidden outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded animate-in fade-in-50 duration-200 motion-reduce:animate-none",
         className
       )}
       {...props}

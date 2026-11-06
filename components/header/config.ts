@@ -91,6 +91,10 @@ export const routes = defineRoutes({
     label: () => "",
     parent: "categories",
   },
+  operationsPlayground: {
+    pattern: "/operations/playground",
+    label: "Playground de Operações",
+  },
 })
 
 export type RouteKey = keyof typeof routes

@@ -1,4 +1,4 @@
-export { Wizard, useWizard } from "./wizard"
+export { Wizard, useWizard, deepMergeWizardData } from "./wizard"
 export { wizardFormId } from "./wizard-form-id"
 export type {
   WizardStep,

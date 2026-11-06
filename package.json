@@ -10,7 +10,7 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test 'modules/**/*.spec.ts'",
+    "test": "tsx --test modules/**/*.spec.ts",
     "db:seed": "tsx prisma/seed/index.ts",
     "minio:up": "docker compose up -d minio"
   },

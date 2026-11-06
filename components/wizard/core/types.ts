@@ -52,6 +52,8 @@ export type WizardStep<TData> =
   | CustomStep<TData>
 
 export interface WizardContextValue<TData> {
+  /** Identificador único da instância do Wizard para isolar IDs de `<form>` no DOM */
+  instanceId?: string
   /** Dados acumulados até o momento */
   data: Partial<TData>
   /** Passos atualmente ativos (filtrados por `when`) */

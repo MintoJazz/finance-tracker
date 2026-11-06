@@ -24,21 +24,32 @@ export interface WizardDrawerLayoutProps {
   className?: string
   /** Conteúdo customizado opcional no corpo da etapa */
   children?: React.ReactNode
+  /** Conteúdo exibido acima dos botões de ação no rodapé (ex.: barra de pills) */
+  footerExtra?: React.ReactNode
+  /** Exibe o botão de voltar no rodapé (padrão: true quando não for primeiro passo) */
+  showBack?: boolean
+  /** Substituição completa do rodapé */
+  footer?: React.ReactNode
 }
 
 /**
  * Layout interno padronizado para Drawer Mobile com Wizard:
  * - Cabeçalho compacto (botão voltar/fechar + título + contador + barra de progresso segmentada)
  * - Área de conteúdo com scroll suave e confinamento de viewport
- * - Rodapé fixo com botão único de ação primária
+ * - Rodapé fixo com botões de voltar/continuar e área para pills de opções
  */
 export function WizardDrawerLayout({
   onClose: propOnClose,
   className,
   children,
+  footerExtra,
+  showBack,
+  footer,
 }: WizardDrawerLayoutProps) {
-  const { index, steps, step, goTo, onClose: contextOnClose } = useWizard()
+  const { index, steps, step, isFirst, goTo, onClose: contextOnClose } = useWizard()
   const handleClose = propOnClose ?? contextOnClose
+
+  const renderBack = showBack ?? !isFirst
 
   return (
     <div className={cn("flex flex-col min-h-0 flex-1", className)}>
@@ -89,14 +100,22 @@ export function WizardDrawerLayout({
       </div>
 
       {/* Área de Conteúdo do Passo com Rolagem Suave */}
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain py-1">
         {children ?? <WizardStepContent />}
       </div>
 
-      {/* Rodapé Fixo: Botão de Continuar / Salvar em largura total */}
-      <div className="shrink-0 pt-2.5 mt-auto border-t border-border/30">
-        <WizardNext className="w-full h-9 text-xs font-semibold" />
-      </div>
+      {/* Rodapé Fixo: Conteúdo extra (pills de opções) + Botão Continuar */}
+      {footer ?? (
+        <div className="shrink-0 pt-2.5 mt-auto border-t border-border/40 flex flex-col gap-2">
+          {footerExtra}
+          <WizardNext
+            className={cn(
+              "w-full",
+              "h-9 text-xs font-semibold"
+            )}
+          />
+        </div>
+      )}
     </div>
   )
 }
