@@ -85,11 +85,6 @@ function buildDirectEntrySummaryCard<TIntentKey extends string>(
   const custodyId =
     action.custody?.kind === "existing" ? action.custody.id : undefined
   const custody = lookups.custodies.find((c) => c.id === custodyId)
-  const cycle = lookups.creditCycles.find(
-    (c) =>
-      c.cardBalanceId === custodyId &&
-      c.closingDate === action.competanceDate
-  )
 
   const rows: SummaryRow[] = [
     {
@@ -130,13 +125,9 @@ function buildDirectEntrySummaryCard<TIntentKey extends string>(
       label: "Fatura",
       value: {
         kind: "text",
-        text:
-          cycle?.title ??
-          (cycle?.closingDate
-            ? `Fatura ${cycle.closingDate}`
-            : "Fatura Atual"),
+        text: "Fatura Vigente (Automática)",
       },
-      stepId: "base.custody-cycle",
+      stepId: "base.custody",
     })
   }
 

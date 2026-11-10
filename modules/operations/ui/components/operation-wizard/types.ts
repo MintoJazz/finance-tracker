@@ -3,7 +3,6 @@ import type { OperationDraft } from "@/modules/operations/models/operation-input
 
 export type {
   CustodyLookupItem,
-  CreditCycleLookupItem,
   CategoryLookupItem,
   SubcategoryLookupItem,
   OperationLookupData,

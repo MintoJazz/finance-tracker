@@ -15,8 +15,8 @@ export const BaseOperationSliceSchema = z.object({
     .string({ error: "Informe a data de vencimento/liquidação" })
     .min(1, "Informe a data de vencimento/liquidação"),
   competanceDate: z
-    .string({ error: "Selecione a fatura do cartão" })
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Selecione a fatura do cartão")
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Data de competência inválida (YYYY-MM-DD)")
     .nullable()
     .optional(),
   description: z

@@ -16,23 +16,7 @@ export const CustodyOptionSchema = z.object({
 export type CustodyOption = z.infer<typeof CustodyOptionSchema>
 
 /**
- * 2. Opção de Fatura (Ciclo de Cartão de Crédito)
- */
-export const CreditCycleStatusSchema = z.enum(["OPEN", "FUTURE", "CLOSED"])
-export type CreditCycleStatus = z.infer<typeof CreditCycleStatusSchema>
-
-export const CreditCycleOptionSchema = z.object({
-  cardBalanceId: z.number().int().positive(),
-  title: z.string().min(1),
-  subtitle: z.string(),
-  closingDate: z.string(),
-  dueDate: z.string(),
-  status: CreditCycleStatusSchema,
-})
-export type CreditCycleOption = z.infer<typeof CreditCycleOptionSchema>
-
-/**
- * 3. Opção de Categoria (Conta Sintética / Raiz)
+ * 2. Opção de Categoria (Conta Sintética / Raiz)
  */
 export const CategoryOptionSchema = z.object({
   id: z.number().int().positive(),
@@ -43,7 +27,7 @@ export const CategoryOptionSchema = z.object({
 export type CategoryOption = z.infer<typeof CategoryOptionSchema>
 
 /**
- * 4. Opção de Subcategoria (Conta Analítica / Contraparte da Operação)
+ * 3. Opção de Subcategoria (Conta Analítica / Contraparte da Operação)
  */
 export const SubcategoryOptionSchema = z.object({
   id: z.number().int().positive(),
@@ -56,11 +40,10 @@ export const SubcategoryOptionSchema = z.object({
 export type SubcategoryOption = z.infer<typeof SubcategoryOptionSchema>
 
 /**
- * Agregado com as opções completas fornecidas ao Wizard de Operações
+ * Agregado com as opções base fornecidas ao Wizard de Operações
  */
 export const OperationOptionsSchema = z.object({
   custodies: z.array(CustodyOptionSchema),
-  creditCycles: z.array(CreditCycleOptionSchema),
   categories: z.array(CategoryOptionSchema),
   subcategories: z.array(SubcategoryOptionSchema),
 })

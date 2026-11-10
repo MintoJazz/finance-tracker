@@ -59,6 +59,39 @@ describe("Operation Summary Core & Cumulative Cards Resolver", () => {
     })
   })
 
+  it("quando a custódia for cartão de crédito, exibe 'Fatura Vigente (Automática)' no resumo", () => {
+    const payload: Partial<OperationDraft> = {
+      nature: "PAY",
+      base: {
+        amount: 15000,
+        categoryId: 101,
+        subcategoryId: 1011,
+        custodyBalanceId: 2, // Nubank Ultravioleta (CREDIT)
+        dueDate: "2026-11-10",
+      },
+    }
+
+    const cards = resolveSummaryCards(
+      {
+        payload,
+        activeIntents: [],
+        lookups: MOCK_OPERATION_OPTIONS,
+      },
+      OPERATION_STEP_CATALOG
+    )
+
+    const baseCard = cards.find((c) => c.id === "summary.base")
+    assert.ok(baseCard)
+
+    const cycleRow = (baseCard.rows ?? []).find((r) => r.id === "base_cycle")
+    assert.ok(cycleRow)
+    assert.deepEqual(cycleRow.value, {
+      kind: "text",
+      text: "Fatura Vigente (Automática)",
+    })
+    assert.equal(cycleRow.stepId, "base.custody")
+  })
+
   it("cards de criação de categoria e subcategoria geram visualItem com ícone, cor, título e subtítulo", () => {
     const payload: Partial<OperationDraft> = {
       nature: "PAY",

@@ -60,18 +60,11 @@ export function CustodyPicker({
     onChange(id)
     const found = lookups.custodies.find((c) => c.id === id)
     if (found) {
-      const defaultCycle =
-        found.type === "CREDIT"
-          ? lookups.creditCycles.find(
-              (cy) => cy.cardBalanceId === found.id && cy.status === "OPEN"
-            )
-          : null
-
       updateDraft({
         base: {
           custodyBalanceId: found.id,
           custodyType: found.type,
-          competanceDate: defaultCycle?.closingDate ?? null,
+          competanceDate: null,
         },
       })
     }

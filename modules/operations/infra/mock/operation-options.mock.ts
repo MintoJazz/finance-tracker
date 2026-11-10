@@ -1,12 +1,10 @@
 import type {
   ICategoryOptionsProvider,
-  ICreditCycleOptionsProvider,
   ICustodyOptionsProvider,
   ISubcategoryOptionsProvider,
 } from "../../application/interfaces/operation-options-provider.interface"
 import type {
   CategoryOption,
-  CreditCycleOption,
   CustodyOption,
   OperationOptions,
   SubcategoryOption,
@@ -55,41 +53,6 @@ export const MOCK_CUSTODY_OPTIONS: CustodyOption[] = [
     icon: "Banknote",
     color: "#22C55E",
     balanceCents: 32000,
-  },
-]
-
-export const MOCK_CREDIT_CYCLE_OPTIONS: CreditCycleOption[] = [
-  {
-    cardBalanceId: 2,
-    title: "Aberta • Nov/2026",
-    subtitle: "Fecha em 10/11 • Vence em 17/11",
-    closingDate: "2026-11-10",
-    dueDate: "2026-11-17",
-    status: "OPEN",
-  },
-  {
-    cardBalanceId: 2,
-    title: "Futura • Dez/2026",
-    subtitle: "Fecha em 10/12 • Vence em 17/12",
-    closingDate: "2026-12-10",
-    dueDate: "2026-12-17",
-    status: "FUTURE",
-  },
-  {
-    cardBalanceId: 3,
-    title: "Aberta • Nov/2026",
-    subtitle: "Fecha em 21/11 • Vence em 28/11",
-    closingDate: "2026-11-21",
-    dueDate: "2026-11-28",
-    status: "OPEN",
-  },
-  {
-    cardBalanceId: 3,
-    title: "Futura • Dez/2026",
-    subtitle: "Fecha em 21/12 • Vence em 28/12",
-    closingDate: "2026-12-21",
-    dueDate: "2026-12-28",
-    status: "FUTURE",
   },
 ]
 
@@ -187,7 +150,6 @@ export const MOCK_SUBCATEGORY_OPTIONS: SubcategoryOption[] = [
 
 export const MOCK_OPERATION_OPTIONS: OperationOptions = {
   custodies: MOCK_CUSTODY_OPTIONS,
-  creditCycles: MOCK_CREDIT_CYCLE_OPTIONS,
   categories: MOCK_CATEGORY_OPTIONS,
   subcategories: MOCK_SUBCATEGORY_OPTIONS,
 }
@@ -195,16 +157,11 @@ export const MOCK_OPERATION_OPTIONS: OperationOptions = {
 export class OperationOptionsMockService
   implements
     ICustodyOptionsProvider,
-    ICreditCycleOptionsProvider,
     ICategoryOptionsProvider,
     ISubcategoryOptionsProvider
 {
   async listCustodyOptions(_spaceId?: number): Promise<CustodyOption[]> {
     return MOCK_CUSTODY_OPTIONS
-  }
-
-  async listCreditCycleOptions(_spaceId?: number): Promise<CreditCycleOption[]> {
-    return MOCK_CREDIT_CYCLE_OPTIONS
   }
 
   async listCategoryOptions(_spaceId?: number): Promise<CategoryOption[]> {

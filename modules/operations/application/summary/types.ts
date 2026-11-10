@@ -5,27 +5,23 @@ import type {
 import type { CustodyBalanceType } from "../../models/operation-seed.schema"
 import type {
   CategoryOption,
-  CreditCycleOption,
   CustodyOption,
   SubcategoryOption,
 } from "../../models/operation-options.schema"
 
 export type {
   CustodyOption,
-  CreditCycleOption,
   CategoryOption,
   SubcategoryOption,
   OperationOptions,
 } from "../../models/operation-options.schema"
 
 export type CustodyLookupItem = CustodyOption
-export type CreditCycleLookupItem = CreditCycleOption
 export type CategoryLookupItem = CategoryOption | SubcategoryOption
 export type SubcategoryLookupItem = SubcategoryOption
 
 export interface OperationLookupData {
   readonly custodies: readonly CustodyOption[]
-  readonly creditCycles: readonly CreditCycleOption[]
   readonly categories: readonly CategoryOption[]
   readonly subcategories: readonly SubcategoryOption[]
 }

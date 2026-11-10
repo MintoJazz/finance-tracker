@@ -4,15 +4,15 @@ import type { IContextMemberRepository } from "@/modules/space/application/inter
 import { PrismaContextMembersRepository } from "@/modules/space/infra/repositories/context-members-prisma.repository"
 import type {
   ICategoryOptionsProvider,
-  ICreditCycleOptionsProvider,
   ICustodyOptionsProvider,
   ISubcategoryOptionsProvider,
 } from "../../application/interfaces/operation-options-provider.interface"
-import { OperationOptionsMockService } from "../mock/operation-options.mock"
+import { CustodyOptionsPrismaProvider } from "../providers/custody-options-prisma.provider"
 import { CategoryOptionsPrismaProvider } from "../providers/category-options-prisma.provider"
 import { PrismaOperationPlanExecutor } from "../executors/operation-plan-prisma.executor"
 import type { IOperationPlanExecutor } from "../../application/interfaces/operation-plan-executor.interface"
 import { GetOperationOptionsUseCase } from "../../application/use-cases/get-operation-options.use-case"
+import { GetCustodyOptionsUseCase } from "../../application/use-cases/get-custody-options.use-case"
 import { ExecuteOperationUseCase } from "../../application/use-cases/execute-operation.use-case"
 
 export class OperationOptionsFactory {
@@ -21,18 +21,15 @@ export class OperationOptionsFactory {
   private static readonly spaceAccessProvider: ISpaceAccessProvider =
     new GetSpaceAccessUseCase(this.memberRepository)
 
-  private static readonly mockService = new OperationOptionsMockService()
+  private static readonly custodyOptionsProvider =
+    new CustodyOptionsPrismaProvider()
   private static readonly categoryOptionsProvider =
     new CategoryOptionsPrismaProvider()
   private static readonly planExecutor: IOperationPlanExecutor =
     new PrismaOperationPlanExecutor()
 
   public static makeCustodyOptionsProvider(): ICustodyOptionsProvider {
-    return this.mockService
-  }
-
-  public static makeCreditCycleOptionsProvider(): ICreditCycleOptionsProvider {
-    return this.mockService
+    return this.custodyOptionsProvider
   }
 
   public static makeCategoryOptionsProvider(): ICategoryOptionsProvider {
@@ -47,11 +44,16 @@ export class OperationOptionsFactory {
     return this.planExecutor
   }
 
+  public static readonly makeGetCustodyOptionsUseCase = () =>
+    new GetCustodyOptionsUseCase(
+      this.spaceAccessProvider,
+      this.makeCustodyOptionsProvider()
+    )
+
   public static readonly makeGetOperationOptionsUseCase = () =>
     new GetOperationOptionsUseCase(
       this.spaceAccessProvider,
       this.makeCustodyOptionsProvider(),
-      this.makeCreditCycleOptionsProvider(),
       this.makeCategoryOptionsProvider(),
       this.makeSubcategoryOptionsProvider()
     )

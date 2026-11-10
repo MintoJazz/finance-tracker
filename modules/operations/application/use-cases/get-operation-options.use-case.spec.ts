@@ -4,9 +4,9 @@ import type { SessionPayload } from "@/modules/auth/infra/cryptography/jwt-utils
 import type { ISpaceAccessProvider } from "@/modules/space/application/interfaces/space-access-provider.interface"
 import { success, failure } from "@/types/result.types"
 import { GetOperationOptionsUseCase } from "./get-operation-options.use-case"
+import { GetCustodyOptionsUseCase } from "./get-custody-options.use-case"
 import type {
   ICategoryOptionsProvider,
-  ICreditCycleOptionsProvider,
   ICustodyOptionsProvider,
   ISubcategoryOptionsProvider,
 } from "../interfaces/operation-options-provider.interface"
@@ -14,12 +14,14 @@ import {
   OperationOptionsSchema,
   CategoryOptionSchema,
   SubcategoryOptionSchema,
+  CustodyOptionSchema,
 } from "../../models/operation-options.schema"
 import { CategoryOptionsPrismaProvider } from "../../infra/providers/category-options-prisma.provider"
+import { CustodyOptionsPrismaProvider } from "../../infra/providers/custody-options-prisma.provider"
 import type { ICategoryQueries } from "@/modules/categories/application/interfaces/category-queries.interface"
 import { CategoryMapper } from "@/modules/categories/infra/mappers/category.mapper"
 
-describe("GetOperationOptionsUseCase & Category Options", () => {
+describe("GetOperationOptionsUseCase, GetCustodyOptionsUseCase & Category Options", () => {
   const dummySession: SessionPayload = {
     partyId: 1,
     contextId: 10,
@@ -56,19 +58,6 @@ describe("GetOperationOptionsUseCase & Category Options", () => {
     ],
   }
 
-  const dummyCreditCycleProvider: ICreditCycleOptionsProvider = {
-    listCreditCycleOptions: async () => [
-      {
-        cardBalanceId: 2,
-        title: "Fatura Aberta",
-        subtitle: "Vence em 15/11",
-        closingDate: "2026-11-08",
-        dueDate: "2026-11-15",
-        status: "OPEN",
-      },
-    ],
-  }
-
   const dummyCategoryProvider: ICategoryOptionsProvider = {
     listCategoryOptions: async () => [
       {
@@ -97,7 +86,6 @@ describe("GetOperationOptionsUseCase & Category Options", () => {
     const useCase = new GetOperationOptionsUseCase(
       mockSpaceAccessError,
       dummyCustodyProvider,
-      dummyCreditCycleProvider,
       dummyCategoryProvider,
       dummySubcategoryProvider
     )
@@ -113,7 +101,6 @@ describe("GetOperationOptionsUseCase & Category Options", () => {
     const useCase = new GetOperationOptionsUseCase(
       mockSpaceAccessForbidden,
       dummyCustodyProvider,
-      dummyCreditCycleProvider,
       dummyCategoryProvider,
       dummySubcategoryProvider
     )
@@ -129,7 +116,6 @@ describe("GetOperationOptionsUseCase & Category Options", () => {
     const useCase = new GetOperationOptionsUseCase(
       mockSpaceAccessAllowed,
       dummyCustodyProvider,
-      dummyCreditCycleProvider,
       dummyCategoryProvider,
       dummySubcategoryProvider
     )
@@ -137,6 +123,8 @@ describe("GetOperationOptionsUseCase & Category Options", () => {
     const result = await useCase.execute({ session: dummySession })
     assert.equal(result.success, true)
     if (result.success) {
+      assert.equal(result.data.custodies.length, 1)
+      assert.equal(result.data.custodies[0].name, "Carteira Itaú")
       assert.equal(result.data.categories.length, 1)
       assert.equal(result.data.categories[0].name, "Alimentação")
       assert.equal(result.data.subcategories.length, 1)
@@ -146,6 +134,47 @@ describe("GetOperationOptionsUseCase & Category Options", () => {
       const validation = OperationOptionsSchema.safeParse(result.data)
       assert.ok(validation.success)
     }
+  })
+
+  it("GetCustodyOptionsUseCase retorna meios de pagamento autorizados", async () => {
+    const custodyUseCase = new GetCustodyOptionsUseCase(
+      mockSpaceAccessAllowed,
+      dummyCustodyProvider
+    )
+
+    const result = await custodyUseCase.execute({ session: dummySession })
+    assert.equal(result.success, true)
+    if (result.success) {
+      assert.equal(result.data.length, 1)
+      assert.equal(result.data[0].name, "Carteira Itaú")
+      assert.equal(result.data[0].type, "WALLET")
+      const parsed = CustodyOptionSchema.safeParse(result.data[0])
+      assert.ok(parsed.success)
+    }
+  })
+
+  it("GetCustodyOptionsUseCase falha se não tiver permissão", async () => {
+    const custodyUseCase = new GetCustodyOptionsUseCase(
+      mockSpaceAccessForbidden,
+      dummyCustodyProvider
+    )
+
+    const result = await custodyUseCase.execute({ session: dummySession })
+    assert.equal(result.success, false)
+    if (!result.success) {
+      assert.match(result.error, /Sem permissão para visualizar os meios de pagamento/)
+    }
+  })
+
+  it("CustodyOptionsPrismaProvider retorna vazio para spaceId inválido", async () => {
+    const provider = new CustodyOptionsPrismaProvider()
+    const emptyZero = await provider.listCustodyOptions(0)
+    const emptyNegative = await provider.listCustodyOptions(-5)
+    const emptyUndefined = await provider.listCustodyOptions(undefined)
+
+    assert.deepEqual(emptyZero, [])
+    assert.deepEqual(emptyNegative, [])
+    assert.deepEqual(emptyUndefined, [])
   })
 
   it("CategoryOptionsPrismaProvider retorna vazio para contextId inválido", async () => {

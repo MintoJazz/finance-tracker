@@ -68,13 +68,6 @@ export function buildInitialDraftFromSeed<
     : undefined
   const resolvedCustodyType =
     seed.custodyType ?? matchedCustody?.type ?? "WALLET"
-  const defaultOpenCycle =
-    resolvedCustodyType === "CREDIT" && seed.custodyBalanceId
-      ? lookups?.creditCycles.find(
-          (cy) =>
-            cy.cardBalanceId === seed.custodyBalanceId && cy.status === "OPEN"
-        )
-      : undefined
 
   const intentSlices: Record<string, unknown> = {}
   for (const key of Object.keys(catalog.intents) as TIntentKey[]) {
@@ -92,8 +85,7 @@ export function buildInitialDraftFromSeed<
       custodyType: resolvedCustodyType,
       amount: seed.amount,
       dueDate: seed.dueDate ?? todayIso,
-      competanceDate:
-        seed.competanceDate ?? defaultOpenCycle?.closingDate ?? null,
+      competanceDate: seed.competanceDate ?? null,
       description: seed.description ?? "",
       categoryId: seed.categoryId ?? null,
       subcategoryId: seed.subcategoryId ?? null,

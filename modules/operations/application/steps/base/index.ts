@@ -1,5 +1,4 @@
 import { categoryBaseStep } from "./category.step"
-import { custodyCycleBaseStep } from "./custody-cycle.step"
 import { custodyBaseStep } from "./custody.step"
 import { detailsBaseStep } from "./details.step"
 import { entryBaseStep } from "./entry.step"
@@ -9,7 +8,6 @@ import { subcategoryBaseStep } from "./subcategory.step"
 export {
   entryBaseStep,
   custodyBaseStep,
-  custodyCycleBaseStep,
   detailsBaseStep,
   categoryBaseStep,
   subcategoryBaseStep,
@@ -19,7 +17,6 @@ export {
 export const BASE_STEPS = [
   entryBaseStep,
   custodyBaseStep,
-  custodyCycleBaseStep,
   detailsBaseStep,
   categoryBaseStep,
   subcategoryBaseStep,

@@ -3,7 +3,6 @@ import type { ISpaceAccessProvider } from "@/modules/space/application/interface
 import { failure, success, type Result } from "@/types/result.types"
 import type {
   ICategoryOptionsProvider,
-  ICreditCycleOptionsProvider,
   ICustodyOptionsProvider,
   ISubcategoryOptionsProvider,
 } from "../interfaces/operation-options-provider.interface"
@@ -17,7 +16,6 @@ export class GetOperationOptionsUseCase {
   constructor(
     private readonly getSpaceAccess: ISpaceAccessProvider,
     private readonly custodyProvider: ICustodyOptionsProvider,
-    private readonly creditCycleProvider: ICreditCycleOptionsProvider,
     private readonly categoryProvider: ICategoryOptionsProvider,
     private readonly subcategoryProvider: ISubcategoryOptionsProvider
   ) {}
@@ -39,17 +37,15 @@ export class GetOperationOptionsUseCase {
         )
       }
 
-      const [custodies, creditCycles, categories, subcategories] =
+      const [custodies, categories, subcategories] =
         await Promise.all([
           this.custodyProvider.listCustodyOptions(session.contextId),
-          this.creditCycleProvider.listCreditCycleOptions(session.contextId),
           this.categoryProvider.listCategoryOptions(session.contextId),
           this.subcategoryProvider.listSubcategoryOptions(session.contextId),
         ])
 
       return success({
         custodies,
-        creditCycles,
         categories,
         subcategories,
       })

@@ -53,12 +53,11 @@ export const PLAYGROUND_SEED_PRESETS: readonly PlaygroundSeedPreset[] = [
     id: "pay-card",
     label: "3. Seed Pagar + Cartão Nubank",
     description:
-      "Pula 1000, pré-seleciona o Cartão Nubank e ativa declarativamente o passo 2100 (Fatura).",
+      "Pula 1000, pré-seleciona o Cartão Nubank (fatura vigente resolvida automaticamente).",
     seed: {
       nature: "PAY",
       custodyBalanceId: 2,
       custodyType: "CREDIT",
-      competanceDate: "2026-11-10",
     },
   },
   {

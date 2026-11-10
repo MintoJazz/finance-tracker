@@ -1,7 +1,6 @@
 import type { OperationDraft } from "@/modules/operations/models/operation-input.schema"
 import type { StepViewsCatalog } from "../types"
 import { categoryStepViews } from "./base/category-step"
-import { custodyCycleStepViews } from "./base/custody-cycle-step"
 import { custodyStepViews } from "./base/custody-step"
 import { detailsStepViews } from "./base/details-step"
 import { entryStepViews } from "./base/entry-step"
@@ -15,7 +14,6 @@ import {
 export const STEP_VIEWS_CATALOG = {
   "base.entry": entryStepViews,
   "base.custody": custodyStepViews,
-  "base.custody-cycle": custodyCycleStepViews,
   "base.details": detailsStepViews,
   "base.category": categoryStepViews,
   "base.subcategory": subcategoryStepViews,

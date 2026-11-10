@@ -60,7 +60,7 @@ describe("Operation Steps & Intents Declarative Interpreter (Clean Core)", () =>
     )
   })
 
-  it("ativa declarativamente a etapa de fatura (2100: base.custody-cycle) apenas quando custodyType === CREDIT", () => {
+  it("mantém fluxo base linear sem etapa de fatura (fatura resolvida automaticamente pelo vencimento da compra)", () => {
     const stepsWallet = resolveSteps(
       {
         nature: "PAY",
@@ -88,7 +88,10 @@ describe("Operation Steps & Intents Declarative Interpreter (Clean Core)", () =>
       },
       OPERATION_STEP_CATALOG
     )
-    assert.ok(stepsCredit.some((s) => s.id === "base.custody-cycle"))
+    assert.equal(
+      stepsCredit.some((s) => s.id === "base.custody-cycle"),
+      false
+    )
   })
 
   it("ao ativar CREATE_CATEGORY, ativa automaticamente CREATE_SUBCATEGORY via autoActivateWhen (sem filhas no DAG)", () => {
@@ -126,7 +129,6 @@ describe("Operation Steps & Intents Declarative Interpreter (Clean Core)", () =>
   it("ao selecionar categoria existente sem subcategorias nos lookups, ativa CREATE_SUBCATEGORY automaticamente", () => {
     const mockLookups = {
       custodies: [],
-      creditCycles: [],
       categories: [{ id: 999, name: "Categoria Sem Filhas" }],
       subcategories: [], // nenhuma subcategoria
     }
@@ -151,7 +153,6 @@ describe("Operation Steps & Intents Declarative Interpreter (Clean Core)", () =>
   it("ao selecionar categoria existente COM subcategorias nos lookups, mantém base.subcategory e NÃO auto-ativa CREATE_SUBCATEGORY", () => {
     const mockLookups = {
       custodies: [],
-      creditCycles: [],
       categories: [{ id: 101, name: "Alimentação" }],
       subcategories: [
         { id: 1001, parentId: 101, parentName: "Alimentação", name: "Mercado" },

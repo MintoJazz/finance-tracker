@@ -8,9 +8,8 @@ export const STEP_ORDER = {
   /** 1000–1999: Ponto de partida (natureza) */
   ENTRY: 1000,
 
-  /** 2000–2999: Meio de Pagamento (Custódia) e Fatura condicional do Cartão */
+  /** 2000–2999: Meio de Pagamento (Custódia) */
   CUSTODY: 2000,
-  CUSTODY_CYCLE: 2100,
 
   /** 3000–3999: Dados financeiros principais (valor, vencimento, competência, descrição) */
   DETAILS: 3000,
