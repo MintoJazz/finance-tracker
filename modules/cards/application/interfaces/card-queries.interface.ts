@@ -17,4 +17,5 @@ export interface ICardQueries {
         filter?: BaseFilter
     ): Promise<Page<CardSummary>>;
     findCardById(id: number, contextId: number): Promise<CardEditData | null>;
+    sumAmountsByBalance(balanceIds: number[]): Promise<Map<number, number>>;
 }

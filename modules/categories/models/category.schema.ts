@@ -11,6 +11,28 @@ export const CategoryAppearanceSchema = z.object({
 
 export type CategoryAppearance = z.infer<typeof CategoryAppearanceSchema>;
 
+/**
+ * DTO para opções de Categoria Raiz em seletores e fluxos de operações.
+ */
+export interface CategoryOptionDTO {
+  id: number;
+  name: string;
+  icon?: string | null;
+  color?: string | null;
+}
+
+/**
+ * DTO para opções de Subcategoria em seletores e fluxos de operações.
+ */
+export interface SubcategoryOptionDTO {
+  id: number;
+  parentId: number;
+  parentName: string;
+  name: string;
+  icon?: string | null;
+  color?: string | null;
+}
+
 export interface CategoryItem {
   id: number;
   name: string;

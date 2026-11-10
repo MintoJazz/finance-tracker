@@ -8,15 +8,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { OperationWizardContent } from "@/modules/operations/ui/components/operation-wizard"
+import {
+  OperationWizardContent,
+  OperationWizardProvider,
+} from "@/modules/operations/ui/components/operation-wizard"
 import type { OperationWizardModalProps } from "../types"
 
 export default function OperationWizardModalViewDesktop({
   isOpen,
+  seed,
+  options,
   onClose,
   onOpenChangeComplete,
   onComplete,
 }: OperationWizardModalProps) {
+  const content = (
+    <OperationWizardContent
+      viewport="desktop"
+      onComplete={onComplete}
+      onClose={onClose}
+    />
+  )
+
   return (
     <Dialog
       open={isOpen}
@@ -33,11 +46,13 @@ export default function OperationWizardModalViewDesktop({
           </DialogDescription>
         </DialogHeader>
 
-        <OperationWizardContent
-          viewport="desktop"
-          onComplete={onComplete}
-          onClose={onClose}
-        />
+        {options ? (
+          <OperationWizardProvider lookups={options} seed={seed}>
+            {content}
+          </OperationWizardProvider>
+        ) : (
+          content
+        )}
       </DialogContent>
     </Dialog>
   )

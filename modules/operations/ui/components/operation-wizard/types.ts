@@ -5,8 +5,7 @@ export type {
   CustodyLookupItem,
   CreditCycleLookupItem,
   CategoryLookupItem,
-  CommitmentLookupItem,
-  ReimbursementTargetLookupItem,
+  SubcategoryLookupItem,
   OperationLookupData,
 } from "@/modules/operations/application/summary/types"
 

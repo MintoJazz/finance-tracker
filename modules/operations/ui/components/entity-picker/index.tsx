@@ -1,8 +1,7 @@
 "use client"
 
 import * as React from "react"
-import * as LucideNamespace from "lucide-react"
-import { CircleDot, Search, X, type LucideIcon } from "lucide-react"
+import { Search, X } from "lucide-react"
 import {
   Widget,
   WidgetCheckbox,
@@ -21,23 +20,9 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { cn } from "@/lib/utils"
+import { CategoryIcon } from "@/modules/movements/ui/components/category-badge/category-icon"
+import { getCategoryTheme } from "@/modules/movements/ui/components/category-badge"
 import type { EntityPickerProps } from "./types"
-
-type IconComponentType = LucideIcon
-
-const LUCIDE_ICONS_MAP: Record<string, IconComponentType> =
-  (
-    LucideNamespace as unknown as {
-      icons?: Record<string, IconComponentType>
-    }
-  ).icons ?? {}
-
-function resolveLucideIcon(iconName?: string | null): IconComponentType {
-  if (!iconName) return CircleDot
-  if (LUCIDE_ICONS_MAP[iconName]) return LUCIDE_ICONS_MAP[iconName]
-  const pascal = iconName.charAt(0).toUpperCase() + iconName.slice(1)
-  return LUCIDE_ICONS_MAP[pascal] ?? CircleDot
-}
 
 /**
  * Seletor vertical de entidades baseado no compound component `<Widget />`,
@@ -83,8 +68,7 @@ export function EntityPicker<TId extends string | number = number>(
         className="divide-y divide-border/50 rounded-xl border border-border/70 bg-card/40 max-h-[148px] sm:max-h-[160px] overflow-y-auto overflow-x-hidden overscroll-contain no-scrollbar"
       >
         {filteredItems.map((item) => {
-          const IconComp = resolveLucideIcon(item.icon)
-          const accent = item.color ?? undefined
+          const theme = getCategoryTheme(item.color)
 
           return (
             <WidgetItem
@@ -93,17 +77,19 @@ export function EntityPicker<TId extends string | number = number>(
               className="px-2.5 py-1.5 gap-2.5"
             >
               <WidgetIcon
-                icon={<IconComp className="size-3.5 shrink-0" />}
-                className="size-8 rounded-lg"
-                style={
-                  accent
-                    ? {
-                        backgroundColor: `${accent}18`,
-                        color: accent,
-                        borderColor: `${accent}35`,
-                      }
-                    : undefined
-                }
+                icon={<CategoryIcon name={item.icon} className="size-4 shrink-0" />}
+                style={theme.style}
+                className={cn(
+                  "size-8 rounded-lg shrink-0 transition-colors border",
+                  theme.palette
+                    ? cn(
+                        theme.palette.bg,
+                        theme.palette.text,
+                        theme.palette.border ?? "border-border/40",
+                        "group-hover/widget-item:text-current"
+                      )
+                    : "border-border/40 bg-muted/70 text-foreground"
+                )}
               />
               <WidgetContent className="gap-0">
                 <WidgetTitle className="text-xs sm:text-sm font-semibold">

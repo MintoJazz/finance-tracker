@@ -6,6 +6,6 @@ export const subcategoryBaseStep = {
   order: STEP_ORDER.SUBCATEGORY,
   source: "BASE",
   fields: ["base.subcategoryId"],
-  when: (data) => Boolean(data?.base?.categoryId),
+  when: (_data, ctx) => Boolean(ctx.pointers.categoryRoot),
 } as const satisfies StepDefinition
 

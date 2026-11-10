@@ -1,6 +1,15 @@
-import type { OperationDraft } from "../../models/operation-input.schema"
+import type {
+  OperationDraft,
+  OperationIntentKey,
+} from "../../models/operation-input.schema"
+import { computeOperationPointersAndNodes } from "../plan/compiler"
 import type { IntentDefinition } from "../intents/types"
-import type { StepDefinition, StepResolutionContext } from "./types"
+import type { OperationLookupData } from "../summary/types"
+import type {
+  IntentPredicateContext,
+  StepDefinition,
+  StepResolutionContext,
+} from "./types"
 
 export interface OperationStepCatalog<TIntentKey extends string = string> {
   readonly base: readonly StepDefinition<TIntentKey>[]
@@ -44,12 +53,14 @@ export function isOfferAnchoredAtStep(
 /**
  * Remove intenções cujos pré-requisitos (`requires`), exclusões (`excludes`) ou
  * condições de dados (`offer.when`) não estejam mais satisfeitos.
- * Executa em ponto fixo para propagar revogações em cascata.
+ * Executa em ponto fixo para propagar ativações automáticas (`autoActivateWhen`),
+ * implicações (`implies`) e revogações em cascata usando os ponteiros semânticos (`OperationPointers`).
  */
 export function sanitizeActiveIntents<TIntentKey extends string>(
   selected: readonly TIntentKey[],
   catalog: OperationStepCatalog<TIntentKey>,
-  data?: Partial<OperationDraft>
+  data?: Partial<OperationDraft>,
+  lookups?: OperationLookupData
 ): TIntentKey[] {
   let current = Array.from(new Set(selected)).filter((key) =>
     Boolean(catalog.intents[key])
@@ -60,7 +71,7 @@ export function sanitizeActiveIntents<TIntentKey extends string>(
     changed = false
     const currentSet = new Set(current)
 
-    // Expande intenções com implicações declarativas (ex.: CREATE_CATEGORY implica CREATE_SUBCATEGORY)
+    // 1. Expande intenções com implicações declarativas clássicas (se houver)
     for (const key of [...current]) {
       const def = catalog.intents[key]
       if (def?.implies) {
@@ -74,6 +85,49 @@ export function sanitizeActiveIntents<TIntentKey extends string>(
       }
     }
 
+    // 2. Calcula ponteiros com base no rascunho e nas intenções ativas atuais
+    const enrichedDataForPointers: Partial<OperationDraft> = {
+      ...data,
+      intents: current as OperationIntentKey[],
+    }
+    const { pointers } = computeOperationPointersAndNodes(
+      enrichedDataForPointers,
+      current,
+      catalog
+    )
+    const predicateCtx: IntentPredicateContext = {
+      pointers,
+      lookups,
+    }
+
+    // 3. Avalia ativação automática declarativa (autoActivateWhen) para intenções inativas
+    const allKeys = Object.keys(catalog.intents) as TIntentKey[]
+    for (const candidate of allKeys) {
+      if (currentSet.has(candidate)) continue
+      const def = catalog.intents[candidate]
+      if (!def?.autoActivateWhen) continue
+
+      const hasConflict = current.some((active) =>
+        areIntentsMutuallyExclusive(candidate, active, catalog)
+      )
+      if (hasConflict) continue
+
+      const reqsMet = def.requires.every((req) => currentSet.has(req))
+      if (!reqsMet) continue
+
+      if (def.autoActivateWhen(enrichedDataForPointers, predicateCtx)) {
+        current.push(candidate)
+        currentSet.add(candidate)
+        changed = true
+      }
+    }
+
+    // Se alguma intenção foi auto-ativada, re-executa o loop com os novos ponteiros
+    if (changed) {
+      continue
+    }
+
+    // 4. Validação e sanitização das intenções ativas
     const next: TIntentKey[] = []
 
     for (const key of current) {
@@ -99,9 +153,9 @@ export function sanitizeActiveIntents<TIntentKey extends string>(
 
       const enrichedData: Partial<OperationDraft> = {
         ...data,
-        intents: current,
+        intents: current as OperationIntentKey[],
       }
-      if (def.offer?.when && !def.offer.when(enrichedData)) {
+      if (def.offer?.when && !def.offer.when(enrichedData, predicateCtx)) {
         changed = true
         continue
       }
@@ -109,6 +163,9 @@ export function sanitizeActiveIntents<TIntentKey extends string>(
       next.push(key)
     }
 
+    if (next.length !== current.length) {
+      changed = true
+    }
     current = next
   }
 
@@ -121,14 +178,25 @@ export function sanitizeActiveIntents<TIntentKey extends string>(
 export function validateIntentSelection<TIntentKey extends string>(
   selected: readonly TIntentKey[],
   catalog: OperationStepCatalog<TIntentKey>,
-  data?: Partial<OperationDraft>
+  data?: Partial<OperationDraft>,
+  lookups?: OperationLookupData
 ): IntentValidationResult {
   const errors: string[] = []
   const unique = Array.from(new Set(selected))
   const selectedSet = new Set(unique)
   const enrichedData: Partial<OperationDraft> = {
     ...data,
-    intents: unique,
+    intents: unique as OperationIntentKey[],
+  }
+
+  const { pointers } = computeOperationPointersAndNodes(
+    enrichedData,
+    unique,
+    catalog
+  )
+  const predicateCtx: IntentPredicateContext = {
+    pointers,
+    lookups,
   }
 
   for (let i = 0; i < unique.length; i++) {
@@ -145,7 +213,7 @@ export function validateIntentSelection<TIntentKey extends string>(
       }
     }
 
-    if (def.offer?.when && !def.offer.when(enrichedData)) {
+    if (def.offer?.when && !def.offer.when(enrichedData, predicateCtx)) {
       errors.push(
         `A intenção "${key}" não satisfaz a condição necessária dos dados atuais`
       )
@@ -176,13 +244,29 @@ export function availableIntents<TIntentKey extends string>(
   options?: {
     atStepId?: string
     data?: Partial<OperationDraft>
+    lookups?: OperationLookupData
   }
 ): TIntentKey[] {
-  const sanitized = sanitizeActiveIntents(selected, catalog, options?.data)
+  const sanitized = sanitizeActiveIntents(
+    selected,
+    catalog,
+    options?.data,
+    options?.lookups
+  )
   const selectedSet = new Set(sanitized)
   const enrichedData: Partial<OperationDraft> = {
     ...options?.data,
-    intents: sanitized,
+    intents: sanitized as OperationIntentKey[],
+  }
+
+  const { pointers } = computeOperationPointersAndNodes(
+    enrichedData,
+    sanitized,
+    catalog
+  )
+  const predicateCtx: IntentPredicateContext = {
+    pointers,
+    lookups: options?.lookups,
   }
 
   const keys = Object.keys(catalog.intents) as TIntentKey[]
@@ -207,7 +291,7 @@ export function availableIntents<TIntentKey extends string>(
     )
     if (conflict) return false
 
-    if (def.offer?.when && !def.offer.when(enrichedData)) {
+    if (def.offer?.when && !def.offer.when(enrichedData, predicateCtx)) {
       return false
     }
 
@@ -222,12 +306,13 @@ export function offeredIntentsForStep<TIntentKey extends string>(
   selected: readonly TIntentKey[],
   catalog: OperationStepCatalog<TIntentKey>,
   stepId: string,
-  data?: Partial<OperationDraft>
+  data?: Partial<OperationDraft>,
+  lookups?: OperationLookupData
 ): IntentDefinition<TIntentKey, StepDefinition<TIntentKey>>[] {
-  const active = sanitizeActiveIntents(selected, catalog, data)
+  const active = sanitizeActiveIntents(selected, catalog, data, lookups)
   const activeSet = new Set(active)
   const availableSet = new Set(
-    availableIntents(active, catalog, { atStepId: stepId, data })
+    availableIntents(active, catalog, { atStepId: stepId, data, lookups })
   )
 
   const allKeys = Object.keys(catalog.intents) as TIntentKey[]
@@ -254,7 +339,8 @@ export function resolveSteps<TIntentKey extends string>(
   const activeIntents = sanitizeActiveIntents(
     context.intents,
     catalog,
-    context.data
+    context.data,
+    context.lookups
   )
 
   const stepMap = new Map<string, StepDefinition<TIntentKey>>()
@@ -282,20 +368,35 @@ export function resolveSteps<TIntentKey extends string>(
     }
   }
 
+  const enrichedData: Partial<OperationDraft> = {
+    ...context.data,
+    nature: context.nature ?? context.data?.nature ?? context.seed?.nature,
+    intents: activeIntents as OperationIntentKey[],
+  }
+
+  const { pointers } = computeOperationPointersAndNodes(
+    enrichedData,
+    activeIntents,
+    catalog
+  )
+
+  const predicateCtx: IntentPredicateContext = {
+    pointers,
+    lookups: context.lookups,
+  }
+
   const enrichedContext: StepResolutionContext<TIntentKey> = {
     ...context,
     intents: activeIntents,
-    data: {
-      ...context.data,
-      nature: context.nature ?? context.data?.nature ?? context.seed?.nature,
-      intents: activeIntents,
-    },
+    data: enrichedData,
+    lookups: context.lookups,
+    pointers,
   }
 
   return Array.from(stepMap.values())
     .filter((step) => !removedIds.has(step.id))
     .filter((step) => !step.skipWhen?.(enrichedContext))
-    .filter((step) => !step.when || step.when(enrichedContext.data ?? {}))
+    .filter((step) => !step.when || step.when(enrichedContext.data ?? {}, predicateCtx))
     .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id))
 }
 

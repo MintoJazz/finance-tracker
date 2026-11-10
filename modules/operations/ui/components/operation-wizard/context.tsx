@@ -2,10 +2,6 @@
 
 import * as React from "react"
 import { deepMergeWizardData } from "@/components/wizard"
-import {
-  DEFAULT_CATEGORY_COLOR,
-  DEFAULT_CATEGORY_ICON,
-} from "@/modules/categories/models/category.schema"
 import { OPERATION_STEP_CATALOG } from "@/modules/operations/application/intents/catalog"
 import type { IntentDefinition } from "@/modules/operations/application/intents/types"
 import {
@@ -59,9 +55,12 @@ export function useOperationWizard(): OperationWizardContextValue {
   return ctx
 }
 
-export function buildInitialDraftFromSeed(
+export function buildInitialDraftFromSeed<
+  TIntentKey extends string = OperationIntentKey,
+>(
   seed: OperationSeed,
-  lookups?: OperationLookupData
+  lookups?: OperationLookupData,
+  catalog: OperationStepCatalog<TIntentKey> = OPERATION_STEP_CATALOG as unknown as OperationStepCatalog<TIntentKey>
 ): Partial<OperationDraft> {
   const todayIso = new Date().toISOString().slice(0, 10)
   const matchedCustody = seed.custodyBalanceId
@@ -77,6 +76,14 @@ export function buildInitialDraftFromSeed(
         )
       : undefined
 
+  const intentSlices: Record<string, unknown> = {}
+  for (const key of Object.keys(catalog.intents) as TIntentKey[]) {
+    const def = catalog.intents[key]
+    if (def?.initialSlice) {
+      intentSlices[key] = def.initialSlice({ seed, lookups })
+    }
+  }
+
   return {
     nature: seed.nature ?? "PAY",
     intents: (seed.intents ?? []) as OperationIntentKey[],
@@ -91,28 +98,7 @@ export function buildInitialDraftFromSeed(
       categoryId: seed.categoryId ?? null,
       subcategoryId: seed.subcategoryId ?? null,
     },
-    CREATE_CATEGORY: {
-      name: "",
-      color: DEFAULT_CATEGORY_COLOR,
-      icon: DEFAULT_CATEGORY_ICON,
-    },
-    CREATE_SUBCATEGORY: {
-      name: "",
-      color: DEFAULT_CATEGORY_COLOR,
-      icon: DEFAULT_CATEGORY_ICON,
-    },
-    DEMO_INSTALLMENTS: {
-      count: 2,
-      intervalDays: 30,
-    },
-    DEMO_REIMBURSEMENT: {
-      targetIds: [],
-      reimbursedAmount: seed.amount ?? undefined,
-    },
-    DEMO_SPLIT_GROUP: {
-      mode: "EQUAL",
-      memberWeights: {},
-    },
+    ...intentSlices,
   }
 }
 
@@ -132,15 +118,15 @@ export function OperationWizardProvider({
   const [sessionKey, setSessionKey] = React.useState(0)
   const [seed, setSeed] = React.useState<OperationSeed>(initialSeed)
   const [draft, setDraft] = React.useState<Partial<OperationDraft>>(() =>
-    buildInitialDraftFromSeed(initialSeed, lookups)
+    buildInitialDraftFromSeed(initialSeed, lookups, catalog)
   )
   const [currentViewportStepId, setCurrentViewportStepId] =
     React.useState<string>("")
 
   const activeIntents = React.useMemo(() => {
     const rawIntents = (draft.intents ?? []) as OperationIntentKey[]
-    return sanitizeActiveIntents(rawIntents, catalog, draft)
-  }, [draft, catalog])
+    return sanitizeActiveIntents(rawIntents, catalog, draft, lookups)
+  }, [draft, catalog, lookups])
 
   // Sincroniza `draft.intents` caso `sanitizeActiveIntents` tenha revogado alguma intenção em cascata
   React.useEffect(() => {
@@ -165,15 +151,20 @@ export function OperationWizardProvider({
           intents: activeIntents,
           seed,
           data: draft,
+          lookups,
         },
         catalog
       ),
-    [draft, seed, activeIntents, catalog]
+    [draft, seed, activeIntents, catalog, lookups]
   )
 
   const available = React.useMemo(
-    () => computeAvailableIntents(activeIntents, catalog, { data: draft }),
-    [activeIntents, catalog, draft]
+    () =>
+      computeAvailableIntents(activeIntents, catalog, {
+        data: draft,
+        lookups,
+      }),
+    [activeIntents, catalog, draft, lookups]
   )
 
   const prunedPayload = React.useMemo(
@@ -189,10 +180,10 @@ export function OperationWizardProvider({
     (nextSeed: OperationSeed) => {
       setSessionKey((prev) => prev + 1)
       setSeed(nextSeed)
-      setDraft(buildInitialDraftFromSeed(nextSeed, lookups))
+      setDraft(buildInitialDraftFromSeed(nextSeed, lookups, catalog))
       setCurrentViewportStepId("")
     },
-    [lookups]
+    [lookups, catalog]
   )
 
   const addIntent = React.useCallback(
@@ -213,7 +204,8 @@ export function OperationWizardProvider({
         const nextIntents = sanitizeActiveIntents(
           [...filtered, key],
           catalog,
-          prev
+          prev,
+          lookups
         )
 
         return {
@@ -233,7 +225,7 @@ export function OperationWizardProvider({
         const def = catalog.intents[key]
         const toRemove = new Set([key, ...(def?.implies ?? [])])
         const remaining = current.filter((k) => !toRemove.has(k))
-        const nextIntents = sanitizeActiveIntents(remaining, catalog, prev)
+        const nextIntents = sanitizeActiveIntents(remaining, catalog, prev, lookups)
         return {
           ...prev,
           intents: nextIntents,
@@ -256,8 +248,8 @@ export function OperationWizardProvider({
 
   const getOfferedIntentsForStep = React.useCallback(
     (stepId: string) =>
-      offeredIntentsForStep(activeIntents, catalog, stepId, draft),
-    [activeIntents, catalog, draft]
+      offeredIntentsForStep(activeIntents, catalog, stepId, draft, lookups),
+    [activeIntents, catalog, draft, lookups]
   )
 
   const value = React.useMemo<OperationWizardContextValue>(

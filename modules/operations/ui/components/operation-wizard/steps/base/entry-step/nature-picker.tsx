@@ -33,7 +33,7 @@ export function NaturePicker({
   onChange,
   variant,
 }: NaturePickerProps) {
-  const { draft, lookups, updateDraft } = useOperationWizard()
+  const { draft, updateDraft } = useOperationWizard()
 
   const handleSelect = (next: OperationNature | null) => {
     if (!next) return
@@ -41,14 +41,6 @@ export function NaturePicker({
 
     const shouldResetCardCustody =
       next === "RECEIVE" && draft.base?.custodyType === "CREDIT"
-
-    const currentCommitment = lookups.commitments.find(
-      (c) => c.id === draft.DEMO_SETTLE?.commitmentId
-    )
-    const expectedBalanceType = next === "RECEIVE" ? "RECEIVABLE" : "PAYABLE"
-    const shouldResetCommitment =
-      currentCommitment !== undefined &&
-      currentCommitment.balanceType !== expectedBalanceType
 
     updateDraft({
       nature: next,
@@ -58,13 +50,6 @@ export function NaturePicker({
               custodyBalanceId: undefined,
               custodyType: "WALLET",
               competanceDate: null,
-            },
-          }
-        : {}),
-      ...(shouldResetCommitment
-        ? {
-            DEMO_SETTLE: {
-              commitmentId: undefined,
             },
           }
         : {}),

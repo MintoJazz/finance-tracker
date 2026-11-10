@@ -2,6 +2,8 @@ import type {
   CategoryItem,
   ArchivedCategoryGroup,
   ArchivedSubcategory,
+  CategoryOptionDTO,
+  SubcategoryOptionDTO,
 } from "@/modules/categories/models/category.schema";
 
 export interface RawCategoryBalanceRecord {
@@ -113,6 +115,49 @@ export class CategoryMapper {
 
     // Ordenação alfabética dos grupos
     return groups.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  }
+
+  static toCategoryOption(raw: {
+    id: number;
+    name: string;
+    appearance?: {
+      icon: string | null;
+      color: string | null;
+    } | null;
+  }): CategoryOptionDTO {
+    return {
+      id: raw.id,
+      name: raw.name,
+      icon: raw.appearance?.icon ?? null,
+      color: raw.appearance?.color ?? null,
+    };
+  }
+
+  static toSubcategoryOption(raw: {
+    id: number;
+    parentId: number;
+    name: string;
+    appearance?: {
+      icon: string | null;
+      color: string | null;
+    } | null;
+    parent?: {
+      id: number;
+      name: string;
+      appearance?: {
+        icon: string | null;
+        color: string | null;
+      } | null;
+    } | null;
+  }): SubcategoryOptionDTO {
+    return {
+      id: raw.id,
+      parentId: raw.parentId,
+      parentName: raw.parent?.name ?? "",
+      name: raw.name,
+      icon: raw.appearance?.icon ?? raw.parent?.appearance?.icon ?? null,
+      color: raw.appearance?.color ?? raw.parent?.appearance?.color ?? null,
+    };
   }
 }
 

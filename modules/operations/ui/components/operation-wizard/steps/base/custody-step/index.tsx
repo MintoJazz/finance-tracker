@@ -25,8 +25,6 @@ function buildCustodyWizardStep(
     fields: [
       {
         name: "base.custodyBalanceId",
-        description:
-          "Se escolher um Cartão, o próximo passo pedirá a fatura.",
         children: (_ctx, field) => (
           <CustodyPicker
             value={field.value as number | undefined}

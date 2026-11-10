@@ -839,7 +839,6 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         description: "Empório Gourmet - Vinhos & Queijos (Split Cartão)",
         direction: MovementDirection.DEBIT,
         date: "2026-08-16T18:00:00Z",
-        keepPositiveOnDebit: true,
     });
 
     // Despesa no cartão com estorno subsequente (REVERSAL de cartão)
@@ -850,7 +849,6 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
         amount: 32000,
         direction: MovementDirection.DEBIT,
         date: "2026-08-20T14:00:00Z",
-        keepPositiveOnDebit: true,
     });
 
     await space.reverseEntry({

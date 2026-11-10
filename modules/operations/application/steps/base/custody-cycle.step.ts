@@ -8,4 +8,15 @@ export const custodyCycleBaseStep = {
   fields: ["base.competanceDate"],
   when: (data) =>
     data?.nature !== "RECEIVE" && data?.base?.custodyType === "CREDIT",
+  validate: (data) => {
+    if (!data?.base?.competanceDate) {
+      return [
+        {
+          path: ["base", "competanceDate"],
+          message: "Selecione a fatura do cartão",
+        },
+      ]
+    }
+    return []
+  },
 } as const satisfies StepDefinition

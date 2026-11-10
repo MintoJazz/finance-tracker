@@ -1,7 +1,7 @@
 import { ISpaceAccessProvider } from "@/modules/space/application/interfaces/space-access-provider.interface";
 import { SessionPayload } from "@/modules/auth/infra/cryptography/jwt-utils";
 import { failure, success } from "@/types/result.types";
-import { CardProfile } from "../../models/card-profile.schema";
+import { CardProfile, CardCycleStatusEnum } from "../../models/card-profile.schema";
 import { ICardQueries } from "../interfaces/card-queries.interface";
 import { CycleEngineService } from "@/modules/cycles/application/services/cycle-engine.service";
 import { ContractProfilePrismaQueries } from "@/modules/contracts/infra/repositories/contract-profile-prisma.queries";
@@ -73,8 +73,8 @@ export class GetCardProfileUseCase {
             }
             if (currentLimit === 0 && limit > 0) currentLimit = limit;
 
-            // usado: soma dos débitos não pagos - créditos/pagamentos? calculado pelo sumAmountsByBalance já considera débito + crédito
-            const usedMap = await (this.cardQueries as any).sumAmountsByBalance?.([cardId]);
+            // usado: total líquido devedor (max(0, -netSum)) calculado via agregação no banco
+            const usedMap = await this.cardQueries.sumAmountsByBalance([cardId]);
             const usedLimit = usedMap?.get(cardId) ?? 0;
             const availableLimit = Math.max(0, (currentLimit || 0) - usedLimit);
 
@@ -90,7 +90,7 @@ export class GetCardProfileUseCase {
                     to: c.to,
                     closingDate: c.closingDate ?? c.dueDate,
                     dueDate: c.dueDate,
-                    status: c.status as any,
+                    status: c.status as CardCycleStatusEnum,
                     invoiceAmount: c.totalAmount ?? 0,
                     paidAmount: c.paidAmount ?? 0,
                 }));

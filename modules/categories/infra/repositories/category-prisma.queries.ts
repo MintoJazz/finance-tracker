@@ -4,6 +4,8 @@ import type { Page, PageRequest } from "@/types/pagination.types";
 import type {
   CategoryItem,
   ArchivedCategoryGroup,
+  CategoryOptionDTO,
+  SubcategoryOptionDTO,
 } from "@/modules/categories/models/category.schema";
 import type {
   CategoryDetailFoundDTO,
@@ -214,6 +216,66 @@ export class CategoryPrismaQueries implements ICategoryQueries {
 
     // 4. Mapeia e agrupa os dados preservando regras de domínio
     return CategoryMapper.toArchivedGroups(archivedBalances, activeParents);
+  }
+
+  async listActiveCategoryOptions(
+    contextId: number
+  ): Promise<CategoryOptionDTO[]> {
+    if (!contextId || contextId <= 0) return [];
+
+    const raw = await prisma.balance.findMany({
+      where: {
+        contextId,
+        balanceType: "CATEGORY",
+        parentId: null,
+        removedAt: null,
+      },
+      include: {
+        appearance: true,
+      },
+      orderBy: { name: "asc" },
+    });
+
+    return raw.map((cat) => CategoryMapper.toCategoryOption(cat));
+  }
+
+  async listActiveSubcategoryOptions(
+    contextId: number
+  ): Promise<SubcategoryOptionDTO[]> {
+    if (!contextId || contextId <= 0) return [];
+
+    const raw = await prisma.balance.findMany({
+      where: {
+        contextId,
+        balanceType: "CATEGORY",
+        parentId: { not: null },
+        removedAt: null,
+        parent: {
+          removedAt: null,
+        },
+      },
+      include: {
+        appearance: true,
+        parent: {
+          select: {
+            id: true,
+            name: true,
+            appearance: true,
+          },
+        },
+      },
+      orderBy: [
+        { parent: { name: "asc" } },
+        { name: "asc" },
+      ],
+    });
+
+    return raw.map((sub) =>
+      CategoryMapper.toSubcategoryOption({
+        ...sub,
+        parentId: sub.parentId!,
+      })
+    );
   }
 }
 

@@ -1,13 +1,21 @@
 "use client"
 
 import * as React from "react"
-import { Code2, Layers, Sparkles } from "lucide-react"
+import { Code2, GitBranch, Layers, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ViewPort } from "@/types/adaptive.types"
+import { compileOperationPlan } from "../../application/plan/compiler"
+import type { EntityRef } from "../../application/plan/types"
 import {
   buildViewportSteps,
   useOperationWizard,
 } from "../components/operation-wizard"
+
+function formatEntityRef(ref: EntityRef | null | undefined): string {
+  if (!ref) return "null"
+  if (ref.kind === "existing") return `existing(${ref.id})`
+  return ref.port ? `node(${ref.nodeId}:${ref.port})` : `node(${ref.nodeId})`
+}
 
 export interface OperationInspectorPanelProps {
   activeViewport: ViewPort
@@ -22,6 +30,7 @@ export function OperationInspectorPanel({
     availableIntents,
     draft,
     prunedPayload,
+    catalog,
     currentViewportStepId,
     toggleIntent,
   } = useOperationWizard()
@@ -29,6 +38,11 @@ export function OperationInspectorPanel({
   const viewportSteps = React.useMemo(
     () => buildViewportSteps(logicalSteps, activeViewport),
     [logicalSteps, activeViewport]
+  )
+
+  const executionPlan = React.useMemo(
+    () => compileOperationPlan(prunedPayload, catalog, activeIntents),
+    [prunedPayload, catalog, activeIntents]
   )
 
   return (
@@ -143,7 +157,68 @@ export function OperationInspectorPanel({
         </div>
       </div>
 
-      {/* 4. Payload Podado vs Draft em Memória */}
+      {/* 4. Grafo de Execução Compilado (OperationExecutionPlan / DAG) */}
+      <div className="space-y-2 border-t border-border/50 pt-3">
+        <div className="flex items-center justify-between">
+          <span className="inline-flex items-center gap-1.5 font-semibold text-foreground">
+            <GitBranch className="size-3.5 text-primary" />
+            Grafo de Execução (DAG): {executionPlan.nodes.length} nó(s)
+          </span>
+          <span className="text-[11px] text-muted-foreground font-mono">
+            compileOperationPlan()
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-1.5 rounded-lg border border-border/60 bg-muted/20 p-2 font-mono text-[10px]">
+          <div>
+            <span className="text-muted-foreground">custody: </span>
+            <span className="text-foreground font-semibold">
+              {formatEntityRef(executionPlan.pointers.custody)}
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">categoryRoot: </span>
+            <span className="text-foreground font-semibold">
+              {formatEntityRef(executionPlan.pointers.categoryRoot)}
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">counterpart: </span>
+            <span className="text-foreground font-semibold">
+              {formatEntityRef(executionPlan.pointers.counterpart)}
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">mainEntry: </span>
+            <span className="text-foreground font-semibold">
+              {formatEntityRef(executionPlan.pointers.mainEntry)}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          {executionPlan.nodes.map((node, index) => (
+            <div
+              key={node.id}
+              className="flex items-center justify-between rounded-md border border-border/60 bg-background/60 px-2 py-1 font-mono text-[11px]"
+            >
+              <span className="truncate">
+                <strong className="text-primary">{index + 1}.</strong> {node.id}{" "}
+                <span className="text-muted-foreground">
+                  ({node.action.type})
+                </span>
+              </span>
+              {node.dependsOn.length > 0 && (
+                <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                  dep: [{node.dependsOn.join(", ")}]
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 5. Payload Podado vs Draft em Memória */}
       <div className="grid grid-cols-1 gap-2 border-t border-border/50 pt-3">
         <div>
           <span className="inline-flex items-center gap-1 font-semibold text-foreground mb-1">

@@ -451,7 +451,6 @@ export class FinancialContextFactory {
           direction: MovementDirection.DEBIT,
           date: exp.date,
           competanceDate: exp.competanceDate ?? exp.date,
-          keepPositiveOnDebit: true,
         });
       }
     }
@@ -476,13 +475,10 @@ export class FinancialContextFactory {
     type?: EntryType;
     date?: string | Date;
     competanceDate?: string | Date;
-    keepPositiveOnDebit?: boolean;
   }) {
     const absAmount = Math.abs(params.amount);
     const signedAmount =
-      params.direction === MovementDirection.DEBIT && !params.keepPositiveOnDebit
-        ? -absAmount
-        : absAmount;
+      params.direction === MovementDirection.DEBIT ? -absAmount : absAmount;
 
     const movements = [
       {
@@ -530,13 +526,10 @@ export class FinancialContextFactory {
     type?: EntryType;
     date?: string | Date;
     competanceDate?: string | Date;
-    keepPositiveOnDebit?: boolean;
   }) {
     const totalAbsAmount = params.splits.reduce((acc, s) => acc + Math.abs(s.amount), 0);
     const signedMainAmount =
-      params.direction === MovementDirection.DEBIT && !params.keepPositiveOnDebit
-        ? -totalAbsAmount
-        : totalAbsAmount;
+      params.direction === MovementDirection.DEBIT ? -totalAbsAmount : totalAbsAmount;
 
     const movements = [
       {

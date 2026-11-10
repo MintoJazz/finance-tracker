@@ -139,12 +139,13 @@ export class CardPrismaQueries implements ICardQueries {
         };
     }
 
-    private async sumAmountsByBalance(
+    async sumAmountsByBalance(
         balanceIds: number[]
     ): Promise<Map<number, number>> {
         if (balanceIds.length === 0) return new Map();
 
-        const movements = await prisma.movement.findMany({
+        const grouped = await prisma.movement.groupBy({
+            by: ["balanceId"],
             where: {
                 balanceId: { in: balanceIds },
                 entry: {
@@ -152,28 +153,20 @@ export class CardPrismaQueries implements ICardQueries {
                     reversesEntryId: null,
                 },
             },
-            select: {
-                balanceId: true,
+            _sum: {
                 amount: true,
-                direction: true,
             },
         });
 
         const resultMap = new Map<number, number>();
-        for (const id of balanceIds) {
-            resultMap.set(id, 0);
-        }
+        for (const id of balanceIds) resultMap.set(id, 0);
 
-        for (const m of movements) {
-            const current = resultMap.get(m.balanceId) ?? 0;
-            const magnitude = Math.abs(m.amount);
-            // No cartão, DEBIT aumenta o limite utilizado e CREDIT diminui (pagamento/estorno)
-            const delta = m.direction === "DEBIT" ? magnitude : -magnitude;
-            resultMap.set(m.balanceId, current + delta);
-        }
-
-        for (const [id, used] of resultMap.entries()) {
-            resultMap.set(id, Math.max(0, used));
+        for (const item of grouped) {
+            const netSum = item._sum.amount ?? 0;
+            // Para contas do tipo CREDIT com amount assinado:
+            // Despesas possuem sinal negativo (DEBIT < 0) e pagamentos positivo (CREDIT > 0).
+            // O limite usado representa o saldo líquido devedor: max(0, -netSum).
+            resultMap.set(item.balanceId, Math.max(0, -netSum));
         }
 
         return resultMap;

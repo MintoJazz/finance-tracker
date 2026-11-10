@@ -71,6 +71,8 @@ export function useOperationWizardModal(
 
   return {
     isOpen,
+    seed: input?.seed,
+    options: input?.options,
     onClose,
     onOpenChangeComplete,
     onComplete,

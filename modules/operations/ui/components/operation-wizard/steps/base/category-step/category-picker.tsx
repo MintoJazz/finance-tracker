@@ -29,10 +29,10 @@ export function CategoryPicker({
         return {
           id: cat.id,
           title: cat.name,
-          subtitle: `${cat.parentName ?? "Categoria raiz"}${subSummary}`,
+          subtitle: subSummary ? `Subcategorias${subSummary}` : "Categoria raiz",
           icon: cat.icon ?? "Tag",
           color: cat.color,
-          keywords: [cat.name, cat.parentName ?? "", ...subNames],
+          keywords: [cat.name, ...subNames],
         }
       }),
     [lookups.categories, lookups.subcategories]
@@ -40,14 +40,10 @@ export function CategoryPicker({
 
   const handleSelect = (id: number | null) => {
     onChange(id)
-    const selectedCategory = lookups.categories.find((c) => c.id === id)
     updateDraft({
       base: {
         categoryId: id,
         subcategoryId: null,
-      },
-      CREATE_SUBCATEGORY: {
-        color: selectedCategory?.color ?? undefined,
       },
     })
   }

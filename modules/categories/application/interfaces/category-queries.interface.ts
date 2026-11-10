@@ -2,6 +2,8 @@ import type { Page, PageRequest } from "@/types/pagination.types";
 import type {
   CategoryItem,
   ArchivedCategoryGroup,
+  CategoryOptionDTO,
+  SubcategoryOptionDTO,
 } from "@/modules/categories/models/category.schema";
 
 export interface CategoryDetailFoundDTO {
@@ -34,5 +36,13 @@ export interface ICategoryQueries {
   listArchivedCategories(
     contextId: number
   ): Promise<ArchivedCategoryGroup[]>;
+
+  listActiveCategoryOptions(
+    contextId: number
+  ): Promise<CategoryOptionDTO[]>;
+
+  listActiveSubcategoryOptions(
+    contextId: number
+  ): Promise<SubcategoryOptionDTO[]>;
 }
 

@@ -7,4 +7,5 @@ export interface IWalletQueries {
     listWalletsByContextId( contextId: number, pageRequest: PageRequest, filter?: BaseFilter & { balanceType?: string } ): Promise<Page<WalletSummary>>;
     findWalletById(id: number, contextId: number): Promise<{ id: number; name: string } | null>;
     findWalletProfileById(id: number, contextId: number): Promise<WalletProfile | null>;
+    sumAmountsByBalance(balanceIds: number[]): Promise<Map<number, number>>;
 }

@@ -5,40 +5,26 @@ import {
   validateIntentSelection,
 } from "../application/steps/interpreter"
 import type { StepDefinition } from "../application/steps/types"
+import type {
+  OperationIntentKey,
+  OperationIntentSlices,
+} from "./intents"
 import {
   BaseOperationSliceSchema,
   type BaseOperationSlice,
 } from "./operation-base.schema"
-import type { CreateCategoryIntentSlice } from "./intents/create-category.schema"
-import type { InstallmentsSlice } from "./intents/installments.schema"
-import type { ReimbursementSlice } from "./intents/reimbursement.schema"
-import type { SettleCommitmentSlice } from "./intents/settle-commitment.schema"
-import type { SplitGroupSlice } from "./intents/split-group.schema"
 import {
   OperationNatureSchema,
   type OperationNature,
   type OperationSeed,
 } from "./operation-seed.schema"
 
-export type OperationIntentKey =
-  | "CREATE_CATEGORY"
-  | "CREATE_SUBCATEGORY"
-  | "DEMO_SETTLE"
-  | "DEMO_INSTALLMENTS"
-  | "DEMO_REIMBURSEMENT"
-  | "DEMO_SPLIT_GROUP"
+export type { OperationIntentKey, OperationIntentSlices } from "./intents"
 
-export interface OperationDraft {
+export interface OperationDraft extends OperationIntentSlices {
   nature?: OperationNature
-  intents?: string[]
+  intents?: OperationIntentKey[]
   base?: Partial<BaseOperationSlice>
-  CREATE_CATEGORY?: Partial<CreateCategoryIntentSlice>
-  CREATE_SUBCATEGORY?: Partial<CreateCategoryIntentSlice>
-  DEMO_SETTLE?: Partial<SettleCommitmentSlice>
-  DEMO_INSTALLMENTS?: Partial<InstallmentsSlice>
-  DEMO_REIMBURSEMENT?: Partial<ReimbursementSlice>
-  DEMO_SPLIT_GROUP?: Partial<SplitGroupSlice>
-  [intentKey: string]: any
 }
 
 function getValueByPath(obj: Record<string, any>, path: string): any {
@@ -181,7 +167,7 @@ export function createOperationInputSchema<TKey extends string>(
         }
       }
 
-      // 4. Verifica campos condicionais das etapas base ativas
+      // 4. Executa validações contextuais declaradas pelas etapas e intenções ativas
       const activeSteps = resolveSteps(
         {
           nature: input.nature,
@@ -191,31 +177,30 @@ export function createOperationInputSchema<TKey extends string>(
         },
         catalog
       )
-      const activeIds = new Set(activeSteps.map((s) => s.id))
 
-      if (input.nature === "RECEIVE" && input.base.custodyType === "CREDIT") {
-        ctx.addIssue({
-          code: "custom",
-          path: ["base", "custodyType"],
-          message:
-            "Cartão de crédito não é permitido em operações de recebimento",
-        })
+      const draftInput = input as Partial<OperationDraft>
+
+      for (const step of activeSteps) {
+        const issues = step.validate?.(draftInput) ?? []
+        for (const issue of issues) {
+          ctx.addIssue({
+            code: "custom",
+            path: [...issue.path],
+            message: issue.message,
+          })
+        }
       }
 
-      if (activeIds.has("base.custody-cycle") && !input.base.competanceDate) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["base", "competanceDate"],
-          message: "Selecione a fatura do cartão",
-        })
-      }
-
-      if (activeIds.has("base.category") && !input.base.categoryId) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["base", "categoryId"],
-          message: "Selecione uma categoria",
-        })
+      for (const intentKey of selectedIntents) {
+        const intentDef = catalog.intents[intentKey]
+        const issues = intentDef?.validate?.(draftInput) ?? []
+        for (const issue of issues) {
+          ctx.addIssue({
+            code: "custom",
+            path: [...issue.path],
+            message: issue.message,
+          })
+        }
       }
     })
 }

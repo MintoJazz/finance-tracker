@@ -7,15 +7,28 @@ import {
   DrawerDescription,
   DrawerTitle,
 } from "@/components/ui/drawer"
-import { OperationWizardContent } from "@/modules/operations/ui/components/operation-wizard"
+import {
+  OperationWizardContent,
+  OperationWizardProvider,
+} from "@/modules/operations/ui/components/operation-wizard"
 import type { OperationWizardModalProps } from "../types"
 
 export default function OperationWizardModalViewMobile({
   isOpen,
+  seed,
+  options,
   onClose,
   onOpenChangeComplete,
   onComplete,
 }: OperationWizardModalProps) {
+  const content = (
+    <OperationWizardContent
+      viewport="mobile"
+      onComplete={onComplete}
+      onClose={onClose}
+    />
+  )
+
   return (
     <Drawer
       open={isOpen}
@@ -32,11 +45,13 @@ export default function OperationWizardModalViewMobile({
         </DrawerDescription>
 
         <div className="flex flex-col min-h-0 flex-1 px-3.5 pt-1 pb-3">
-          <OperationWizardContent
-            viewport="mobile"
-            onComplete={onComplete}
-            onClose={onClose}
-          />
+          {options ? (
+            <OperationWizardProvider lookups={options} seed={seed}>
+              {content}
+            </OperationWizardProvider>
+          ) : (
+            content
+          )}
         </div>
       </DrawerContent>
     </Drawer>

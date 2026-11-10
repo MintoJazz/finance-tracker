@@ -91,9 +91,19 @@ export const routes = defineRoutes({
     label: () => "",
     parent: "categories",
   },
+  operations: {
+    pattern: "/operations",
+    label: "Operações",
+  },
+  operationNew: {
+    pattern: "/operations/new",
+    label: "Nova Operação",
+    parent: "operations",
+  },
   operationsPlayground: {
     pattern: "/operations/playground",
     label: "Playground de Operações",
+    parent: "operations",
   },
 })
 

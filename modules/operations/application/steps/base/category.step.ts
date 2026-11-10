@@ -6,5 +6,16 @@ export const categoryBaseStep = {
   order: STEP_ORDER.CATEGORY,
   source: "BASE",
   fields: ["base.categoryId"],
+  validate: (data) => {
+    if (!data?.base?.categoryId) {
+      return [
+        {
+          path: ["base", "categoryId"],
+          message: "Selecione uma categoria",
+        },
+      ]
+    }
+    return []
+  },
 } as const satisfies StepDefinition
 

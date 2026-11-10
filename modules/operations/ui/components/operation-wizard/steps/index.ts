@@ -11,10 +11,6 @@ import {
   createCategoryStepViewsMap,
   createSubcategoryStepViewsMap,
 } from "./intents/category-creation-steps"
-import { installmentsStepViews } from "./intents/installments-step"
-import { reimbursementStepViews } from "./intents/reimbursement-step"
-import { settleCommitmentStepViews } from "./intents/settle-commitment-step"
-import { splitGroupStepViews } from "./intents/split-group-step"
 
 export const STEP_VIEWS_CATALOG = {
   "base.entry": entryStepViews,
@@ -26,11 +22,6 @@ export const STEP_VIEWS_CATALOG = {
   "base.review": reviewStepViews,
   ...createCategoryStepViewsMap,
   ...createSubcategoryStepViewsMap,
-  "intent.settle.select": settleCommitmentStepViews,
-  "intent.installments.config": installmentsStepViews,
-  "intent.reimbursement.targets": reimbursementStepViews,
-  "intent.split_group.shares": splitGroupStepViews,
 } as const satisfies StepViewsCatalog<string, OperationDraft>
 
 export type CatalogStepId = keyof typeof STEP_VIEWS_CATALOG
-

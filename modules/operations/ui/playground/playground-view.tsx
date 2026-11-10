@@ -21,11 +21,57 @@ import {
 import OperationWizardModalViewDesktop from "../views/operation-wizard-modal/desktop"
 import OperationWizardModalViewMobile from "../views/operation-wizard-modal/mobile"
 import { OperationInspectorPanel } from "./inspector-panel"
-import {
-  PLAYGROUND_LOOKUPS,
-  PLAYGROUND_SEED_PRESETS,
-  type PlaygroundSeedPreset,
-} from "./mock-lookups"
+import { MOCK_OPERATION_OPTIONS } from "@/modules/operations/infra/mock/operation-options.mock"
+import type { OperationSeed } from "@/modules/operations/models/operation-seed.schema"
+
+export interface PlaygroundSeedPreset {
+  id: string
+  label: string
+  description: string
+  seed: OperationSeed
+}
+
+export const PLAYGROUND_SEED_PRESETS: readonly PlaygroundSeedPreset[] = [
+  {
+    id: "empty",
+    label: "1. Sem Seed (Fluxo Completo)",
+    description: "Começa no passo 1000 (Natureza).",
+    seed: {},
+  },
+  {
+    id: "pay-wallet",
+    label: "2. Seed Pagar + Carteira Itaú",
+    description:
+      "Pula o passo 1000 (skipWhen por seed.nature) e pré-seleciona a Carteira Itaú.",
+    seed: {
+      nature: "PAY",
+      custodyBalanceId: 1,
+      custodyType: "WALLET",
+    },
+  },
+  {
+    id: "pay-card",
+    label: "3. Seed Pagar + Cartão Nubank",
+    description:
+      "Pula 1000, pré-seleciona o Cartão Nubank e ativa declarativamente o passo 2100 (Fatura).",
+    seed: {
+      nature: "PAY",
+      custodyBalanceId: 2,
+      custodyType: "CREDIT",
+      competanceDate: "2026-11-10",
+    },
+  },
+  {
+    id: "create-category",
+    label: "4. Seed Criar Categoria",
+    description:
+      "Ativa CREATE_CATEGORY (que automaticamente implica CREATE_SUBCATEGORY).",
+    seed: {
+      nature: "PAY",
+      intents: ["CREATE_CATEGORY"],
+    },
+  },
+]
 
 function PlaygroundWorkspace() {
   const { resetWithSeed, seed } = useOperationWizard()
@@ -226,7 +272,7 @@ function PlaygroundWorkspace() {
 
 export function OperationPlaygroundView() {
   return (
-    <OperationWizardProvider lookups={PLAYGROUND_LOOKUPS}>
+    <OperationWizardProvider lookups={MOCK_OPERATION_OPTIONS}>
       <PlaygroundWorkspace />
     </OperationWizardProvider>
   )

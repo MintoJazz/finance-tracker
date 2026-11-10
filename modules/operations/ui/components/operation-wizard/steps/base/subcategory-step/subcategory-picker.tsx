@@ -53,7 +53,6 @@ export function SubcategoryPicker({
       value={value}
       onChange={handleSelect}
       variant={variant}
-      allowDeselect
       searchPlaceholder={
         parentCategory
           ? `Buscar subcategoria em ${parentCategory.name}...`

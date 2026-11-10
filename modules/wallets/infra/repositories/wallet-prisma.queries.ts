@@ -119,10 +119,11 @@ export class WalletPrismaQueries implements IWalletQueries {
         return WalletMapper.toProfile(wallet, currentBalance);
     }
 
-    private async sumAmountsByBalance(balanceIds: number[]): Promise<Map<number, number>> {
+    async sumAmountsByBalance(balanceIds: number[]): Promise<Map<number, number>> {
         if (balanceIds.length === 0) return new Map();
 
-        const movements = await prisma.movement.findMany({
+        const grouped = await prisma.movement.groupBy({
+            by: ["balanceId"],
             where: {
                 balanceId: { in: balanceIds },
                 entry: {
@@ -130,10 +131,8 @@ export class WalletPrismaQueries implements IWalletQueries {
                     reversesEntryId: null,
                 },
             },
-            select: {
-                balanceId: true,
+            _sum: {
                 amount: true,
-                direction: true,
             },
         });
 
@@ -142,11 +141,8 @@ export class WalletPrismaQueries implements IWalletQueries {
             resultMap.set(id, 0);
         }
 
-        for (const m of movements) {
-            const current = resultMap.get(m.balanceId) ?? 0;
-            const magnitude = Math.abs(m.amount);
-            const delta = m.direction === "CREDIT" ? magnitude : -magnitude;
-            resultMap.set(m.balanceId, current + delta);
+        for (const item of grouped) {
+            resultMap.set(item.balanceId, item._sum.amount ?? 0);
         }
 
         return resultMap;
