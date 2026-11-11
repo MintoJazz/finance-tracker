@@ -1,8 +1,9 @@
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Crumb } from "./types"
 import { Skeleton } from "@/components/ui/skeleton"
+import { operationHref } from "@/modules/operations/ui/href"
 
 export function HeaderMobile({ trail, className }: { trail: Crumb[]; className?: string }) {
   if (trail.length === 0) return null
@@ -37,7 +38,16 @@ export function HeaderMobile({ trail, className }: { trail: Crumb[]; className?:
         )}
       </div>
       
-      <div className="size-8 shrink-0" />
+      <Button
+        variant="outline"
+        size="icon"
+        className="size-8 shrink-0 rounded-lg"
+        render={<Link href={operationHref()} />}
+        nativeButton={false}
+        aria-label="Nova operação"
+      >
+        <Plus className="size-4" />
+      </Button>
     </div>
   )
 }

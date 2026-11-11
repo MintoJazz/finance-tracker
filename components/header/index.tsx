@@ -8,7 +8,7 @@ import { buildTrail } from "./utils"
 import { useHeaderContext } from "./context"
 import { HeaderBreadcrumb } from "./header-breadcrumb"
 import { HeaderMobile } from "./header-mobile"
-
+import { HeaderDesktopActions } from "./header-desktop-actions"
 
 export function AppHeader() {
   const pathname = usePathname()
@@ -26,6 +26,9 @@ export function AppHeader() {
             <HeaderMobile trail={trail} className="flex md:hidden min-w-0 flex-1" />
           </>
         )}
+        <div className="hidden md:flex items-center gap-2 ml-auto shrink-0">
+          <HeaderDesktopActions />
+        </div>
       </div>
     </header>
   )

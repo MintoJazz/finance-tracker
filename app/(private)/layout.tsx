@@ -7,9 +7,11 @@ import {
 } from "@/components/ui/sidebar"
 
 export default async function PrivateLayout({
-  children
+  children,
+  modal,
 }: {
   children: React.ReactNode
+  modal: React.ReactNode
 }) {
   const userContextResult = await getUserContextAction()
   const userContext = userContextResult.success ? userContextResult.data : null
@@ -23,6 +25,7 @@ export default async function PrivateLayout({
           <main>
             {children}
           </main>
+          {modal}
         </HeaderProvider>
       </SidebarInset>
     </SidebarProvider>

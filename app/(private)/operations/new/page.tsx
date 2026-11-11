@@ -1,5 +1,5 @@
 import OperationsPage from "../page"
-import NewOperationModalPage from "../@modal/(.)new/page"
+import NewOperationModalPage from "@/app/(private)/@modal/(.)operations/new/page"
 
 export interface CreateOperationDirectPageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>

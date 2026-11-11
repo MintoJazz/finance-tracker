@@ -80,7 +80,7 @@ export function WizardDialogLayout({
         </div>
 
         {showProgress ? (
-          <WizardProgress />
+          <WizardProgress hideLabel />
         ) : (
           showStepper && <WizardStepper variant="compact" />
         )}

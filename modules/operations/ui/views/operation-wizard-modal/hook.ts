@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/toast"
+import { executeOperationAction } from "../../actions/execute-operation.action"
 import type { OperationDraft } from "../../../models/operation-input.schema"
 import type {
   OperationWizardModalInput,
@@ -26,7 +27,11 @@ export function useOperationWizardModal(
     }
     if (!hasNavigatedRef.current) {
       hasNavigatedRef.current = true
-      router.back()
+      if (typeof window !== "undefined" && window.history.length <= 1) {
+        router.replace("/operations")
+      } else {
+        router.back()
+      }
     }
   }, [input, router])
 
@@ -59,14 +64,30 @@ export function useOperationWizardModal(
         return
       }
 
+      const result = await executeOperationAction({
+        payload,
+        seed: input?.seed,
+      })
+
+      if (!result.success) {
+        toast.add({
+          type: "error",
+          priority: "high",
+          title: "Erro ao registrar operação",
+          description: result.error,
+        })
+        return
+      }
+
       toast.add({
         type: "success",
-        title: "Operação validada",
-        description: `Operação (${payload.nature}) pronta para processamento.`,
+        title: "Operação registrada",
+        description: "O lançamento foi salvo com sucesso.",
       })
+      router.refresh()
       onClose()
     },
-    [input, onClose]
+    [input, onClose, router]
   )
 
   return {

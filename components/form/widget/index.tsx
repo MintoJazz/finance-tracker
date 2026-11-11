@@ -154,7 +154,7 @@ export function WidgetItem({
         onKeyDown={handleKeyDown}
         className={cn(
           "group/widget-item flex items-center justify-between gap-3 w-full min-w-0 max-w-full px-3 py-2.5 text-sm transition-colors cursor-pointer select-none outline-none hover:bg-muted/40 focus-visible:bg-muted/40",
-          selected && "bg-muted/20",
+          selected && "bg-primary/10 text-foreground",
           disabled && "opacity-50 cursor-not-allowed pointer-events-none",
           className
         )}
