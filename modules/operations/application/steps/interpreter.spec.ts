@@ -13,6 +13,7 @@ import { OPERATION_STEP_CATALOG } from "../intents/catalog"
 import {
   createOperationInputSchema,
   pruneInactiveOperationSlices,
+  type OperationDraft,
 } from "../../models/operation-input.schema"
 
 describe("Operation Steps & Intents Declarative Interpreter (Clean Core)", () => {
@@ -229,7 +230,63 @@ describe("Operation Steps & Intents Declarative Interpreter (Clean Core)", () =>
 
     assert.equal(
       findStepIdForFieldPath("base.amount", baseSteps),
+      "base.amount"
+    )
+    assert.equal(
+      findStepIdForFieldPath("base.description", baseSteps),
       "base.details"
+    )
+  })
+
+  it("garante a ordem exata do fluxo base: natureza -> descrição e data -> meio de pagamento -> valor -> categorias -> revisão", () => {
+    // 1. Sem categoria selecionada, subcategoria fica oculta via condition (when)
+    const baseStepsInitial = resolveSteps(
+      { nature: "PAY", intents: [] },
+      OPERATION_STEP_CATALOG
+    )
+    assert.deepEqual(
+      baseStepsInitial.map((s) => s.id),
+      [
+        "base.entry",
+        "base.details",
+        "base.custody",
+        "base.amount",
+        "base.category",
+        "base.review",
+      ]
+    )
+
+    // 2. Com categoria selecionada e lookups com subcategorias, subcategoria aparece entre categoria e revisão
+    const mockLookups = {
+      custodies: [],
+      categories: [{ id: 101, name: "Alimentação" }],
+      subcategories: [
+        { id: 1001, parentId: 101, parentName: "Alimentação", name: "Mercado" },
+      ],
+    }
+
+    const baseStepsWithCategory = resolveSteps(
+      {
+        nature: "PAY",
+        intents: [],
+        data: {
+          base: { categoryId: 101 },
+        },
+        lookups: mockLookups,
+      },
+      OPERATION_STEP_CATALOG
+    )
+    assert.deepEqual(
+      baseStepsWithCategory.map((s) => s.id),
+      [
+        "base.entry",
+        "base.details",
+        "base.custody",
+        "base.amount",
+        "base.category",
+        "base.subcategory",
+        "base.review",
+      ]
     )
   })
 
@@ -300,5 +357,77 @@ describe("Operation Steps & Intents Declarative Interpreter (Clean Core)", () =>
         `initialSlice de "${key}" deve retornar um objeto`
       )
     }
+  })
+
+  it("oferece e resolve CHOOSE_CARD_INVOICE na etapa 3100 exclusivamente quando custodyType for CREDIT", () => {
+    const catalog = OPERATION_STEP_CATALOG
+    const chooseInvoiceDef = catalog.intents.CHOOSE_CARD_INVOICE
+    assert.ok(chooseInvoiceDef, "CHOOSE_CARD_INVOICE deve estar no catálogo")
+
+    // 1. Não é oferecida para carteira (WALLET)
+    const walletData: Partial<OperationDraft> = {
+      base: { custodyType: "WALLET", custodyBalanceId: 1 },
+    }
+    const isOfferedForWallet = chooseInvoiceDef.offer?.when?.(walletData, {
+      pointers: {
+        custody: { kind: "existing", id: 1 },
+        categoryRoot: null,
+        counterpart: null,
+        mainEntry: null,
+        extras: {},
+      },
+    })
+    assert.equal(isOfferedForWallet, false)
+
+    // 2. É oferecida para cartão de crédito (CREDIT)
+    const creditData: Partial<OperationDraft> = {
+      base: { custodyType: "CREDIT", custodyBalanceId: 2 },
+    }
+    const isOfferedForCredit = chooseInvoiceDef.offer?.when?.(creditData, {
+      pointers: {
+        custody: { kind: "existing", id: 2 },
+        categoryRoot: null,
+        counterpart: null,
+        mainEntry: null,
+        extras: {},
+      },
+    })
+    assert.equal(isOfferedForCredit, true)
+
+    // 3. Ao ativar CHOOSE_CARD_INVOICE, insere etapa 3100 entre custódia (3000) e valor (4000)
+    const activeSteps = resolveSteps(
+      {
+        nature: "PAY",
+        intents: ["CHOOSE_CARD_INVOICE"],
+        data: {
+          base: { custodyType: "CREDIT", custodyBalanceId: 2 },
+          CHOOSE_CARD_INVOICE: { month: 12, year: 2026 },
+        },
+      },
+      catalog
+    )
+
+    const stepIds = activeSteps.map((s) => s.id)
+    assert.ok(stepIds.includes("intent.choose_card_invoice"))
+
+    const custodyIdx = stepIds.indexOf("base.custody")
+    const invoiceIdx = stepIds.indexOf("intent.choose_card_invoice")
+    const amountIdx = stepIds.indexOf("base.amount")
+
+    assert.ok(custodyIdx !== -1 && invoiceIdx !== -1 && amountIdx !== -1)
+    assert.ok(
+      custodyIdx < invoiceIdx && invoiceIdx < amountIdx,
+      "intent.choose_card_invoice deve ficar ordenado exatamente entre base.custody e base.amount"
+    )
+
+    // 4. Ao mudar custódia para WALLET, o sanitizador remove CHOOSE_CARD_INVOICE
+    const sanitized = sanitizeActiveIntents(
+      ["CHOOSE_CARD_INVOICE"],
+      catalog,
+      {
+        base: { custodyType: "WALLET", custodyBalanceId: 1 },
+      }
+    )
+    assert.deepEqual(sanitized, [])
   })
 })

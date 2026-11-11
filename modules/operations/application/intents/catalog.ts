@@ -1,12 +1,14 @@
 import type { OperationIntentKey } from "../../models/operation-input.schema"
 import { BASE_STEPS } from "../steps/base"
 import type { OperationStepCatalog } from "../steps/interpreter"
+import { chooseCardInvoiceIntent } from "./choose-card-invoice.intent"
 import { createCategoryIntent } from "./create-category.intent"
 import { createSubcategoryIntent } from "./create-subcategory.intent"
 
 export const OPERATION_INTENTS = {
   CREATE_CATEGORY: createCategoryIntent,
   CREATE_SUBCATEGORY: createSubcategoryIntent,
+  CHOOSE_CARD_INVOICE: chooseCardInvoiceIntent,
 } as const
 
 export const OPERATION_STEP_CATALOG: OperationStepCatalog<OperationIntentKey> = {

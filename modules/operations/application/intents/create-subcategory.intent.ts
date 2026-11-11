@@ -54,4 +54,45 @@ export const createSubcategoryIntent = {
     })
     ctx.pointers.counterpart = ref
   },
+  summaryCard(ctx) {
+    const slice = ctx.payload.CREATE_SUBCATEGORY
+    const isCreateCategoryActive = ctx.activeIntents.includes("CREATE_CATEGORY")
+
+    let parentName = "Categoria Base"
+    let parentColor: string | null = null
+
+    if (isCreateCategoryActive && ctx.payload.CREATE_CATEGORY?.name) {
+      parentName = ctx.payload.CREATE_CATEGORY.name.trim() || "Nova Categoria"
+      parentColor = ctx.payload.CREATE_CATEGORY.color ?? null
+    } else if (ctx.payload.base?.categoryId) {
+      const parentCat = ctx.lookups.categories.find(
+        (c) => c.id === ctx.payload.base?.categoryId
+      )
+      if (parentCat) {
+        parentName = parentCat.name
+        parentColor = parentCat.color ?? null
+      }
+    }
+
+    const inheritedColor = slice?.color || parentColor || "#10B981"
+
+    return {
+      id: "summary.intent.create_subcategory",
+      source: "CREATE_SUBCATEGORY",
+      order: STEP_ORDER.CREATE_SUBCATEGORY_BASICS,
+      title: "Criar Subcategoria",
+      icon: "FolderPlus",
+      badge: {
+        label: "Nova",
+        tone: "neutral",
+      },
+      visualItem: {
+        title: slice?.name?.trim() || "Nova Subcategoria",
+        subtitle: `Subcategoria • ${parentName}`,
+        icon: slice?.icon || "Folder",
+        color: inheritedColor,
+        stepId: "intent.create_subcategory.basics",
+      },
+    }
+  },
 } as const satisfies IntentDefinition<OperationIntentKey>

@@ -1,12 +1,4 @@
 import type { OperationIntentKey } from "../../models/operation-input.schema"
-import { compileOperationPlan } from "../plan/compiler"
-import type {
-  CreateCategoryBalanceAction,
-  CreateDirectEntryAction,
-  EntityRef,
-  OperationExecutionPlan,
-  OperationPlanNode,
-} from "../plan/types"
 import type { OperationStepCatalog } from "../steps/interpreter"
 import { STEP_ORDER } from "../steps/order"
 import type {
@@ -16,82 +8,32 @@ import type {
   SummaryRow,
 } from "./types"
 
-interface ResolvedCategoryDisplay {
-  readonly name: string
-  readonly color: string | null
-  readonly icon: string | null
-  readonly stepId: string
-  readonly isFromIntent: boolean
-}
+/**
+ * Constrói o Resumo Geral (Fluxo Base), dedicado exclusivamente ao movimento financeiro
+ * (Natureza, Valor Total, Vencimento, Descrição, Meio de Pagamento e Categoria).
+ * É o card fixo no topo da revisão, independente de quais intenções estiverem ativas.
+ */
+export function buildBaseSummaryCard(ctx: SummaryContext): SummaryCard {
+  const isPay = ctx.payload.nature !== "RECEIVE"
+  const dueDate = ctx.payload.base?.dueDate || undefined
+  const description = ctx.payload.base?.description?.trim() ?? ""
 
-function resolveCategoryDisplay<TIntentKey extends string>(
-  ref: EntityRef | null | undefined,
-  plan: OperationExecutionPlan<TIntentKey>,
-  lookups: OperationLookupData
-): ResolvedCategoryDisplay | null {
-  if (!ref) return null
+  const custodyId = ctx.payload.base?.custodyBalanceId
+  const custody = ctx.lookups.custodies.find((c) => c.id === custodyId)
 
-  if (ref.kind === "existing") {
-    const rootCat = lookups.categories.find((c) => c.id === ref.id)
-    if (rootCat) {
-      return {
-        name: rootCat.name,
-        color: rootCat.color ?? null,
-        icon: rootCat.icon ?? null,
-        stepId: "base.category",
-        isFromIntent: false,
-      }
-    }
+  const amountCents =
+    typeof ctx.payload.base?.amount === "number" && ctx.payload.base.amount > 0
+      ? Math.round(ctx.payload.base.amount)
+      : 0
 
-    const subCat = lookups.subcategories.find((s) => s.id === ref.id)
-    if (subCat) {
-      return {
-        name: subCat.name,
-        color: subCat.color ?? null,
-        icon: subCat.icon ?? null,
-        stepId: "base.subcategory",
-        isFromIntent: false,
-      }
-    }
-
-    return null
-  }
-
-  const node = plan.nodes.find((n) => n.id === ref.nodeId)
-  if (node && node.action.type === "CREATE_CATEGORY_BALANCE") {
-    return {
-      name: node.action.name,
-      color: node.action.color,
-      icon: node.action.icon,
-      stepId: node.stepId ?? "base.category",
-      isFromIntent: true,
-    }
-  }
-
-  return null
-}
-
-function buildDirectEntrySummaryCard<TIntentKey extends string>(
-  node: OperationPlanNode<TIntentKey>,
-  action: CreateDirectEntryAction,
-  plan: OperationExecutionPlan<TIntentKey>,
-  lookups: OperationLookupData
-): SummaryCard {
-  const isPay = action.nature === "PAY"
-  const amountCents = action.amountCents > 0 ? action.amountCents : 0
-  const dueDate = action.dueDate || undefined
-  const description = action.description.trim()
-
-  const custodyId =
-    action.custody?.kind === "existing" ? action.custody.id : undefined
-  const custody = lookups.custodies.find((c) => c.id === custodyId)
+  const amountStepId = "base.amount"
 
   const rows: SummaryRow[] = [
     {
       id: "base_amount",
       label: "Valor Total",
       value: amountCents > 0 ? { kind: "money", cents: amountCents } : null,
-      stepId: "base.details",
+      stepId: amountStepId,
     },
     {
       id: "base_due_date",
@@ -119,59 +61,51 @@ function buildDirectEntrySummaryCard<TIntentKey extends string>(
     },
   ]
 
-  if (custody?.type === "CREDIT") {
-    rows.push({
-      id: "base_cycle",
-      label: "Fatura",
-      value: {
-        kind: "text",
-        text: "Fatura Vigente (Automática)",
-      },
-      stepId: "base.custody",
-    })
+  let rootName: string | null = null
+  let rootStepId = "base.category"
+  let counterpartName: string | null = null
+  let counterpartStepId = "base.subcategory"
+
+  if (ctx.activeIntents.includes("CREATE_CATEGORY")) {
+    rootName = ctx.payload.CREATE_CATEGORY?.name?.trim() || "Nova Categoria"
+    rootStepId = "intent.create_category.basics"
+  } else if (ctx.payload.base?.categoryId) {
+    const found = ctx.lookups.categories.find(
+      (c) => c.id === ctx.payload.base?.categoryId
+    )
+    if (found) {
+      rootName = found.name
+      rootStepId = "base.category"
+    }
   }
 
-  const rootDisplay = resolveCategoryDisplay(
-    plan.pointers.categoryRoot,
-    plan,
-    lookups
-  )
-  const counterpartDisplay = resolveCategoryDisplay(
-    action.counterpart,
-    plan,
-    lookups
-  )
-
-  const isSameRef =
-    plan.pointers.categoryRoot &&
-    action.counterpart &&
-    plan.pointers.categoryRoot.kind === action.counterpart.kind &&
-    (plan.pointers.categoryRoot.kind === "existing"
-      ? plan.pointers.categoryRoot.id ===
-        (action.counterpart as { kind: "existing"; id: number }).id
-      : plan.pointers.categoryRoot.nodeId ===
-        (action.counterpart as { kind: "node"; nodeId: string }).nodeId)
+  if (ctx.activeIntents.includes("CREATE_SUBCATEGORY")) {
+    counterpartName =
+      ctx.payload.CREATE_SUBCATEGORY?.name?.trim() || "Nova Subcategoria"
+    counterpartStepId = "intent.create_subcategory.basics"
+  } else if (ctx.payload.base?.subcategoryId) {
+    const found = ctx.lookups.subcategories.find(
+      (s) => s.id === ctx.payload.base?.subcategoryId
+    )
+    if (found) {
+      counterpartName = found.name
+      counterpartStepId = "base.subcategory"
+    }
+  }
 
   let categoryPath: string | null = null
   let categoryStepId = "base.category"
 
-  if (rootDisplay && counterpartDisplay && !isSameRef) {
-    categoryPath = `${rootDisplay.name} > ${counterpartDisplay.name}`
-    categoryStepId = rootDisplay.isFromIntent
-      ? rootDisplay.stepId
-      : counterpartDisplay.isFromIntent
-        ? counterpartDisplay.stepId
-        : "base.category"
-  } else if (counterpartDisplay) {
-    categoryPath = counterpartDisplay.name
-    categoryStepId = counterpartDisplay.isFromIntent
-      ? counterpartDisplay.stepId
-      : "base.category"
-  } else if (rootDisplay) {
-    categoryPath = rootDisplay.name
-    categoryStepId = rootDisplay.isFromIntent
-      ? rootDisplay.stepId
-      : "base.category"
+  if (rootName && counterpartName) {
+    categoryPath = `${rootName} > ${counterpartName}`
+    categoryStepId =
+      rootStepId !== "base.category" ? rootStepId : counterpartStepId
+  } else if (counterpartName) {
+    categoryPath = counterpartName
+    categoryStepId = counterpartStepId
+  } else if (rootName) {
+    categoryPath = rootName
+    categoryStepId = rootStepId
   }
 
   if (categoryPath) {
@@ -188,7 +122,7 @@ function buildDirectEntrySummaryCard<TIntentKey extends string>(
 
   return {
     id: "summary.base",
-    source: node.source as "BASE" | OperationIntentKey,
+    source: "BASE",
     order: STEP_ORDER.ENTRY, // 1000 - Âncora principal sempre no topo
     title: "Lançamento Financeiro",
     icon: isPay ? "ArrowUpRight" : "ArrowDownLeft",
@@ -202,93 +136,38 @@ function buildDirectEntrySummaryCard<TIntentKey extends string>(
         id: "base_total",
         label: "Total no rodapé",
         value: amountCents > 0 ? { kind: "money", cents: amountCents } : null,
-        stepId: "base.details",
+        stepId: amountStepId,
       },
     ],
   }
 }
 
-function buildCategoryBalanceSummaryCard<TIntentKey extends string>(
-  node: OperationPlanNode<TIntentKey>,
-  action: CreateCategoryBalanceAction,
-  plan: OperationExecutionPlan<TIntentKey>,
-  lookups: OperationLookupData
-): SummaryCard {
-  const isSubcategory =
-    action.parent !== null || node.id === "intent.create_subcategory"
-
-  if (!isSubcategory) {
-    return {
-      id: `summary.${node.id}`,
-      source: node.source as "BASE" | OperationIntentKey,
-      order: node.order,
-      title: "Criar Categoria",
-      icon: "FolderPlus",
-      badge: {
-        label: "Nova",
-        tone: "neutral",
-      },
-      visualItem: {
-        title: action.name,
-        subtitle: "Categoria raiz",
-        icon: action.icon || "Folder",
-        color: action.color || "#10B981",
-        stepId: node.stepId,
-      },
-    }
-  }
-
-  const parentDisplay = resolveCategoryDisplay(action.parent, plan, lookups)
-  const parentName = parentDisplay?.name || "Categoria Base"
-  const inheritedColor = action.color || parentDisplay?.color || "#10B981"
-
-  return {
-    id: `summary.${node.id}`,
-    source: node.source as "BASE" | OperationIntentKey,
-    order: node.order,
-    title: "Criar Subcategoria",
-    icon: "FolderPlus",
-    badge: {
-      label: "Nova",
-      tone: "neutral",
-    },
-    visualItem: {
-      title: action.name,
-      subtitle: `Subcategoria • ${parentName}`,
-      icon: action.icon || "Folder",
-      color: inheritedColor,
-      stepId: node.stepId,
-    },
-  }
-}
-
 /**
- * Resolve a lista de cards cumulativos da revisão diretamente a partir do
- * `OperationExecutionPlan` (DAG) compilado.
- * - Fonte única de verdade: os cards da UI espelham exatamente os nós e ponteiros do DAG.
- * - Ordena todos os cards finais por `order` ascendente e depois por `id`.
+ * Resolve a lista de cards cumulativos da revisão.
+ * Padrão do projeto:
+ * 1. Um card de Resumo Geral contendo exclusivamente o fluxo base (Lançamento Financeiro).
+ * 2. Um card de resumo especializado para cada intenção ativa declarada no catálogo.
+ * 3. Ordenação ascendente por `order` e desempate determinístico por `id`.
  */
 export function resolveSummaryCards(
   ctx: SummaryContext,
   catalog: OperationStepCatalog<OperationIntentKey>
 ): readonly SummaryCard[] {
-  const plan = compileOperationPlan(ctx.payload, catalog, ctx.activeIntents)
-
   const cards: SummaryCard[] = []
 
-  for (const node of plan.nodes) {
-    switch (node.action.type) {
-      case "CREATE_DIRECT_ENTRY": {
-        cards.push(
-          buildDirectEntrySummaryCard(node, node.action, plan, ctx.lookups)
-        )
-        break
-      }
-      case "CREATE_CATEGORY_BALANCE": {
-        cards.push(
-          buildCategoryBalanceSummaryCard(node, node.action, plan, ctx.lookups)
-        )
-        break
+  // 1. Resumo Geral (Fluxo Base)
+  const baseCard = buildBaseSummaryCard(ctx)
+  if (baseCard) {
+    cards.push(baseCard)
+  }
+
+  // 2. Card individual para cada intenção ativa
+  for (const intentKey of ctx.activeIntents) {
+    const intentDef = catalog.intents[intentKey]
+    if (intentDef?.summaryCard) {
+      const intentCard = intentDef.summaryCard(ctx)
+      if (intentCard) {
+        cards.push(intentCard)
       }
     }
   }

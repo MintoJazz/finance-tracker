@@ -13,12 +13,17 @@ describe("Operation Summary Core & Cumulative Cards Resolver", () => {
     assert.ok(parsed.success)
   })
 
-  it("garante que toda intenção do catálogo possui método plan definido (fonte única para DAG e Revisão)", () => {
+  it("garante que toda intenção do catálogo possui método plan e summaryCard definidos", () => {
     for (const [key, def] of Object.entries(OPERATION_STEP_CATALOG.intents)) {
       assert.equal(
         typeof def?.plan,
         "function",
         `Intenção "${key}" não possui método plan`
+      )
+      assert.equal(
+        typeof def?.summaryCard,
+        "function",
+        `Intenção "${key}" não possui método summaryCard padronizado`
       )
     }
   })
@@ -57,9 +62,14 @@ describe("Operation Summary Core & Cumulative Cards Resolver", () => {
       kind: "text",
       text: "Alimentação > Supermercado",
     })
+
+    const amountRow = (baseCard.rows ?? []).find((r) => r.id === "base_amount")
+    assert.equal(amountRow?.stepId, "base.amount")
+    const totalFooter = (baseCard.footer ?? []).find((r) => r.id === "base_total")
+    assert.equal(totalFooter?.stepId, "base.amount")
   })
 
-  it("quando a custódia for cartão de crédito, exibe 'Fatura Vigente (Automática)' no resumo", () => {
+  it("quando a custódia for cartão de crédito sem CHOOSE_CARD_INVOICE, não inclui linha de fatura no resumo base", () => {
     const payload: Partial<OperationDraft> = {
       nature: "PAY",
       base: {
@@ -67,6 +77,7 @@ describe("Operation Summary Core & Cumulative Cards Resolver", () => {
         categoryId: 101,
         subcategoryId: 1011,
         custodyBalanceId: 2, // Nubank Ultravioleta (CREDIT)
+        custodyType: "CREDIT",
         dueDate: "2026-11-10",
       },
     }
@@ -80,16 +91,69 @@ describe("Operation Summary Core & Cumulative Cards Resolver", () => {
       OPERATION_STEP_CATALOG
     )
 
+    // Apenas o card base está presente
+    assert.equal(cards.length, 1)
     const baseCard = cards.find((c) => c.id === "summary.base")
     assert.ok(baseCard)
 
     const cycleRow = (baseCard.rows ?? []).find((r) => r.id === "base_cycle")
-    assert.ok(cycleRow)
-    assert.deepEqual(cycleRow.value, {
+    assert.equal(cycleRow, undefined)
+  })
+
+  it("ao ativar CHOOSE_CARD_INVOICE, emite card dedicado para a fatura do cartão", () => {
+    const payload: Partial<OperationDraft> = {
+      nature: "PAY",
+      base: {
+        amount: 12000,
+        categoryId: 101,
+        custodyBalanceId: 2, // Nubank Ultravioleta
+        custodyType: "CREDIT",
+        dueDate: "2026-11-10",
+        description: "Assinatura de Software",
+      },
+      CHOOSE_CARD_INVOICE: {
+        month: 12,
+        year: 2026,
+      },
+    }
+
+    const cards = resolveSummaryCards(
+      {
+        payload,
+        activeIntents: ["CHOOSE_CARD_INVOICE"],
+        lookups: MOCK_OPERATION_OPTIONS,
+      },
+      OPERATION_STEP_CATALOG
+    )
+
+    // Padrão do projeto: 1 resumo geral (fluxo base) + 1 card para CHOOSE_CARD_INVOICE
+    assert.equal(cards.length, 2)
+
+    const baseCard = cards.find((c) => c.id === "summary.base")
+    assert.ok(baseCard)
+    assert.equal(baseCard.title, "Lançamento Financeiro")
+
+    const invoiceCard = cards.find(
+      (c) => c.id === "summary.intent.choose_card_invoice"
+    )
+    assert.ok(invoiceCard)
+    assert.equal(invoiceCard.title, "Fatura do Cartão")
+    assert.equal(invoiceCard.badge?.label, "Manual")
+
+    const periodRow = invoiceCard.rows?.find((r) => r.id === "invoice_period")
+    assert.ok(periodRow)
+    assert.deepEqual(periodRow.value, {
       kind: "text",
-      text: "Fatura Vigente (Automática)",
+      text: "Dezembro / 2026",
     })
-    assert.equal(cycleRow.stepId, "base.custody")
+    assert.equal(periodRow.stepId, "intent.choose_card_invoice")
+
+    const cardRow = invoiceCard.rows?.find((r) => r.id === "invoice_card")
+    assert.ok(cardRow)
+    assert.deepEqual(cardRow.value, {
+      kind: "text",
+      text: "Nubank Ultravioleta",
+    })
   })
 
   it("cards de criação de categoria e subcategoria geram visualItem com ícone, cor, título e subtítulo", () => {
@@ -119,6 +183,9 @@ describe("Operation Summary Core & Cumulative Cards Resolver", () => {
       },
       OPERATION_STEP_CATALOG
     )
+
+    // 1 base + 2 intents = 3 cards
+    assert.equal(cards.length, 3)
 
     const catCard = cards.find((c) => c.id === "summary.intent.create_category")
     assert.ok(catCard)
@@ -174,6 +241,9 @@ describe("Operation Summary Core & Cumulative Cards Resolver", () => {
       OPERATION_STEP_CATALOG
     )
 
+    // 1 base + 1 intent = 2 cards
+    assert.equal(cards.length, 2)
+
     const subCard = cards.find(
       (c) => c.id === "summary.intent.create_subcategory"
     )
@@ -191,4 +261,3 @@ describe("Operation Summary Core & Cumulative Cards Resolver", () => {
     assert.equal(catRow.stepId, "intent.create_subcategory.basics")
   })
 })
-

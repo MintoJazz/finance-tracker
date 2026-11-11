@@ -45,5 +45,26 @@ export const createCategoryIntent = {
     ctx.pointers.categoryRoot = ref
     ctx.pointers.counterpart = ref
   },
+  summaryCard(ctx) {
+    const slice = ctx.payload.CREATE_CATEGORY
+    return {
+      id: "summary.intent.create_category",
+      source: "CREATE_CATEGORY",
+      order: STEP_ORDER.CREATE_CATEGORY_BASICS,
+      title: "Criar Categoria",
+      icon: "FolderPlus",
+      badge: {
+        label: "Nova",
+        tone: "neutral",
+      },
+      visualItem: {
+        title: slice?.name?.trim() || "Nova Categoria",
+        subtitle: "Categoria raiz",
+        icon: slice?.icon || "Folder",
+        color: slice?.color || "#10B981",
+        stepId: "intent.create_category.basics",
+      },
+    }
+  },
 } as const satisfies IntentDefinition<OperationIntentKey>
 

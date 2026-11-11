@@ -7,11 +7,20 @@ import type {
   StepDefinition,
   StepValidationIssue,
 } from "../steps/types"
-import type { OperationLookupData } from "../summary/types"
+import type { OperationLookupData, SummaryCard } from "../summary/types"
 
 export interface IntentInitialSliceContext {
   readonly seed: OperationSeed
   readonly lookups?: OperationLookupData
+}
+
+export interface IntentSummaryContext<
+  TData = OperationDraft,
+  TIntentKey extends string = string,
+> {
+  readonly payload: Partial<TData>
+  readonly activeIntents: readonly TIntentKey[]
+  readonly lookups: OperationLookupData
 }
 
 export interface IntentOffer<TData = OperationDraft> {
@@ -66,5 +75,12 @@ export interface IntentDefinition<
   ) => Record<string, unknown>
   /** Validação pura contextual executada quando a intenção está ativa */
   readonly validate?: (data: Partial<TData>) => readonly StepValidationIssue[]
+  /**
+   * Contribuição declarativa da intenção para a tela de Revisão / Resumo.
+   * Emite um card especializado para esta intenção quando ela estiver ativa.
+   */
+  readonly summaryCard?: (
+    ctx: IntentSummaryContext<TData, TIntentKey>
+  ) => SummaryCard | null
 }
 
