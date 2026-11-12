@@ -290,8 +290,8 @@ export function compileOperationPlan<
     pointers.mainEntry = addNode({
       id: "base.direct_entry",
       source: "BASE",
-      order: STEP_ORDER.DETAILS, // 3000 (a ordenação topológica o posicionará após suas dependências)
-      stepId: "base.details",
+      order: STEP_ORDER.AMOUNT, // 4000 (a ordenação topológica o posicionará após suas dependências)
+      stepId: "base.amount",
       action: {
         type: "CREATE_DIRECT_ENTRY",
         nature,

@@ -7,6 +7,7 @@
  * - Todas as datas manipuladas são datas civis (`startOfDay`).
  */
 import {
+    addMonths,
     format,
     isAfter,
     isBefore,
@@ -21,6 +22,10 @@ import {
     CommitmentCycleStatusEnum,
     CommitmentsPeriodSummary,
 } from "@/modules/cycles/models/commitment-cycle.schema";
+import {
+    CycleStatus,
+    CycleView,
+} from "@/modules/cycles/models/obligation-cycle.schema";
 import {
     AgreementCycleSourceData,
     CycleAggregatedEntryData,
@@ -296,6 +301,250 @@ export class CycleEngineService {
             const timeDiff = a.dueDate.getTime() - b.dueDate.getTime();
             if (timeDiff !== 0) return timeDiff;
             return a.balanceId - b.balanceId;
+        });
+
+        return result;
+    }
+
+    /**
+     * Projeta ciclos para a tela de quitação de obrigações (PAY_OBLIGATION / RECEIVE_OBLIGATION).
+     *
+     * Regras:
+     * - Status refinados: SETTLED, OPEN, PARTIAL, PROJECTED, UNRECORDED.
+     * - MAX_ADVANCE: não projeta ciclos além de maxAdvanceMonths (padrão 3 meses) do período corrente.
+     * - Omissão de ciclos vazios para cartões de crédito (CREDIT).
+     */
+    projectObligationCycles(
+        source: AgreementCycleSourceData,
+        window: CycleWindow,
+        now: Date,
+        maxAdvanceMonths: number = 3
+    ): CycleView[] {
+        const today = startOfDay(now);
+        const winFrom = startOfDay(window.from);
+        const winTo = startOfDay(window.to);
+
+        const agreementStarts = startOfDay(source.startsAt);
+        const agreementEnds = source.endsAt ? startOfDay(source.endsAt) : null;
+
+        const rules = [...source.rules].sort(
+            (a, b) =>
+                startOfDay(a.effectiveFrom).getTime() -
+                startOfDay(b.effectiveFrom).getTime()
+        );
+
+        if (rules.length === 0) return [];
+
+        const bucketsByKey = new Map<string, InternalCycleBucket>();
+
+        // 1. Injetar lançamentos reais nos baldes
+        for (const rule of rules) {
+            const strategy = CycleEngineRegistry.getStrategy(rule.frequency);
+            for (const entry of rule.entries) {
+                const shiftedRef = strategy.resolveReferenceDate(entry.referenceDate, rule);
+                const boundaries = strategy.getCycleBoundaries(shiftedRef, rule);
+
+                if (isBefore(boundaries.dueDate, winFrom) || isAfter(boundaries.dueDate, winTo)) {
+                    continue;
+                }
+
+                if (!bucketsByKey.has(boundaries.cycleKey)) {
+                    bucketsByKey.set(boundaries.cycleKey, {
+                        boundaries,
+                        rule,
+                        source,
+                        entries: [],
+                    });
+                }
+                bucketsByKey.get(boundaries.cycleKey)!.entries.push(entry);
+            }
+        }
+
+        // 2. Se o contrato participa da projeção (e não é CREDIT puro), gerar ciclos na janela até MAX_ADVANCE
+        if (source.includeInProjection && source.balanceType !== "CREDIT") {
+            for (let rIdx = 0; rIdx < rules.length; rIdx++) {
+                const rule = rules[rIdx];
+                const nextRule = rules[rIdx + 1];
+                const strategy = CycleEngineRegistry.getStrategy(rule.frequency);
+
+                const ruleStart = startOfDay(rule.effectiveFrom);
+                const ruleEnd = nextRule ? startOfDay(nextRule.effectiveFrom) : null;
+                const currentPeriodStart = this.resolveCurrentPeriodStart(rule.frequency, today);
+
+                // O maior avanço entre maxAdvanceMonths (ex: 3 meses) e maxAdvanceCycles (ex: 3 ciclos)
+                const advanceMonthsDate = addMonths(currentPeriodStart, maxAdvanceMonths);
+                const advanceCyclesDate = strategy.stepCycle(currentPeriodStart, maxAdvanceMonths, rule.interval);
+                const maxAdvanceDate = isAfter(advanceMonthsDate, advanceCyclesDate)
+                    ? advanceMonthsDate
+                    : advanceCyclesDate;
+
+                if (rule.frequency === "ONCE") {
+                    const boundaries = strategy.getCycleBoundaries(rule.effectiveFrom, rule);
+                    const dueDateInWindow =
+                        !isBefore(boundaries.dueDate, winFrom) &&
+                        !isAfter(boundaries.dueDate, winTo);
+
+                    if (dueDateInWindow && !isAfter(boundaries.dueDate, maxAdvanceDate)) {
+                        if (!bucketsByKey.has(boundaries.cycleKey)) {
+                            bucketsByKey.set(boundaries.cycleKey, {
+                                boundaries,
+                                rule,
+                                source,
+                                entries: [],
+                            });
+                        }
+                    }
+                    continue;
+                }
+
+                // Projeção sintética ocorre exclusivamente do período corrente para a frente
+                const projectionStart = isAfter(currentPeriodStart, agreementStarts)
+                    ? currentPeriodStart
+                    : agreementStarts;
+                let cursor = projectionStart;
+                const maxCursor = strategy.stepCycle(winTo, 1, rule.interval);
+
+                while (!isAfter(cursor, maxCursor)) {
+                    const boundaries = strategy.getCycleBoundaries(cursor, rule);
+                    const periodStartsAt = boundaries.beginsAt;
+
+                    const belongsToThisRule =
+                        !isBefore(periodStartsAt, ruleStart) &&
+                        (!ruleEnd || isBefore(periodStartsAt, ruleEnd));
+
+                    const withinAgreement =
+                        !isBefore(boundaries.endsAt, agreementStarts) &&
+                        (!agreementEnds || !isAfter(boundaries.beginsAt, agreementEnds));
+
+                    const dueDateInWindow =
+                        !isBefore(boundaries.dueDate, winFrom) &&
+                        !isAfter(boundaries.dueDate, winTo);
+
+                    const withinMaxAdvance = !isAfter(boundaries.dueDate, maxAdvanceDate);
+
+                    if (belongsToThisRule && withinAgreement && dueDateInWindow && withinMaxAdvance) {
+                        if (!bucketsByKey.has(boundaries.cycleKey)) {
+                            bucketsByKey.set(boundaries.cycleKey, {
+                                boundaries,
+                                rule,
+                                source,
+                                entries: [],
+                            });
+                        }
+                    }
+
+                    cursor = strategy.stepCycle(cursor, 1, rule.interval);
+                }
+            }
+        }
+
+        // 3. Processar cada ciclo
+        const result: CycleView[] = [];
+
+        for (const bucket of bucketsByKey.values()) {
+            const { boundaries, entries, rule } = bucket;
+
+            const directionThatIncreases: "CREDIT" | "DEBIT" =
+                source.balanceType === "RECEIVABLE" ? "CREDIT" : "DEBIT";
+
+            let recognizedAmount = 0;
+            let paidAmount = 0;
+            let totalEntriesCount = 0;
+
+            for (const entry of entries) {
+                totalEntriesCount += entry.count;
+
+                const signed =
+                    entry.direction === directionThatIncreases
+                        ? entry.amount
+                        : -entry.amount;
+
+                const effectiveType =
+                    entry.type === "REVERSAL" && entry.reversesEntryType
+                        ? entry.reversesEntryType
+                        : entry.type;
+
+                const isRecognized =
+                    ["ACCRUAL", "CLAIM_OPENING", "ADJUSTMENT"].includes(effectiveType) ||
+                    (effectiveType === "DIRECT" && source.balanceType === "CREDIT");
+
+                const isPaid = ["SETTLEMENT", "CLAIM_PAYMENT", "CLAIM_RECEIPT"].includes(
+                    effectiveType
+                );
+
+                if (isRecognized) {
+                    recognizedAmount += signed;
+                } else if (isPaid) {
+                    paidAmount += -signed;
+                }
+            }
+
+            paidAmount = Math.max(0, paidAmount);
+
+            // Omissão de ciclos de cartão de crédito vazios
+            if (
+                source.balanceType === "CREDIT" &&
+                recognizedAmount === 0 &&
+                paidAmount === 0
+            ) {
+                continue;
+            }
+
+            let expectedAmount: number | null = null;
+            if (source.balanceType !== "CREDIT") {
+                expectedAmount = this.calculateVigenteAmount(
+                    source.amountLog,
+                    boundaries.dueDate
+                );
+            }
+
+            const totalAmount =
+                recognizedAmount > 0 ? recognizedAmount : (expectedAmount ?? 0);
+            const remainingAmount = Math.max(0, totalAmount - paidAmount);
+
+            const currentPeriodStart = this.resolveCurrentPeriodStart(rule.frequency, today);
+
+            let status: CycleStatus;
+            if (totalEntriesCount === 0) {
+                if (isBefore(boundaries.dueDate, currentPeriodStart)) {
+                    status = "UNRECORDED";
+                } else {
+                    status = "PROJECTED";
+                }
+            } else if (totalAmount > 0 && paidAmount >= totalAmount) {
+                status = "SETTLED";
+            } else if (paidAmount > 0) {
+                status = "PARTIAL";
+            } else {
+                status = "OPEN";
+            }
+
+            const isOverdue =
+                remainingAmount > 0 && isBefore(startOfDay(boundaries.dueDate), today);
+
+            // Na tela de quitação de obrigações, omitir ciclos já liquidados e projeções vazias do passado
+            if (status === "SETTLED" || remainingAmount === 0 || status === "UNRECORDED") {
+                continue;
+            }
+
+            result.push({
+                agreementId: source.agreementId,
+                referenceDate: format(boundaries.beginsAt, "yyyy-MM-dd"),
+                dueDate: format(boundaries.dueDate, "yyyy-MM-dd"),
+                expected: expectedAmount,
+                accrued: recognizedAmount,
+                settled: paidAmount,
+                outstanding: remainingAmount,
+                status,
+                isOverdue,
+                label: boundaries.label,
+            });
+        }
+
+        result.sort((a, b) => {
+            const timeDiff = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+            if (timeDiff !== 0) return timeDiff;
+            return a.referenceDate.localeCompare(b.referenceDate);
         });
 
         return result;

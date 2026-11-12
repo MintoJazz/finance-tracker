@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Search, X } from "lucide-react"
+import { Check, ChevronRight, Search, X } from "lucide-react"
 import {
   Widget,
   WidgetCheckbox,
@@ -36,6 +36,8 @@ export function EntityPicker<TId extends string | number = number>(
     searchable = true,
     searchPlaceholder = "Buscar...",
     emptyMessage = "Nenhum item encontrado",
+    loading = false,
+    listClassName,
     className,
   } = props
 
@@ -45,7 +47,10 @@ export function EntityPicker<TId extends string | number = number>(
     const query = search.trim().toLowerCase()
     if (!query) return items
     return items.filter((item) => {
-      const inTitle = item.title.toLowerCase().includes(query)
+      const titleStr =
+        item.titleText ??
+        (typeof item.title === "string" ? item.title : "")
+      const inTitle = titleStr.toLowerCase().includes(query)
       const inSubtitle = item.subtitle?.toLowerCase().includes(query) ?? false
       const inKeywords =
         item.keywords?.some((k) => k.toLowerCase().includes(query)) ?? false
@@ -54,6 +59,15 @@ export function EntityPicker<TId extends string | number = number>(
   }, [items, search])
 
   const renderListItems = () => {
+    const indicator = props.indicator ?? (props.multiple ? "checkbox" : "checkbox")
+    if (loading) {
+      return (
+        <div className="flex h-24 w-full items-center justify-center rounded-xl border border-dashed border-border/60 text-xs text-muted-foreground animate-pulse">
+          Carregando...
+        </div>
+      )
+    }
+
     if (filteredItems.length === 0) {
       return (
         <div className="flex h-20 w-full items-center justify-center rounded-xl border border-dashed border-border/60 text-xs text-muted-foreground">
@@ -65,7 +79,10 @@ export function EntityPicker<TId extends string | number = number>(
     return (
       <WidgetList
         data-vaul-no-drag=""
-        className="divide-y divide-border/50 rounded-xl border border-border/70 bg-card/40 max-h-[148px] sm:max-h-[160px] overflow-y-auto overflow-x-hidden overscroll-contain no-scrollbar"
+        className={cn(
+          "divide-y divide-border/50 rounded-xl border border-border/70 bg-card/40 overflow-y-auto overflow-x-hidden overscroll-contain no-scrollbar",
+          listClassName ?? "max-h-[148px] sm:max-h-[160px]"
+        )}
       >
         {filteredItems.map((item) => {
           const theme = getCategoryTheme(item.color)
@@ -74,13 +91,14 @@ export function EntityPicker<TId extends string | number = number>(
             <WidgetItem
               key={String(item.id)}
               value={item.id}
-              className="px-2.5 py-1.5 gap-2.5"
+              disabled={item.disabled}
+              className="px-3 py-2 gap-3 transition-colors data-[state=checked]:bg-primary/10 data-[state=checked]:border-l-2 data-[state=checked]:border-l-primary"
             >
               <WidgetIcon
                 icon={<CategoryIcon name={item.icon} className="size-4 shrink-0" />}
                 style={theme.style}
                 className={cn(
-                  "size-8 rounded-lg shrink-0 transition-colors border",
+                  "size-8 rounded-lg shrink-0 transition-all border",
                   theme.palette
                     ? cn(
                         theme.palette.bg,
@@ -88,11 +106,12 @@ export function EntityPicker<TId extends string | number = number>(
                         theme.palette.border ?? "border-border/40",
                         "group-hover/widget-item:text-current"
                       )
-                    : "border-border/40 bg-muted/70 text-foreground"
+                    : "border-border/40 bg-muted/70 text-foreground",
+                  "group-data-[state=checked]/widget-item:border-primary/60 group-data-[state=checked]/widget-item:ring-2 group-data-[state=checked]/widget-item:ring-primary/25"
                 )}
               />
               <WidgetContent className="gap-0">
-                <WidgetTitle className="text-xs sm:text-sm font-semibold">
+                <WidgetTitle className="text-xs sm:text-sm font-semibold group-data-[state=checked]/widget-item:text-primary transition-colors">
                   {item.title}
                 </WidgetTitle>
                 {item.subtitle && (
@@ -102,7 +121,20 @@ export function EntityPicker<TId extends string | number = number>(
                 )}
               </WidgetContent>
               {item.extra && <WidgetExtra>{item.extra}</WidgetExtra>}
-              <WidgetCheckbox />
+              {indicator === "checkbox" && <WidgetCheckbox />}
+              {indicator === "chevron" && (
+                <div className="shrink-0 flex items-center justify-center ml-1">
+                  <div className="hidden group-data-[state=checked]/widget-item:flex size-5 rounded-full bg-primary text-primary-foreground items-center justify-center shadow-xs">
+                    <Check className="size-3 stroke-[3]" />
+                  </div>
+                  <ChevronRight className="size-4 text-muted-foreground/60 shrink-0 group-hover/widget-item:text-foreground transition-transform group-hover/widget-item:translate-x-0.5 group-data-[state=checked]/widget-item:hidden" />
+                </div>
+              )}
+              {indicator === "radio" && (
+                <div className="size-4 rounded-full border border-primary/60 flex items-center justify-center shrink-0">
+                  <div className="size-2 rounded-full bg-primary opacity-0 group-data-[state=checked]/widget-item:opacity-100 transition-opacity" />
+                </div>
+              )}
             </WidgetItem>
           )
         })}

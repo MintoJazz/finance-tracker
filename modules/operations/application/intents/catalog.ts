@@ -4,11 +4,14 @@ import type { OperationStepCatalog } from "../steps/interpreter"
 import { chooseCardInvoiceIntent } from "./choose-card-invoice.intent"
 import { createCategoryIntent } from "./create-category.intent"
 import { createSubcategoryIntent } from "./create-subcategory.intent"
+import { createObligationIntent } from "./obligation.factory"
 
 export const OPERATION_INTENTS = {
   CREATE_CATEGORY: createCategoryIntent,
   CREATE_SUBCATEGORY: createSubcategoryIntent,
   CHOOSE_CARD_INVOICE: chooseCardInvoiceIntent,
+  PAY_OBLIGATION: createObligationIntent("PAY"),
+  RECEIVE_OBLIGATION: createObligationIntent("RECEIVE"),
 } as const
 
 export const OPERATION_STEP_CATALOG: OperationStepCatalog<OperationIntentKey> = {

@@ -1,3 +1,4 @@
+import { amountBaseStep } from "./amount.step"
 import { categoryBaseStep } from "./category.step"
 import { custodyBaseStep } from "./custody.step"
 import { detailsBaseStep } from "./details.step"
@@ -7,8 +8,9 @@ import { subcategoryBaseStep } from "./subcategory.step"
 
 export {
   entryBaseStep,
-  custodyBaseStep,
   detailsBaseStep,
+  custodyBaseStep,
+  amountBaseStep,
   categoryBaseStep,
   subcategoryBaseStep,
   reviewBaseStep,
@@ -16,8 +18,9 @@ export {
 
 export const BASE_STEPS = [
   entryBaseStep,
-  custodyBaseStep,
   detailsBaseStep,
+  custodyBaseStep,
+  amountBaseStep,
   categoryBaseStep,
   subcategoryBaseStep,
   reviewBaseStep,

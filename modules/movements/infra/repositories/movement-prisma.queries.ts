@@ -208,7 +208,7 @@ export class MovementPrismaQueries implements IMovementQueries {
             };
         }
 
-        // Filtro por período (from / to)
+        // Filtro por período (from / to) considerando competanceDate com fallback para dueDate
         if (filter?.from || filter?.to) {
             const dateFilter: DateTimeFilter<"Entry"> = {};
             if (filter.from) {
@@ -217,7 +217,10 @@ export class MovementPrismaQueries implements IMovementQueries {
             if (filter.to) {
                 dateFilter.lte = new Date(`${filter.to}T23:59:59.999Z`);
             }
-            entryWhere.dueDate = dateFilter;
+            entryWhere.OR = [
+                { competanceDate: dateFilter },
+                { competanceDate: null, dueDate: dateFilter },
+            ];
         }
 
         const where: MovementWhereInput = {

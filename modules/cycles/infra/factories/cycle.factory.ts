@@ -12,6 +12,7 @@ import { GetContractCyclesUseCase } from "../../application/use-cases/get-contra
 import { GetContractCycleProfileUseCase } from "../../application/use-cases/get-contract-cycle-profile.use-case";
 import { ResolveCurrentContractCycleUseCase } from "../../application/use-cases/resolve-current-contract-cycle.use-case";
 import { GetCycleEntriesUseCase } from "../../application/use-cases/get-cycle-entries.use-case";
+import { GetObligationCyclesUseCase } from "../../application/use-cases/get-obligation-cycles.use-case";
 import { ContractCycleProfilePrismaQueries } from "@/modules/cycles/infra/repositories/contract-cycle-profile-prisma.queries";
 import { CycleEntriesPrismaQueries } from "@/modules/cycles/infra/repositories/cycle-entries-prisma.queries";
 
@@ -58,5 +59,12 @@ export class CycleFactory {
         new GetCycleEntriesUseCase(
             this.cycleEntriesQueries,
             this.planningAccessProvider
+        );
+
+    public static readonly makeGetObligationCyclesUseCase = () =>
+        new GetObligationCyclesUseCase(
+            this.contractProfileQueries,
+            this.planningAccessProvider,
+            this.cycleEngineService
         );
 }

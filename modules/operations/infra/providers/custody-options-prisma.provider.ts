@@ -15,11 +15,41 @@ export class CustodyOptionsPrismaProvider implements ICustodyOptionsProvider {
       },
       include: {
         appearance: true,
+        agreement: {
+          include: {
+            amountEntries: true,
+          },
+        },
       },
       orderBy: {
         name: "asc",
       },
     })
+
+    if (balances.length === 0) return []
+
+    const balanceIds = balances.map((b) => b.id)
+    const grouped = await prisma.movement.groupBy({
+      by: ["balanceId"],
+      where: {
+        balanceId: { in: balanceIds },
+        entry: {
+          reversedBy: null,
+          reversesEntryId: null,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    })
+
+    const netSumMap = new Map<number, number>()
+    for (const id of balanceIds) {
+      netSumMap.set(id, 0)
+    }
+    for (const item of grouped) {
+      netSumMap.set(item.balanceId, item._sum.amount ?? 0)
+    }
 
     return balances.map((balance) => {
       const type = balance.balanceType as CustodyBalanceType
@@ -30,6 +60,21 @@ export class CustodyOptionsPrismaProvider implements ICustodyOptionsProvider {
             ? "Reserva"
             : "Carteira"
 
+      const netSum = netSumMap.get(balance.id) ?? 0
+
+      let balanceCents: number
+      if (type === "CREDIT") {
+        const limit =
+          balance.agreement?.amountEntries?.reduce(
+            (sum, entry) => sum + entry.amount,
+            0
+          ) ?? 0
+        const usedLimit = Math.max(0, -netSum)
+        balanceCents = Math.max(0, limit - usedLimit)
+      } else {
+        balanceCents = netSum
+      }
+
       return {
         id: balance.id,
         name: balance.name,
@@ -37,6 +82,7 @@ export class CustodyOptionsPrismaProvider implements ICustodyOptionsProvider {
         subtitle,
         icon: balance.appearance?.icon ?? null,
         color: balance.appearance?.color ?? null,
+        balanceCents,
       }
     })
   }

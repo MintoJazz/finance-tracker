@@ -336,10 +336,15 @@ export function resolveSteps<TIntentKey extends string>(
   context: StepResolutionContext<TIntentKey>,
   catalog: OperationStepCatalog<TIntentKey>
 ): StepDefinition<TIntentKey>[] {
+  const effectiveData: Partial<OperationDraft> = {
+    nature: context.nature ?? context.seed?.nature,
+    ...context.data,
+  }
+
   const activeIntents = sanitizeActiveIntents(
     context.intents,
     catalog,
-    context.data,
+    effectiveData,
     context.lookups
   )
 

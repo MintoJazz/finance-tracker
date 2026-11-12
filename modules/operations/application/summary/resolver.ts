@@ -21,12 +21,32 @@ export function buildBaseSummaryCard(ctx: SummaryContext): SummaryCard {
   const custodyId = ctx.payload.base?.custodyBalanceId
   const custody = ctx.lookups.custodies.find((c) => c.id === custodyId)
 
-  const amountCents =
+  const isObligation =
+    ctx.activeIntents.includes("PAY_OBLIGATION") ||
+    ctx.activeIntents.includes("RECEIVE_OBLIGATION")
+
+  const obligationKey = ctx.activeIntents.includes("PAY_OBLIGATION")
+    ? "PAY_OBLIGATION"
+    : ctx.activeIntents.includes("RECEIVE_OBLIGATION")
+      ? "RECEIVE_OBLIGATION"
+      : null
+
+  let amountCents =
     typeof ctx.payload.base?.amount === "number" && ctx.payload.base.amount > 0
       ? Math.round(ctx.payload.base.amount)
       : 0
 
-  const amountStepId = "base.amount"
+  if (amountCents === 0 && obligationKey) {
+    const allocations = (ctx.payload[obligationKey] as any)?.allocations ?? []
+    amountCents = allocations.reduce(
+      (sum: number, a: { amount: number }) => sum + Math.abs(a.amount),
+      0
+    )
+  }
+
+  const amountStepId = obligationKey
+    ? `intent.${obligationKey.toLowerCase()}.cycles`
+    : "base.amount"
 
   const rows: SummaryRow[] = [
     {
@@ -61,63 +81,65 @@ export function buildBaseSummaryCard(ctx: SummaryContext): SummaryCard {
     },
   ]
 
-  let rootName: string | null = null
-  let rootStepId = "base.category"
-  let counterpartName: string | null = null
-  let counterpartStepId = "base.subcategory"
+  if (!isObligation) {
+    let rootName: string | null = null
+    let rootStepId = "base.category"
+    let counterpartName: string | null = null
+    let counterpartStepId = "base.subcategory"
 
-  if (ctx.activeIntents.includes("CREATE_CATEGORY")) {
-    rootName = ctx.payload.CREATE_CATEGORY?.name?.trim() || "Nova Categoria"
-    rootStepId = "intent.create_category.basics"
-  } else if (ctx.payload.base?.categoryId) {
-    const found = ctx.lookups.categories.find(
-      (c) => c.id === ctx.payload.base?.categoryId
-    )
-    if (found) {
-      rootName = found.name
-      rootStepId = "base.category"
+    if (ctx.activeIntents.includes("CREATE_CATEGORY")) {
+      rootName = ctx.payload.CREATE_CATEGORY?.name?.trim() || "Nova Categoria"
+      rootStepId = "intent.create_category.basics"
+    } else if (ctx.payload.base?.categoryId) {
+      const found = ctx.lookups.categories.find(
+        (c) => c.id === ctx.payload.base?.categoryId
+      )
+      if (found) {
+        rootName = found.name
+        rootStepId = "base.category"
+      }
     }
-  }
 
-  if (ctx.activeIntents.includes("CREATE_SUBCATEGORY")) {
-    counterpartName =
-      ctx.payload.CREATE_SUBCATEGORY?.name?.trim() || "Nova Subcategoria"
-    counterpartStepId = "intent.create_subcategory.basics"
-  } else if (ctx.payload.base?.subcategoryId) {
-    const found = ctx.lookups.subcategories.find(
-      (s) => s.id === ctx.payload.base?.subcategoryId
-    )
-    if (found) {
-      counterpartName = found.name
-      counterpartStepId = "base.subcategory"
+    if (ctx.activeIntents.includes("CREATE_SUBCATEGORY")) {
+      counterpartName =
+        ctx.payload.CREATE_SUBCATEGORY?.name?.trim() || "Nova Subcategoria"
+      counterpartStepId = "intent.create_subcategory.basics"
+    } else if (ctx.payload.base?.subcategoryId) {
+      const found = ctx.lookups.subcategories.find(
+        (s) => s.id === ctx.payload.base?.subcategoryId
+      )
+      if (found) {
+        counterpartName = found.name
+        counterpartStepId = "base.subcategory"
+      }
     }
-  }
 
-  let categoryPath: string | null = null
-  let categoryStepId = "base.category"
+    let categoryPath: string | null = null
+    let categoryStepId = "base.category"
 
-  if (rootName && counterpartName) {
-    categoryPath = `${rootName} > ${counterpartName}`
-    categoryStepId =
-      rootStepId !== "base.category" ? rootStepId : counterpartStepId
-  } else if (counterpartName) {
-    categoryPath = counterpartName
-    categoryStepId = counterpartStepId
-  } else if (rootName) {
-    categoryPath = rootName
-    categoryStepId = rootStepId
-  }
+    if (rootName && counterpartName) {
+      categoryPath = `${rootName} > ${counterpartName}`
+      categoryStepId =
+        rootStepId !== "base.category" ? rootStepId : counterpartStepId
+    } else if (counterpartName) {
+      categoryPath = counterpartName
+      categoryStepId = counterpartStepId
+    } else if (rootName) {
+      categoryPath = rootName
+      categoryStepId = rootStepId
+    }
 
-  if (categoryPath) {
-    rows.push({
-      id: "base_category",
-      label: "Categoria",
-      value: {
-        kind: "text",
-        text: categoryPath,
-      },
-      stepId: categoryStepId,
-    })
+    if (categoryPath) {
+      rows.push({
+        id: "base_category",
+        label: "Categoria",
+        value: {
+          kind: "text",
+          text: categoryPath,
+        },
+        stepId: categoryStepId,
+      })
+    }
   }
 
   return {

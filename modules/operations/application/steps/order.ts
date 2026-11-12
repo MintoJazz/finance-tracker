@@ -10,6 +10,8 @@ export const STEP_ORDER = {
 
   /** 2000–2999: Identificação e temporalidade (descrição e data) e compromissos */
   DETAILS: 2000,
+  OBLIGATION_CONTRACT: 2100,
+  OBLIGATION_CYCLES: 2200,
 
   /** 3000–3999: Meio de Pagamento (Custódia) */
   CUSTODY: 3000,

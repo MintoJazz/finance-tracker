@@ -5,5 +5,5 @@ export const detailsBaseStep = {
   id: "base.details",
   order: STEP_ORDER.DETAILS,
   source: "BASE",
-  fields: ["base.amount", "base.dueDate", "base.description"],
+  fields: ["base.description", "base.dueDate"],
 } as const satisfies StepDefinition

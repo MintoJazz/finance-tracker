@@ -15,6 +15,12 @@ export function operationHref(
   if (seed.intents && seed.intents.length > 0) {
     params.set("intents", seed.intents.join(","))
   }
+  if (seed.agreementId) {
+    params.set("agreementId", String(seed.agreementId))
+  }
+  if (seed.cycleReferenceDate) {
+    params.set("cycleReferenceDate", seed.cycleReferenceDate)
+  }
   if (seed.custodyBalanceId) {
     params.set("custodyBalanceId", String(seed.custodyBalanceId))
   }

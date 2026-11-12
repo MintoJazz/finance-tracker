@@ -21,10 +21,20 @@ export function CustodyPicker({
   const { lookups, draft, updateDraft } = useOperationWizard()
   const isReceive = draft.nature === "RECEIVE"
 
+  const selectedAgreementId =
+    draft.PAY_OBLIGATION?.agreementId ?? draft.RECEIVE_OBLIGATION?.agreementId
+  const selectedAgreementIsCredit = Boolean(
+    selectedAgreementId &&
+      lookups.custodies.some(
+        (c) => c.id === selectedAgreementId && c.type === "CREDIT"
+      )
+  )
+  const disallowCredit = isReceive || selectedAgreementIsCredit
+
   const items = React.useMemo<EntityPickerItem<number>[]>(
     () =>
       lookups.custodies
-        .filter((c) => (isReceive ? c.type !== "CREDIT" : true))
+        .filter((c) => (disallowCredit ? c.type !== "CREDIT" : true))
         .map((c) => {
           const typeLabel =
             c.type === "CREDIT"

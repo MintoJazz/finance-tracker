@@ -27,6 +27,7 @@ export const MOCK_CUSTODY_OPTIONS: CustodyOption[] = [
     subtitle: "Cartão de crédito",
     icon: "CreditCard",
     color: "#8B5CF6",
+    balanceCents: 1605894,
   },
   {
     id: 3,
@@ -35,6 +36,7 @@ export const MOCK_CUSTODY_OPTIONS: CustodyOption[] = [
     subtitle: "Cartão de crédito",
     icon: "CreditCard",
     color: "#0EA5E9",
+    balanceCents: 2500000,
   },
   {
     id: 4,

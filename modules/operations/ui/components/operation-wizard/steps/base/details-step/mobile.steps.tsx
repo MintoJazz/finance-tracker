@@ -5,13 +5,12 @@ import { z } from "zod"
 import type { WizardStep } from "@/components/wizard"
 import { BaseOperationSliceSchema } from "@/modules/operations/models/operation-base.schema"
 import type { OperationDraft } from "@/modules/operations/models/operation-input.schema"
-import { OperationAmountField } from "./amount-field"
 import { OperationDateInput } from "./dates-fields"
 import { OperationDescriptionInput } from "./description-field"
 
-const mobileAmountSchema = z.object({
+const mobileDescriptionSchema = z.object({
   base: z.object({
-    amount: BaseOperationSliceSchema.shape.amount,
+    description: BaseOperationSliceSchema.shape.description,
   }),
 })
 
@@ -21,24 +20,18 @@ const mobileDateSchema = z.object({
   }),
 })
 
-const mobileDescriptionSchema = z.object({
-  base: z.object({
-    description: BaseOperationSliceSchema.shape.description,
-  }),
-})
-
-export const detailsAmountMobileStep: WizardStep<OperationDraft> = {
-  id: "base.details.amount",
-  title: "Valor da Operação",
-  description: "Qual é o valor desta movimentação?",
-  schema: mobileAmountSchema,
+export const detailsDescriptionMobileStep: WizardStep<OperationDraft> = {
+  id: "base.details.description",
+  title: "Descrição",
+  description: "Identifique brevemente esta operação.",
+  schema: mobileDescriptionSchema,
   fields: [
     {
-      name: "base.amount",
-      label: "Valor em Reais",
+      name: "base.description",
+      label: "Descrição",
       children: (_ctx, field) => (
-        <OperationAmountField
-          value={field.value as number | undefined}
+        <OperationDescriptionInput
+          value={field.value as string | undefined}
           onChange={(val) => field.onChange(val)}
         />
       ),
@@ -58,25 +51,6 @@ export const detailsDatesMobileStep: WizardStep<OperationDraft> = {
       children: (_ctx, field) => (
         <OperationDateInput
           fieldKey="dueDate"
-          value={field.value as string | undefined}
-          onChange={(val) => field.onChange(val)}
-        />
-      ),
-    },
-  ],
-}
-
-export const detailsDescriptionMobileStep: WizardStep<OperationDraft> = {
-  id: "base.details.description",
-  title: "Descrição",
-  description: "Identifique brevemente esta operação.",
-  schema: mobileDescriptionSchema,
-  fields: [
-    {
-      name: "base.description",
-      label: "Descrição",
-      children: (_ctx, field) => (
-        <OperationDescriptionInput
           value={field.value as string | undefined}
           onChange={(val) => field.onChange(val)}
         />

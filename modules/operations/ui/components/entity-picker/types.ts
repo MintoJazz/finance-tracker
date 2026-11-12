@@ -2,7 +2,9 @@ import type { ReactNode } from "react"
 
 export interface EntityPickerItem<TId extends string | number = number> {
   id: TId
-  title: string
+  title: ReactNode
+  /** Texto simples para busca quando title for um nó ReactNode */
+  titleText?: string
   subtitle?: string
   /** Conteúdo complementar opcional alinhado à direita (antes do checkbox) */
   extra?: ReactNode
@@ -12,6 +14,8 @@ export interface EntityPickerItem<TId extends string | number = number> {
   color?: string | null
   /** Palavras-chave extras para filtro de busca */
   keywords?: string[]
+  /** Indica se o item está desabilitado para seleção */
+  disabled?: boolean
 }
 
 export interface EntityPickerSingleProps<TId extends string | number = number> {
@@ -20,10 +24,13 @@ export interface EntityPickerSingleProps<TId extends string | number = number> {
   value?: TId | null
   onChange: (value: TId | null, item?: EntityPickerItem<TId>) => void
   variant?: "carousel" | "grid"
+  indicator?: "checkbox" | "radio" | "chevron" | "none"
   searchable?: boolean
   searchPlaceholder?: string
   allowDeselect?: boolean
   emptyMessage?: string
+  loading?: boolean
+  listClassName?: string
   className?: string
 }
 
@@ -35,9 +42,12 @@ export interface EntityPickerMultipleProps<
   value?: readonly TId[]
   onChange: (value: TId[], items: EntityPickerItem<TId>[]) => void
   variant?: "carousel" | "grid"
+  indicator?: "checkbox" | "radio" | "chevron" | "none"
   searchable?: boolean
   searchPlaceholder?: string
   emptyMessage?: string
+  loading?: boolean
+  listClassName?: string
   className?: string
 }
 
