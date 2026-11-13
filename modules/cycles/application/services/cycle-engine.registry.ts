@@ -22,7 +22,7 @@ import {
     startOfYear,
     subMonths,
 } from "date-fns";
-import { CycleRuleWithEntriesData } from "@/modules/cycles/application/interfaces/commitment-cycle-engine.interface";
+import { CycleRuleData } from "@/modules/cycles/application/interfaces/commitment-cycle-engine.interface";
 
 const PT_BR_MONTHS = [
     "Janeiro",
@@ -52,27 +52,32 @@ export interface ICycleFrequencyStrategy {
     /**
      * Retorna a data do período base após aplicar o deslocamento de closingDay se aplicável.
      */
-    resolveReferenceDate(rawRefDate: Date, rule: CycleRuleWithEntriesData): Date;
+    resolveReferenceDate(rawRefDate: Date, rule: CycleRuleData): Date;
 
     /**
      * Calcula os limites de início, fim, vencimento, chave e rótulo para o ciclo que contém `date`.
      */
     getCycleBoundaries(
         date: Date,
-        rule: CycleRuleWithEntriesData
+        rule: CycleRuleData
     ): CyclePeriodBoundaries;
 
     /**
      * Avança `steps` ciclos a partir de `date`.
      */
     stepCycle(date: Date, steps: number, interval: number): Date;
+
+    /**
+     * Retorna o início civil do período corrente para a frequência (ex: startOfMonth para MONTHLY).
+     */
+    resolveCurrentPeriodStart(today: Date): Date;
 }
 
 /**
  * Estratégia Mensal (MONTHLY)
  */
 class MonthlyCycleStrategy implements ICycleFrequencyStrategy {
-    resolveReferenceDate(rawRefDate: Date, rule: CycleRuleWithEntriesData): Date {
+    resolveReferenceDate(rawRefDate: Date, rule: CycleRuleData): Date {
         const civilDate = startOfDay(rawRefDate);
         if (rule.closingDay !== null && civilDate.getDate() > rule.closingDay) {
             return startOfDay(addMonths(civilDate, 1));
@@ -82,7 +87,7 @@ class MonthlyCycleStrategy implements ICycleFrequencyStrategy {
 
     getCycleBoundaries(
         date: Date,
-        rule: CycleRuleWithEntriesData
+        rule: CycleRuleData
     ): CyclePeriodBoundaries {
         const interval = Math.max(1, rule.interval || 1);
         const anchor = startOfMonth(startOfDay(rule.effectiveFrom));
@@ -156,6 +161,10 @@ class MonthlyCycleStrategy implements ICycleFrequencyStrategy {
         const effectiveInterval = Math.max(1, interval || 1);
         return startOfDay(addMonths(date, steps * effectiveInterval));
     }
+
+    resolveCurrentPeriodStart(today: Date): Date {
+        return startOfMonth(startOfDay(today));
+    }
 }
 
 /**
@@ -168,7 +177,7 @@ class WeeklyCycleStrategy implements ICycleFrequencyStrategy {
 
     getCycleBoundaries(
         date: Date,
-        rule: CycleRuleWithEntriesData
+        rule: CycleRuleData
     ): CyclePeriodBoundaries {
         const interval = Math.max(1, rule.interval || 1);
         const anchor = startOfWeek(startOfDay(rule.effectiveFrom), { weekStartsOn: 1 });
@@ -215,6 +224,10 @@ class WeeklyCycleStrategy implements ICycleFrequencyStrategy {
         const effectiveInterval = Math.max(1, interval || 1);
         return startOfDay(addWeeks(date, steps * effectiveInterval));
     }
+
+    resolveCurrentPeriodStart(today: Date): Date {
+        return startOfWeek(startOfDay(today), { weekStartsOn: 1 });
+    }
 }
 
 /**
@@ -227,7 +240,7 @@ class YearlyCycleStrategy implements ICycleFrequencyStrategy {
 
     getCycleBoundaries(
         date: Date,
-        rule: CycleRuleWithEntriesData
+        rule: CycleRuleData
     ): CyclePeriodBoundaries {
         const interval = Math.max(1, rule.interval || 1);
         const anchor = startOfYear(startOfDay(rule.effectiveFrom));
@@ -276,6 +289,10 @@ class YearlyCycleStrategy implements ICycleFrequencyStrategy {
         const effectiveInterval = Math.max(1, interval || 1);
         return startOfDay(addYears(date, steps * effectiveInterval));
     }
+
+    resolveCurrentPeriodStart(today: Date): Date {
+        return startOfYear(startOfDay(today));
+    }
 }
 
 /**
@@ -288,7 +305,7 @@ class OnceCycleStrategy implements ICycleFrequencyStrategy {
 
     getCycleBoundaries(
         _date: Date,
-        rule: CycleRuleWithEntriesData
+        rule: CycleRuleData
     ): CyclePeriodBoundaries {
         const beginsAt = startOfDay(rule.effectiveFrom);
         const endsAt = startOfDay(rule.effectiveFrom);
@@ -320,6 +337,10 @@ class OnceCycleStrategy implements ICycleFrequencyStrategy {
 
     stepCycle(date: Date, steps: number): Date {
         return startOfDay(addDays(date, steps));
+    }
+
+    resolveCurrentPeriodStart(today: Date): Date {
+        return startOfDay(today);
     }
 }
 

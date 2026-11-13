@@ -268,6 +268,114 @@ export const MOCK_CARD_ENTRIES: MovementEntry[] = [
             kind: "NONE",
         },
     },
+    {
+        id: "card-7",
+        entryId: 207,
+        movementId: 2007,
+        date: "2026-10-30T17:40:00.000Z",
+        description: "Spotify Premium",
+        type: "PURCHASE",
+        direction: "DEBIT",
+        amount: 3490, // R$ 34,90
+        isReversed: false,
+        hasAttachment: false,
+        counterpart: {
+            kind: "CATEGORY",
+            id: 8,
+            name: "Assinaturas & Serviços",
+            appearance: { icon: "music", color: "emerald" },
+        },
+    },
+    {
+        id: "card-8",
+        entryId: 208,
+        movementId: 2008,
+        date: "2026-10-28T14:10:00.000Z",
+        description: "Droga Raia - Medicamentos",
+        type: "PURCHASE",
+        direction: "DEBIT",
+        amount: 8750, // R$ 87,50
+        isReversed: false,
+        hasAttachment: false,
+        counterpart: {
+            kind: "CATEGORY",
+            id: 9,
+            name: "Saúde & Farmácia",
+            appearance: { icon: "heart", color: "rose" },
+        },
+    },
+    {
+        id: "card-9",
+        entryId: 209,
+        movementId: 2009,
+        date: "2026-10-25T19:30:00.000Z",
+        description: "Posto Shell - Abastecimento",
+        type: "PURCHASE",
+        direction: "DEBIT",
+        amount: 22000, // R$ 220,00
+        isReversed: false,
+        hasAttachment: false,
+        counterpart: {
+            kind: "CATEGORY",
+            id: 6,
+            name: "Transporte Urbano",
+            appearance: { icon: "car", color: "blue" },
+        },
+    },
+    {
+        id: "card-10",
+        entryId: 210,
+        movementId: 2010,
+        date: "2026-10-22T10:15:00.000Z",
+        description: "Livraria Cultura - Livros Técnicos",
+        type: "PURCHASE",
+        direction: "DEBIT",
+        amount: 14500, // R$ 145,00
+        isReversed: false,
+        hasAttachment: true,
+        counterpart: {
+            kind: "CATEGORY",
+            id: 10,
+            name: "Educação & Livros",
+            appearance: { icon: "book-open", color: "indigo" },
+        },
+    },
+    {
+        id: "card-11",
+        entryId: 211,
+        movementId: 2011,
+        date: "2026-10-20T12:00:00.000Z",
+        description: "Restaurante Fasano",
+        type: "PURCHASE",
+        direction: "DEBIT",
+        amount: 38000, // R$ 380,00
+        isReversed: false,
+        hasAttachment: true,
+        counterpart: {
+            kind: "CATEGORY",
+            id: 2,
+            name: "Restaurantes & Delivery",
+            appearance: { icon: "utensils", color: "amber" },
+        },
+    },
+    {
+        id: "card-12",
+        entryId: 212,
+        movementId: 2012,
+        date: "2026-10-18T09:45:00.000Z",
+        description: "Padaria Bella Paulista",
+        type: "PURCHASE",
+        direction: "DEBIT",
+        amount: 4200, // R$ 42,00
+        isReversed: false,
+        hasAttachment: false,
+        counterpart: {
+            kind: "CATEGORY",
+            id: 2,
+            name: "Restaurantes & Delivery",
+            appearance: { icon: "utensils", color: "amber" },
+        },
+    },
 ];
 
 export const MOCK_CONTRACT_CYCLE_ENTRIES: MovementEntry[] = [
@@ -368,6 +476,57 @@ export const MOCK_CONTRACT_CYCLE_ENTRIES: MovementEntry[] = [
         direction: "CREDIT",
         amount: 15000, // R$ 150,00
         isReversed: true,
+        hasAttachment: false,
+        counterpart: {
+            kind: "NONE",
+        },
+    },
+    {
+        id: "contract-7",
+        entryId: 307,
+        movementId: 3007,
+        date: "2026-11-09T10:00:00.000Z",
+        description: "Quitação Complementar via PIX",
+        type: "SETTLEMENT",
+        direction: "CREDIT",
+        amount: 50000, // R$ 500,00
+        isReversed: false,
+        hasAttachment: true,
+        counterpart: {
+            kind: "CUSTODY",
+            id: 1,
+            name: "Carteira Itaú",
+            appearance: null,
+        },
+    },
+    {
+        id: "contract-8",
+        entryId: 308,
+        movementId: 3008,
+        date: "2026-11-10T14:20:00.000Z",
+        description: "Taxa de Condomínio Ordinária",
+        type: "PROVISION",
+        direction: "DEBIT",
+        amount: 65000, // R$ 650,00
+        isReversed: false,
+        hasAttachment: false,
+        counterpart: {
+            kind: "CATEGORY",
+            id: 11,
+            name: "Moradia & Habitação",
+            appearance: { icon: "home", color: "sky" },
+        },
+    },
+    {
+        id: "contract-9",
+        entryId: 309,
+        movementId: 3009,
+        date: "2026-11-12T09:00:00.000Z",
+        description: "Desconto de Pontualidade Acordado",
+        type: "ADJUSTMENT",
+        direction: "CREDIT",
+        amount: 10000, // R$ 100,00
+        isReversed: false,
         hasAttachment: false,
         counterpart: {
             kind: "NONE",

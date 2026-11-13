@@ -16,7 +16,6 @@ import {
     MovementEntry,
     MovementEntryFilters,
     MovementEntryScope,
-    MovementEntryType,
 } from "@/modules/movements/models/movement-entry.schema";
 import { MovementEntryMapper } from "../mappers/movement-entry.mapper";
 import { WalletMovementMapper } from "../mappers/wallet-movement.mapper";

@@ -33,7 +33,7 @@ export interface CycleAggregatedEntryData {
     count: number; // quantidade de movimentos individuais contidos no balde
 }
 
-export interface CycleRuleWithEntriesData {
+export interface CycleRuleData {
     id: number;
     agreementId: number;
     effectiveFrom: Date;
@@ -41,6 +41,9 @@ export interface CycleRuleWithEntriesData {
     interval: number;
     closingDay: number | null;
     dueDay: number;
+}
+
+export interface CycleRuleWithEntriesData extends CycleRuleData {
     entries: CycleAggregatedEntryData[];
 }
 

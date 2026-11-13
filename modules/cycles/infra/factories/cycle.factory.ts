@@ -6,6 +6,7 @@ import { PlanningSpaceAccessAdapter } from "@/modules/contracts/infra/adapters/p
 import { IContractProfileQueries } from "@/modules/contracts/application/interfaces/contract-profile-queries.interface";
 import { ContractProfilePrismaQueries } from "@/modules/contracts/infra/repositories/contract-profile-prisma.queries";
 import { CycleEngineService } from "../../application/services/cycle-engine.service";
+import { CycleDetailEngine } from "../../application/services/cycle-detail-engine.service";
 import { IContractCycleProfileQueries } from "../../application/interfaces/contract-cycle-profile-queries.interface";
 import { ICycleEntriesQueries } from "../../application/interfaces/cycle-entries-queries.interface";
 import { GetContractCyclesUseCase } from "../../application/use-cases/get-contract-cycles.use-case";
@@ -15,6 +16,8 @@ import { GetCycleEntriesUseCase } from "../../application/use-cases/get-cycle-en
 import { GetObligationCyclesUseCase } from "../../application/use-cases/get-obligation-cycles.use-case";
 import { ContractCycleProfilePrismaQueries } from "@/modules/cycles/infra/repositories/contract-cycle-profile-prisma.queries";
 import { CycleEntriesPrismaQueries } from "@/modules/cycles/infra/repositories/cycle-entries-prisma.queries";
+import { ICycleQueries } from "../../application/interfaces/cycle-queries.interface";
+import { CyclePrismaQueries } from "../repositories/cycle-prisma.queries";
 
 export class CycleFactory {
     private static readonly memberRepository: IContextMemberRepository =
@@ -32,7 +35,11 @@ export class CycleFactory {
         new ContractCycleProfilePrismaQueries();
     private static readonly cycleEntriesQueries: ICycleEntriesQueries =
         new CycleEntriesPrismaQueries();
+    private static readonly cycleQueries: ICycleQueries =
+        new CyclePrismaQueries();
     private static readonly cycleEngineService = new CycleEngineService();
+    private static readonly cycleDetailEngine = new CycleDetailEngine();
+
 
     public static readonly makeGetContractCyclesUseCase = () =>
         new GetContractCyclesUseCase(
