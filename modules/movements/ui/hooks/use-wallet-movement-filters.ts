@@ -4,6 +4,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { WalletMovementFilters, WalletMovementType } from "@/modules/movements/models/wallet-movement.schema";
 
+import {
+    MovementEntryType,
+    MovementEntryTypeSchema,
+} from "@/modules/movements/models/movement-entry.schema";
+
 export interface UseWalletMovementFiltersReturn {
     filters: WalletMovementFilters;
     activeFilterCount: number;
@@ -11,13 +16,7 @@ export interface UseWalletMovementFiltersReturn {
     clearFilters: () => void;
 }
 
-const VALID_TYPES = new Set<WalletMovementType>([
-    "INCOME",
-    "EXPENSE",
-    "TRANSFER",
-    "ADJUSTMENT",
-    "REVERSAL",
-]);
+const VALID_TYPES = new Set<string>(MovementEntryTypeSchema.options);
 
 export function useWalletMovementFilters(): UseWalletMovementFiltersReturn {
     const router = useRouter();

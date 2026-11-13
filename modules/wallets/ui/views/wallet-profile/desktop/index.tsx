@@ -13,7 +13,8 @@ import { WalletQuickActions } from "@/modules/wallets/ui/components/wallet-profi
 import { ProfileSkeleton } from "@/modules/wallets/ui/components/wallet-profile/skeletons/profile-skeleton";
 import { ArchiveWalletModalViewDesktop } from "../../archive-wallet-modal";
 import { RestoreWalletModalViewDesktop } from "../../restore-wallet-modal";
-import { WalletMovementTable } from "@/modules/movements/ui/components/wallet-movement-table";
+import { MovementEntryTable } from "@/modules/movements/ui/components/movement-entry-table";
+import { MOVEMENT_ENTRY_ACTIONS } from "@/modules/movements/ui/components/movement-entry/movement-entry-actions-drawer";
 import { MovementFilter } from "@/modules/movements/ui/components/movement-filter";
 import { WalletMovementSearch } from "@/modules/movements/ui/components/wallet-movement-search";
 import { WalletProfileDesktopProps } from "../types";
@@ -99,14 +100,16 @@ export default function WalletProfileViewDesktop({
                             error={movementsError}
                         />
                     ) : (
-                        <WalletMovementTable
+                        <MovementEntryTable
                             data={movementsData}
+                            scope="WALLET"
                             isLoading={isLoadingMovements}
                             hasFilters={activeFilterCount > 0}
                             onClearFilters={clearFilters}
-                            setPage={paginationContext.setPage}
-                            setPageSize={paginationContext.setPageSize}
+                            paginationContext={paginationContext}
+                            rowActions={MOVEMENT_ENTRY_ACTIONS}
                             actionContext={movementActionContext}
+                            loadingMessage="Atualizando extrato..."
                         />
                     )}
                 </main>
@@ -207,6 +210,7 @@ export default function WalletProfileViewDesktop({
                                     values={filters}
                                     onChange={applyFilters}
                                     onReset={clearFilters}
+                                    scope="WALLET"
                                 >
                                     <MovementFilter.Direction />
                                     <MovementFilter.DateRange />

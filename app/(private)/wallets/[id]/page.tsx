@@ -5,18 +5,37 @@ import { getDeviceViewport } from "@/lib/device";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { WalletFactory } from "@/modules/wallets/infra/factories/wallet.factory";
 import { MovementFactory } from "@/modules/movements/infra/factories/movement.factory";
+import {
+    MovementEntryType,
+    MovementEntryTypeSchema,
+} from "@/modules/movements/models/movement-entry.schema";
+import { WalletMovementFilters } from "@/modules/movements/models/wallet-movement.schema";
 import { redirect } from "next/navigation";
 
 interface WalletProfilePageProps {
     params: Promise<{ id: string }>;
+    searchParams?: Promise<{
+        page?: string;
+        pageSize?: string;
+        q?: string;
+        from?: string;
+        to?: string;
+        direction?: string;
+        types?: string;
+        includeReversed?: string;
+    }>;
 }
 
 export default async function WalletProfilePage(props: WalletProfilePageProps) {
     const session = await SessionHandler.getSession();
     if (!session) redirect("/login");
 
-    const params = await props.params;
+    const [params, rawSearchParams] = await Promise.all([
+        props.params,
+        props.searchParams,
+    ]);
     const walletId = Number(params.id);
+    const searchParams = rawSearchParams ?? {};
 
     if (Number.isNaN(walletId) || walletId <= 0) {
         return (
@@ -42,12 +61,39 @@ export default async function WalletProfilePage(props: WalletProfilePageProps) {
         );
     }
 
+    const rawPage = Number(searchParams.page);
+    const rawPageSize = Number(searchParams.pageSize);
+    const page = !Number.isNaN(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
+    const pageSize = !Number.isNaN(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : 10;
+
+    const rawTypes = searchParams.types;
+    const types = rawTypes
+        ? (rawTypes
+              .split(",")
+              .map((t) => t.trim())
+              .filter((t) =>
+                  MovementEntryTypeSchema.options.includes(t as MovementEntryType)
+              ) as MovementEntryType[])
+        : undefined;
+
+    const filter: WalletMovementFilters = {
+        q: searchParams.q?.trim() || undefined,
+        from: searchParams.from || undefined,
+        to: searchParams.to || undefined,
+        direction:
+            searchParams.direction === "CREDIT" || searchParams.direction === "DEBIT"
+                ? searchParams.direction
+                : undefined,
+        types: types && types.length > 0 ? types : undefined,
+        includeReversed: searchParams.includeReversed === "true" ? true : undefined,
+    };
+
     const movementsUseCase = MovementFactory.makeGetWalletMovementsUseCase();
     const movementsResult = await movementsUseCase.execute({
         session,
         walletId,
-        pageRequest: { page: 1, pageSize: 10 },
-        filter: {},
+        pageRequest: { page, pageSize },
+        filter,
     });
 
     const initialViewport = await getDeviceViewport();

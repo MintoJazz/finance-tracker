@@ -12,7 +12,7 @@ import { archiveWalletAction } from "@/modules/wallets/ui/actions/archive-wallet
 import { restoreWalletAction } from "@/modules/wallets/ui/actions/restore-wallet.action";
 import { useBreadcrumbLabel } from "@/components/header";
 import { WalletActionContext } from "../../../components/wallet-actions-drawer";
-import { MovementActionContext } from "@/modules/movements/ui/components/wallet-movements-actions-menu";
+import { MovementEntryActionContext } from "@/modules/movements/ui/components/movement-entry/movement-entry-actions-drawer";
 
 export function useWalletProfileDesktop({
     walletId,
@@ -92,12 +92,12 @@ export function useWalletProfileDesktop({
         [router, onArchive, onRestore]
     );
 
-    const movementActionContext = useMemo<MovementActionContext>(
+    const movementActionContext = useMemo<MovementEntryActionContext>(
         () => ({
-            onViewDetails: (m) =>
-                console.log("[Ação Visual] Ver detalhes movimentação:", m.movementId),
-            onViewReceipt: (m) =>
-                console.log("[Ação Visual] Ver comprovante:", m.movementId),
+            onViewDetails: (entry) =>
+                console.log("[Ação Visual] Ver detalhes lançamento:", entry.id),
+            onViewReceipt: (entry) =>
+                console.log("[Ação Visual] Ver comprovante:", entry.id),
         }),
         []
     );

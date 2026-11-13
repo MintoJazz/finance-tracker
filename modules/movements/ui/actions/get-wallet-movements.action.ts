@@ -6,13 +6,13 @@ import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import {
     GetWalletMovementsDTO,
     GetWalletMovementsDTOSchema,
-    WalletMovement,
 } from "@/modules/movements/models/wallet-movement.schema";
+import { MovementEntry } from "@/modules/movements/models/movement-entry.schema";
 import { MovementFactory } from "@/modules/movements/infra/factories/movement.factory";
 
 export async function getWalletMovementsAction(
     dto: GetWalletMovementsDTO
-): Promise<Result<Page<WalletMovement>>> {
+): Promise<Result<Page<MovementEntry>>> {
     const session = await SessionHandler.getSession();
     if (!session) return failure("Não autenticado");
 

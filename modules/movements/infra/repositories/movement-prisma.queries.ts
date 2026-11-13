@@ -10,11 +10,17 @@ import {
     MovementCategoryClassification,
     WalletMovement,
     WalletMovementFilters,
-    WalletMovementType,
 } from "@/modules/movements/models/wallet-movement.schema";
-import { IMovementQueries } from "@/modules/movements/application/interfaces/movement-queries.interface";
+import { IMovementQueries, ListBalanceMovementEntriesOptions } from "@/modules/movements/application/interfaces/movement-queries.interface";
+import {
+    MovementEntry,
+    MovementEntryFilters,
+    MovementEntryScope,
+    MovementEntryType,
+} from "@/modules/movements/models/movement-entry.schema";
+import { MovementEntryMapper } from "../mappers/movement-entry.mapper";
 import { WalletMovementMapper } from "../mappers/wallet-movement.mapper";
-import { WalletMovementTypeResolver } from "@/modules/movements/application/services/wallet-movement-type.registry";
+import { MovementEntryFilterPrismaRegistry } from "../registries/movement-entry-filter-prisma.registry";
 
 export class MovementPrismaQueries implements IMovementQueries {
     private static readonly includeEntry = {
@@ -31,6 +37,104 @@ export class MovementPrismaQueries implements IMovementQueries {
             },
         },
     } satisfies MovementInclude;
+
+    async listBalanceMovementEntries(
+        balanceId: number,
+        scope: MovementEntryScope,
+        pageRequest: PageRequest,
+        filter?: MovementEntryFilters,
+        options?: ListBalanceMovementEntriesOptions
+    ): Promise<Page<MovementEntry>> {
+        const where = this.buildScopedWhereClause(
+            balanceId,
+            scope,
+            filter,
+            options
+        );
+
+        const rawPage = Number(pageRequest.page);
+        const rawPageSize = Number(pageRequest.pageSize);
+        const page =
+            !Number.isNaN(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
+        const pageSize =
+            !Number.isNaN(rawPageSize) && rawPageSize > 0
+                ? Math.floor(rawPageSize)
+                : 10;
+
+        const skip = (page - 1) * pageSize;
+        const take = pageSize;
+
+        const [rawItems, total] = await Promise.all([
+            prisma.movement.findMany({
+                where,
+                skip,
+                take,
+                include: {
+                    entry: {
+                        select: {
+                            id: true,
+                            description: true,
+                            dueDate: true,
+                            competanceDate: true,
+                            type: true,
+                            reversedBy: {
+                                select: { id: true },
+                            },
+                            movements: {
+                                where: { balanceId: { not: balanceId } },
+                                select: {
+                                    id: true,
+                                    balanceId: true,
+                                    direction: true,
+                                    amount: true,
+                                    balance: {
+                                        select: {
+                                            id: true,
+                                            name: true,
+                                            balanceType: true,
+                                            appearance: {
+                                                select: {
+                                                    icon: true,
+                                                    color: true,
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                orderBy: [{ entry: { dueDate: "desc" } }, { id: "desc" }],
+            }),
+            prisma.movement.count({ where }),
+        ]);
+
+        const data: MovementEntry[] = rawItems.map((item) =>
+            MovementEntryMapper.toDomain(item, scope)
+        );
+
+        return {
+            data,
+            total,
+            pageIndex: page - 1,
+            pageSize,
+            pageCount: Math.ceil(total / pageSize) || 1,
+        };
+    }
+
+    async listWalletMovementEntries(
+        walletId: number,
+        pageRequest: PageRequest,
+        filter?: WalletMovementFilters
+    ): Promise<Page<MovementEntry>> {
+        return this.listBalanceMovementEntries(
+            walletId,
+            "WALLET",
+            pageRequest,
+            filter as MovementEntryFilters
+        );
+    }
 
     async listWalletMovements(
         walletId: number,
@@ -189,15 +293,18 @@ export class MovementPrismaQueries implements IMovementQueries {
         }
     }
 
-    private buildWhereClause(
-        walletId: number,
-        filter?: WalletMovementFilters
+    private buildScopedWhereClause(
+        balanceId: number,
+        scope: MovementEntryScope,
+        filter?: MovementEntryFilters,
+        options?: ListBalanceMovementEntriesOptions
     ): MovementWhereInput {
         const entryWhere: EntryWhereInput = {};
 
-        // Por padrão omite movimentações cujos lançamentos foram estornados
+        // Por padrão omite movimentações cujos lançamentos foram estornados ou são estornos
         if (!filter?.includeReversed) {
             entryWhere.reversedBy = null;
+            entryWhere.type = { not: "REVERSAL" };
         }
 
         // Busca textual na descrição do Entry
@@ -209,7 +316,8 @@ export class MovementPrismaQueries implements IMovementQueries {
         }
 
         // Filtro por período (from / to) considerando competanceDate com fallback para dueDate
-        if (filter?.from || filter?.to) {
+        // Ignora datas apenas se options.ignoreDateFilter for explicitamente true (ex: contratos ONCE)
+        if (!options?.ignoreDateFilter && (filter?.from || filter?.to)) {
             const dateFilter: DateTimeFilter<"Entry"> = {};
             if (filter.from) {
                 dateFilter.gte = new Date(`${filter.from}T00:00:00.000Z`);
@@ -224,7 +332,7 @@ export class MovementPrismaQueries implements IMovementQueries {
         }
 
         const where: MovementWhereInput = {
-            balanceId: walletId,
+            balanceId,
             entry: entryWhere,
         };
 
@@ -233,30 +341,29 @@ export class MovementPrismaQueries implements IMovementQueries {
             where.direction = filter.direction;
         }
 
-        // Filtro por tipos de movimentação na visão da carteira
+        // Filtro por tipos de movimentação específicos do escopo (via Registry)
         if (filter?.types && filter.types.length > 0) {
-            const typeConditions = filter.types.map((t) =>
-                this.mapWalletMovementTypeToWhere(t)
+            const typeConditions = MovementEntryFilterPrismaRegistry.toWhereConditions(
+                balanceId,
+                scope,
+                filter.types
             );
-            where.AND = [{ OR: typeConditions }];
+            if (typeConditions.length > 0) {
+                where.AND = [{ OR: typeConditions }];
+            }
         }
 
         return where;
     }
 
-    private mapWalletMovementTypeToWhere(
-        type: WalletMovementType
+    private buildWhereClause(
+        walletId: number,
+        filter?: WalletMovementFilters
     ): MovementWhereInput {
-        const rule = WalletMovementTypeResolver.getRule(type);
-
-        return {
-            ...(rule.direction ? { direction: rule.direction } : {}),
-            entry: {
-                type:
-                    rule.entryTypes.length === 1
-                        ? rule.entryTypes[0]
-                        : { in: [...rule.entryTypes] },
-            },
-        };
+        return this.buildScopedWhereClause(
+            walletId,
+            "WALLET",
+            filter as MovementEntryFilters
+        );
     }
 }

@@ -13,7 +13,9 @@ import { WalletQuickActions } from "@/modules/wallets/ui/components/wallet-profi
 import { ProfileSkeleton } from "@/modules/wallets/ui/components/wallet-profile/skeletons/profile-skeleton";
 import { ArchiveWalletModalViewMobile } from "../../archive-wallet-modal";
 import { RestoreWalletModalViewMobile } from "../../restore-wallet-modal";
-import { WalletMovementList } from "@/modules/movements/ui/components/wallet-movement-list";
+import { MovementEntryList } from "@/modules/movements/ui/components/movement-entry-list";
+import { MovementEntryActionsDrawer } from "@/modules/movements/ui/components/movement-entry/movement-entry-actions-drawer";
+import { MovementEntry } from "@/modules/movements/models/movement-entry.schema";
 import { MovementFilter } from "@/modules/movements/ui/components/movement-filter";
 import { MovementFilterDrawer } from "@/modules/movements/ui/components/movement-filter/drawer";
 import { WalletMovementSearch } from "@/modules/movements/ui/components/wallet-movement-search";
@@ -43,6 +45,7 @@ export default function WalletProfileViewMobile({
     setIsFilterDrawerOpen,
 }: WalletProfileMobileProps) {
     const [isVisible, setIsVisible] = useState(true);
+    const [activeEntry, setActiveEntry] = useState<MovementEntry | null>(null);
 
     if (profileError) {
         return (
@@ -201,16 +204,27 @@ export default function WalletProfileViewMobile({
                         />
                     </div>
                 ) : (
-                    <WalletMovementList
-                        items={items}
-                        isLoading={isLoadingMovements}
-                        isLoadingMore={isLoadingMore}
-                        hasMore={hasMore}
-                        sentinelRef={sentinelRef}
-                        hasFilters={activeFilterCount > 0}
-                        onClearFilters={clearFilters}
-                        actionContext={movementActionContext}
-                    />
+                    <>
+                        <MovementEntryList
+                            entries={items}
+                            scope="WALLET"
+                            isLoading={isLoadingMovements}
+                            isLoadingMore={isLoadingMore}
+                            hasMore={hasMore}
+                            sentinelRef={sentinelRef}
+                            hasFilters={activeFilterCount > 0}
+                            onClearFilters={clearFilters}
+                            onSelectEntry={(entry) => setActiveEntry(entry)}
+                        />
+                        <MovementEntryActionsDrawer
+                            entry={activeEntry}
+                            open={Boolean(activeEntry)}
+                            onOpenChange={(open) => {
+                                if (!open) setActiveEntry(null);
+                            }}
+                            context={movementActionContext}
+                        />
+                    </>
                 )}
             </div>
 
@@ -219,6 +233,7 @@ export default function WalletProfileViewMobile({
                 open={isFilterDrawerOpen}
                 onOpenChange={setIsFilterDrawerOpen}
                 filters={filters}
+                scope="WALLET"
                 onApply={applyFilters}
                 onClear={clearFilters}
                 title="Filtros do Extrato"

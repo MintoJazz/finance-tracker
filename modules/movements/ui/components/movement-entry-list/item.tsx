@@ -1,10 +1,13 @@
+import React from "react";
 import { Calendar, MoreHorizontal, Paperclip } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
-import { WalletMovement } from "@/modules/movements/models/wallet-movement.schema";
-import { MovementAmountSpan } from "../movement-amount-span";
+import {
+    MovementEntry,
+    MovementEntryScope,
+} from "@/modules/movements/models/movement-entry.schema";
 import {
     ListItem,
     ListItemHeader,
@@ -17,44 +20,43 @@ import {
     ListItemFooterRight,
     ListItemFooterInfo,
 } from "@/components/list-item";
-import { MOVEMENT_TYPE_UI_CONFIG } from "../../themes/movement-type";
-import {
-    CategoryAvatar,
-    getCategorySubtitle,
-} from "../category-badge";
+import { MovementEntryAvatar } from "../movement-entry/movement-entry-avatar";
+import { MovementEntrySubtitle } from "../movement-entry/movement-entry-subtitle";
+import { MovementEntryAmount } from "../movement-entry/movement-entry-amount";
+import { resolveMovementEntryTypeLabel } from "../movement-entry/presentation";
+import { MOVEMENT_ENTRY_TYPE_THEMES } from "../../themes/movement-entry-type";
 
-interface WalletMovementListItemProps {
-    movement: WalletMovement;
-    onOpenActions: () => void;
+interface MovementEntryListItemProps {
+    entry: MovementEntry;
+    scope: MovementEntryScope;
+    onOpenActions?: () => void;
     className?: string;
 }
 
-export function WalletMovementListItem({
-    movement,
+export function MovementEntryListItem({
+    entry,
+    scope,
     onOpenActions,
     className,
-}: WalletMovementListItemProps) {
+}: MovementEntryListItemProps) {
     const {
         description,
         date,
         type,
-        direction,
-        amount,
         isReversed,
-        hasReceipt,
-        categoryClassification,
-    } = movement;
-    const { icon: Icon, label } = MOVEMENT_TYPE_UI_CONFIG[type];
-    const subtitle = getCategorySubtitle(categoryClassification);
+        hasAttachment,
+    } = entry;
+
+    const typeTheme = MOVEMENT_ENTRY_TYPE_THEMES[type];
+    const TypeIcon = typeTheme?.icon ?? Calendar;
+    const typeLabel = resolveMovementEntryTypeLabel(entry, scope);
+    const dateObj = typeof date === "string" ? new Date(date) : date;
 
     return (
         <ListItem className={cn(isReversed && "opacity-75", className)}>
             <ListItemHeader>
                 <ListItemAvatar>
-                    <CategoryAvatar
-                        classification={categoryClassification}
-                        size="md"
-                    />
+                    <MovementEntryAvatar entry={entry} scope={scope} size="md" />
                 </ListItemAvatar>
                 <ListItemContent>
                     <ListItemTitle>
@@ -69,8 +71,8 @@ export function WalletMovementListItem({
                                 >
                                     {description}
                                 </span>
-                                {hasReceipt && (
-                                    <span title="Possui comprovante anexo">
+                                {hasAttachment && (
+                                    <span title="Possui anexo/comprovante">
                                         <Paperclip className="size-3.5 text-muted-foreground shrink-0" />
                                     </span>
                                 )}
@@ -83,48 +85,43 @@ export function WalletMovementListItem({
                                     </Badge>
                                 )}
                             </div>
-                            <span
-                                className="text-xs text-muted-foreground truncate font-normal"
-                                title={subtitle}
-                            >
-                                {subtitle}
-                            </span>
+                            <MovementEntrySubtitle entry={entry} scope={scope} />
                         </div>
                     </ListItemTitle>
                 </ListItemContent>
-                <ListItemActions>
-                    <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenActions();
-                        }}
-                    >
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </ListItemActions>
+                {onOpenActions && (
+                    <ListItemActions>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenActions();
+                            }}
+                            aria-label={`Ações do lançamento ${description}`}
+                        >
+                            <MoreHorizontal className="size-4" />
+                        </Button>
+                    </ListItemActions>
+                )}
             </ListItemHeader>
 
             <ListItemFooter>
                 <ListItemFooterLeft>
                     <ListItemFooterInfo icon={Calendar}>
-                        {formatDate(new Date(date))}
+                        {formatDate(dateObj)}
                     </ListItemFooterInfo>
-                    <ListItemFooterInfo icon={Icon}>
-                        {label}
+                    <ListItemFooterInfo icon={TypeIcon}>
+                        {typeLabel}
                     </ListItemFooterInfo>
                 </ListItemFooterLeft>
                 <ListItemFooterRight>
-                    <MovementAmountSpan
-                        amount={amount}
-                        direction={direction}
-                        isReversed={isReversed}
-                    />
+                    <MovementEntryAmount entry={entry} scope={scope} />
                 </ListItemFooterRight>
             </ListItemFooter>
         </ListItem>
     );
 }
 
-export default WalletMovementListItem;

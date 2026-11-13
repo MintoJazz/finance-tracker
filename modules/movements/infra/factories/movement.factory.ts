@@ -4,6 +4,7 @@ import { PrismaContextMembersRepository } from "@/modules/space/infra/repositori
 import { WalletPrismaQueries } from "@/modules/wallets/infra/repositories/wallet-prisma.queries";
 import { GetWalletMovementsUseCase } from "@/modules/movements/application/use-cases/get-wallet-movements.use-case";
 import { GetCardMovementsUseCase } from "@/modules/movements/application/use-cases/get-card-movements.use-case";
+import { GetContractCycleMovementsUseCase } from "@/modules/movements/application/use-cases/get-contract-cycle-movements.use-case";
 import { IMovementQueries } from "@/modules/movements/application/interfaces/movement-queries.interface";
 import { ISpaceAccessProvider } from "@/modules/space/application/interfaces/space-access-provider.interface";
 import { IBalanceLookupProvider } from "@/modules/movements/application/interfaces/balance-lookup-provider.interface";
@@ -28,6 +29,13 @@ export class MovementFactory {
 
     public static readonly makeGetCardMovementsUseCase = () =>
         new GetCardMovementsUseCase(
+            this.movementQueries,
+            this.spaceAccessProvider,
+            this.balanceLookupProvider
+        );
+
+    public static readonly makeGetContractCycleMovementsUseCase = () =>
+        new GetContractCycleMovementsUseCase(
             this.movementQueries,
             this.spaceAccessProvider,
             this.balanceLookupProvider

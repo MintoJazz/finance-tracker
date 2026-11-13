@@ -8,16 +8,35 @@ import {
     WalletMovementFilters,
 } from "@/modules/movements/models/wallet-movement.schema";
 import { getCardMovementsAction } from "../actions/get-card-movements.action";
-import {
-    UseWalletMovementsInfiniteReturn,
-    UseWalletMovementsPaginatedReturn,
-} from "./use-wallet-movements-data";
+
+export interface UseCardMovementsPaginatedReturn {
+    data: Page<WalletMovement> | null;
+    isLoading: boolean;
+    error: string | null;
+    reload: () => Promise<void>;
+    paginationContext: {
+        setPage: (pageIndex: number) => void;
+        setPageSize: (size: number) => void;
+    };
+}
+
+export interface UseCardMovementsInfiniteReturn {
+    items: WalletMovement[];
+    total: number;
+    hasMore: boolean;
+    isLoading: boolean;
+    isLoadingMore: boolean;
+    error: string | null;
+    reload: () => Promise<void>;
+    loadMore: () => Promise<void>;
+    sentinelRef: (node: HTMLDivElement | null) => void;
+}
 
 export function useCardMovementsPaginated(
     cardId: number,
     filters: WalletMovementFilters,
     initialData?: Page<WalletMovement> | null
-): UseWalletMovementsPaginatedReturn {
+): UseCardMovementsPaginatedReturn {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -111,7 +130,7 @@ export function useCardMovementsInfinite(
     filters: WalletMovementFilters,
     pageSize = 10,
     initialData?: Page<WalletMovement> | null
-): UseWalletMovementsInfiniteReturn {
+): UseCardMovementsInfiniteReturn {
     const [items, setItems] = useState<WalletMovement[]>(initialData?.data ?? []);
     const [pageIndex, setPageIndex] = useState<number>(initialData?.pageIndex ?? 0);
     const [pageCount, setPageCount] = useState<number>(initialData?.pageCount ?? 1);

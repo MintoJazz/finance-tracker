@@ -10,31 +10,33 @@ import {
     DrawerHeader,
     DrawerTitle,
 } from "@/components/ui/drawer";
-import { WalletMovementFilters } from "@/modules/movements/models/wallet-movement.schema";
-import { MovementFilterContext } from "./index";
+import { MovementEntryScope } from "@/modules/movements/models/movement-entry.schema";
+import { MovementFilterContext, MovementFilterValues } from "./index";
 
-interface MovementFilterDrawerProps {
+export interface MovementFilterDrawerProps<T extends MovementFilterValues = MovementFilterValues> {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    filters: WalletMovementFilters;
-    onApply: (appliedFilters: WalletMovementFilters) => void;
+    filters: T;
+    onApply: (appliedFilters: T) => void;
     onClear: () => void;
+    scope?: MovementEntryScope;
     title?: string;
     description?: string;
     children: React.ReactNode;
 }
 
-export function MovementFilterDrawer({
+export function MovementFilterDrawer<T extends MovementFilterValues = MovementFilterValues>({
     open,
     onOpenChange,
     filters,
     onApply,
     onClear,
+    scope = "WALLET",
     title = "Filtros",
     description = "Filtre os lançamentos por período, tipo e direção.",
     children,
-}: MovementFilterDrawerProps) {
-    const [draftFilters, setDraftFilters] = useState<WalletMovementFilters>(filters);
+}: MovementFilterDrawerProps<T>) {
+    const [draftFilters, setDraftFilters] = useState<T>(filters);
     const [prevOpen, setPrevOpen] = useState(open);
 
     if (open !== prevOpen) {
@@ -44,18 +46,17 @@ export function MovementFilterDrawer({
         }
     }
 
-    const handleFieldChange = (updates: Partial<WalletMovementFilters>) => {
-        setDraftFilters((prev: WalletMovementFilters) => ({
+    const handleFieldChange = (updates: Partial<MovementFilterValues>) => {
+        setDraftFilters((prev: T) => ({
             ...prev,
             ...updates,
         }));
     };
 
     const handleClearDraft = () => {
-        const emptyFilters: WalletMovementFilters = {
+        const emptyFilters: T = {
+            ...filters,
             q: undefined,
-            from: filters.from,
-            to: filters.to,
             direction: undefined,
             types: undefined,
             includeReversed: undefined,
@@ -74,8 +75,9 @@ export function MovementFilterDrawer({
         () => ({
             values: draftFilters,
             onChange: handleFieldChange,
+            scope,
         }),
-        [draftFilters]
+        [draftFilters, scope]
     );
 
     return (

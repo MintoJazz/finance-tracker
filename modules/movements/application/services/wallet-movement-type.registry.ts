@@ -1,6 +1,7 @@
 import { EntryTypeEnum } from "@/modules/movements/models/entry.schema";
 import { MovementDirectionEnum } from "@/modules/movements/models/movement.schema";
 import { WalletMovementType } from "@/modules/movements/models/wallet-movement.schema";
+import { MovementEntryTypeResolver } from "@/modules/movements/infra/registries/movement-entry-type.registry";
 
 export interface WalletMovementTypeRule {
     entryTypes: readonly EntryTypeEnum[];
@@ -16,12 +17,22 @@ export const WALLET_MOVEMENT_TYPE_REGISTRY: Record<
     WalletMovementTypeRule
 > = {
     INCOME: {
-        entryTypes: ["DIRECT", "SETTLEMENT", "ACCRUAL"],
+        entryTypes: ["DIRECT", "ACCRUAL", "CLAIM_OPENING"],
         direction: "CREDIT",
     },
     EXPENSE: {
-        entryTypes: ["DIRECT", "SETTLEMENT", "ACCRUAL"],
+        entryTypes: ["DIRECT", "ACCRUAL"],
         direction: "DEBIT",
+    },
+    PURCHASE: {
+        entryTypes: ["DIRECT", "ACCRUAL"],
+        direction: "DEBIT",
+    },
+    PROVISION: {
+        entryTypes: ["ACCRUAL", "CLAIM_OPENING", "DIRECT"],
+    },
+    SETTLEMENT: {
+        entryTypes: ["SETTLEMENT", "CLAIM_PAYMENT", "CLAIM_RECEIPT"],
     },
     TRANSFER: {
         entryTypes: ["TRANSFER"],
@@ -34,37 +45,16 @@ export const WALLET_MOVEMENT_TYPE_REGISTRY: Record<
     },
 };
 
-/**
- * Mapeamento inverso declarativo (EntryType -> Resolução por direção ou tipo direto)
- */
-const ENTRY_TYPE_TO_WALLET_MOVEMENT: Record<
-    EntryTypeEnum,
-    WalletMovementType | Record<MovementDirectionEnum, WalletMovementType>
-> = {
-    TRANSFER: "TRANSFER",
-    ADJUSTMENT: "ADJUSTMENT",
-    REVERSAL: "REVERSAL",
-    DIRECT: { CREDIT: "INCOME", DEBIT: "EXPENSE" },
-    SETTLEMENT: { CREDIT: "INCOME", DEBIT: "EXPENSE" },
-    ACCRUAL: { CREDIT: "INCOME", DEBIT: "EXPENSE" },
-    CLAIM_OPENING: { CREDIT: "INCOME", DEBIT: "EXPENSE" },
-    CLAIM_PAYMENT: { CREDIT: "INCOME", DEBIT: "EXPENSE" },
-    CLAIM_RECEIPT: { CREDIT: "INCOME", DEBIT: "EXPENSE" },
-};
-
 export class WalletMovementTypeResolver {
     /**
      * Converte (EntryType + MovementDirection) do Ledger para WalletMovementType
+     * delegando para o registry contábil centralizado de infraestrutura.
      */
     static resolve(
         entryType: EntryTypeEnum,
         direction: MovementDirectionEnum
     ): WalletMovementType {
-        const mapping = ENTRY_TYPE_TO_WALLET_MOVEMENT[entryType];
-        if (typeof mapping === "string") {
-            return mapping;
-        }
-        return mapping[direction];
+        return MovementEntryTypeResolver.resolve("WALLET", entryType, direction);
     }
 
     /**

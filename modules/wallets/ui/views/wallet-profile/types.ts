@@ -1,15 +1,16 @@
 import { Page } from "@/types/pagination.types";
 import { WalletProfile } from "@/modules/wallets/models/wallet-profile.schema";
-import { WalletMovement, WalletMovementFilters } from "@/modules/movements/models/wallet-movement.schema";
+import { WalletMovementFilters } from "@/modules/movements/models/wallet-movement.schema";
+import { MovementEntry } from "@/modules/movements/models/movement-entry.schema";
 import { ArchiveWalletModalProps } from "../archive-wallet-modal/types";
 import { RestoreWalletModalProps } from "../restore-wallet-modal/types";
 import { WalletActionContext } from "../../components/wallet-actions-drawer";
-import { MovementActionContext } from "@/modules/movements/ui/components/wallet-movements-actions-menu";
+import { MovementEntryActionContext } from "@/modules/movements/ui/components/movement-entry/movement-entry-actions-drawer";
 
 export interface WalletProfileInput {
     walletId: number;
     profile?: WalletProfile | null;
-    initialMovements?: Page<WalletMovement> | null;
+    initialMovements?: Page<MovementEntry> | null;
 }
 
 export interface WalletProfileDesktopProps {
@@ -20,11 +21,11 @@ export interface WalletProfileDesktopProps {
     walletActionsContext: WalletActionContext;
     archiveContext: ArchiveWalletModalProps;
     restoreContext: RestoreWalletModalProps;
-    movementsData: Page<WalletMovement> | null;
+    movementsData: Page<MovementEntry> | null;
     isLoadingMovements: boolean;
     movementsError: string | null;
     reloadMovements: () => Promise<void>;
-    movementActionContext: MovementActionContext;
+    movementActionContext: MovementEntryActionContext;
     filters: WalletMovementFilters;
     activeFilterCount: number;
     applyFilters: (updates: Partial<WalletMovementFilters>) => void;
@@ -43,7 +44,7 @@ export interface WalletProfileMobileProps {
     walletActionsContext: WalletActionContext;
     archiveContext: ArchiveWalletModalProps;
     restoreContext: RestoreWalletModalProps;
-    items: WalletMovement[];
+    items: MovementEntry[];
     total: number;
     hasMore: boolean;
     isLoadingMovements: boolean;
@@ -52,7 +53,7 @@ export interface WalletProfileMobileProps {
     reloadMovements: () => Promise<void>;
     loadMore: () => Promise<void>;
     sentinelRef: (node: HTMLDivElement | null) => void;
-    movementActionContext: MovementActionContext;
+    movementActionContext: MovementEntryActionContext;
     filters: WalletMovementFilters;
     activeFilterCount: number;
     applyFilters: (updates: Partial<WalletMovementFilters>) => void;

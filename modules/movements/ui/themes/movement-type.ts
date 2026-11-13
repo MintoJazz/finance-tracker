@@ -1,4 +1,13 @@
-import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, SlidersHorizontal, RotateCcw } from "lucide-react";
+import {
+    ArrowDownLeft,
+    ArrowUpRight,
+    ArrowLeftRight,
+    SlidersHorizontal,
+    RotateCcw,
+    CheckCircle2,
+    ShoppingBag,
+    FileText,
+} from "lucide-react";
 import { WalletMovementType } from "@/modules/movements/models/wallet-movement.schema";
 
 export const MOVEMENT_TYPE_UI_CONFIG: Record<
@@ -23,6 +32,26 @@ export const MOVEMENT_TYPE_UI_CONFIG: Record<
         iconClassName: "text-rose-600 dark:text-rose-400 bg-rose-500/10",
         badgeClassName:
             "border-rose-500/30 text-rose-700 dark:text-rose-400 bg-rose-500/10",
+    },
+    PURCHASE: {
+        label: "Compra",
+        icon: ShoppingBag,
+        iconClassName: "text-zinc-600 dark:text-zinc-400 bg-zinc-500/10",
+        badgeClassName: "border-border text-foreground bg-muted/40",
+    },
+    PROVISION: {
+        label: "Provisão",
+        icon: FileText,
+        iconClassName: "text-sky-600 dark:text-sky-400 bg-sky-500/10",
+        badgeClassName:
+            "border-sky-500/30 text-sky-700 dark:text-sky-400 bg-sky-500/10",
+    },
+    SETTLEMENT: {
+        label: "Pagamento",
+        icon: CheckCircle2,
+        iconClassName: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10",
+        badgeClassName:
+            "border-emerald-500/30 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10",
     },
     TRANSFER: {
         label: "Transferência",

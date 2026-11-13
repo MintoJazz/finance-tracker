@@ -1,15 +1,13 @@
 import z from "zod";
 import { MovementDirectionEnumSchema } from "./movement.schema";
+import {
+    MovementEntryType,
+    MovementEntryTypeSchema,
+} from "./movement-entry.schema";
 
-export const WalletMovementTypeSchema = z.enum([
-    "INCOME",
-    "EXPENSE",
-    "TRANSFER",
-    "ADJUSTMENT",
-    "REVERSAL",
-]);
+export const WalletMovementTypeSchema = MovementEntryTypeSchema;
 
-export type WalletMovementType = z.infer<typeof WalletMovementTypeSchema>;
+export type WalletMovementType = MovementEntryType;
 
 export const MovementCategoryClassificationSchema = z.discriminatedUnion("kind", [
     z.object({

@@ -14,23 +14,27 @@ import {
     BadgeCarouselControls,
 } from "@/components/form/carousel";
 import {
-    WalletMovementFilters,
-    WalletMovementType,
-} from "@/modules/movements/models/wallet-movement.schema";
+    MovementEntryScope,
+    MovementEntryType,
+} from "@/modules/movements/models/movement-entry.schema";
+import { MOVEMENT_ENTRY_TYPE_THEMES } from "@/modules/movements/ui/themes/movement-entry-type";
+import { MovementEntryFilterPrismaRegistry } from "@/modules/movements/infra/registries/movement-entry-filter-prisma.registry";
 import { MOVEMENT_DIRECTION_THEMES } from "@/modules/movements/ui/themes/movement-direction";
 
-const MOVEMENT_TYPE_OPTIONS: { type: WalletMovementType; label: string }[] = [
-    { type: "INCOME", label: "Receita" },
-    { type: "EXPENSE", label: "Despesa" },
-    { type: "TRANSFER", label: "Transferência" },
-    { type: "ADJUSTMENT", label: "Ajuste" },
-    { type: "REVERSAL", label: "Estorno" },
-];
+export interface MovementFilterValues {
+    q?: string;
+    from?: string;
+    to?: string;
+    direction?: "CREDIT" | "DEBIT";
+    types?: MovementEntryType[] | string[];
+    includeReversed?: boolean;
+}
 
 export interface MovementFilterContextValue {
-    values: WalletMovementFilters;
-    onChange: (updates: Partial<WalletMovementFilters>) => void;
+    values: MovementFilterValues;
+    onChange: (updates: Partial<MovementFilterValues>) => void;
     onReset?: () => void;
+    scope: MovementEntryScope;
 }
 
 export const MovementFilterContext = createContext<MovementFilterContextValue | null>(null);
@@ -43,24 +47,35 @@ export function useMovementFilter() {
     return context;
 }
 
-interface MovementFilterRootProps {
-    values: WalletMovementFilters;
-    onChange: (updates: Partial<WalletMovementFilters>) => void;
+export interface MovementFilterRootProps<
+    TFilters extends MovementFilterValues = MovementFilterValues,
+> {
+    values: TFilters;
+    onChange: (updates: Partial<TFilters>) => void;
     onReset?: () => void;
+    scope?: MovementEntryScope;
     children: React.ReactNode;
     className?: string;
 }
 
-export function MovementFilterRoot({
+export function MovementFilterRoot<
+    TFilters extends MovementFilterValues = MovementFilterValues,
+>({
     values,
     onChange,
     onReset,
+    scope = "WALLET",
     children,
     className,
-}: MovementFilterRootProps) {
-    const contextValue = useMemo(
-        () => ({ values, onChange, onReset }),
-        [values, onChange, onReset]
+}: MovementFilterRootProps<TFilters>) {
+    const contextValue = useMemo<MovementFilterContextValue>(
+        () => ({
+            values,
+            onChange: onChange as (updates: Partial<MovementFilterValues>) => void,
+            onReset,
+            scope,
+        }),
+        [values, onChange, onReset, scope]
     );
 
     return (
@@ -144,17 +159,30 @@ export function MovementFilterDateRange({ className }: { className?: string }) {
     );
 }
 
-export function MovementFilterTypes({ className }: { className?: string }) {
-    const { values, onChange } = useMovementFilter();
+export function MovementFilterTypes({
+    scope: propScope,
+    className,
+}: {
+    scope?: MovementEntryScope;
+    className?: string;
+}) {
+    const { values, onChange, scope: contextScope } = useMovementFilter();
+    const effectiveScope = propScope ?? contextScope ?? "WALLET";
+
+    const allowedTypes = MovementEntryFilterPrismaRegistry.getAllowedTypes(effectiveScope);
+    const options = allowedTypes.map((type) => ({
+        type,
+        label: MOVEMENT_ENTRY_TYPE_THEMES[type].resolveLabel(effectiveScope),
+    }));
 
     return (
         <div className={cn("flex flex-col gap-1.5", className)}>
-            <BadgeCarousel<WalletMovementType>
-                options={MOVEMENT_TYPE_OPTIONS.map((opt) => ({
+            <BadgeCarousel<MovementEntryType>
+                options={options.map((opt) => ({
                     value: opt.type,
                     label: opt.label,
                 }))}
-                value={values.types}
+                value={values.types as MovementEntryType[] | undefined}
                 onChange={(types) =>
                     onChange({ types: types && types.length > 0 ? types : undefined })
                 }

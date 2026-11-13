@@ -1,7 +1,8 @@
-import { PageRequest } from "@/types/pagination.types";
+import { Page, PageRequest } from "@/types/pagination.types";
 import { SessionPayload } from "@/modules/auth/infra/cryptography/jwt-utils";
-import { failure, success } from "@/types/result.types";
+import { failure, Result, success } from "@/types/result.types";
 import { WalletMovementFilters } from "@/modules/movements/models/wallet-movement.schema";
+import { MovementEntry } from "@/modules/movements/models/movement-entry.schema";
 import { IMovementQueries } from "@/modules/movements/application/interfaces/movement-queries.interface";
 import { ISpaceAccessProvider } from "@/modules/space/application/interfaces/space-access-provider.interface";
 import { IBalanceLookupProvider } from "@/modules/movements/application/interfaces/balance-lookup-provider.interface";
@@ -25,7 +26,7 @@ export class GetWalletMovementsUseCase {
         walletId,
         pageRequest,
         filter,
-    }: GetWalletMovementsUseCaseDTO) {
+    }: GetWalletMovementsUseCaseDTO): Promise<Result<Page<MovementEntry>>> {
         try {
             const {
                 success: accessSuccess,
@@ -59,11 +60,12 @@ export class GetWalletMovementsUseCase {
                 return failure("Carteira não encontrada.");
             }
 
-            const movementsPage = await this.movementQueries.listWalletMovements(
-                walletId,
-                pageRequest,
-                filter
-            );
+            const movementsPage =
+                await this.movementQueries.listWalletMovementEntries(
+                    walletId,
+                    pageRequest,
+                    filter
+                );
 
             return success(movementsPage);
         } catch (error) {

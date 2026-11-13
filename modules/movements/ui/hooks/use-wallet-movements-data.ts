@@ -4,10 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Page, PageRequest } from "@/types/pagination.types";
 import { getWalletMovementsAction } from "../actions/get-wallet-movements.action";
-import { WalletMovement, WalletMovementFilters } from "@/modules/movements/models/wallet-movement.schema";
+import { WalletMovementFilters } from "@/modules/movements/models/wallet-movement.schema";
+import { MovementEntry } from "@/modules/movements/models/movement-entry.schema";
 
 export interface UseWalletMovementsPaginatedReturn {
-    data: Page<WalletMovement> | null;
+    data: Page<MovementEntry> | null;
     isLoading: boolean;
     error: string | null;
     reload: () => Promise<void>;
@@ -20,7 +21,7 @@ export interface UseWalletMovementsPaginatedReturn {
 export function useWalletMovementsPaginated(
     walletId: number,
     filters: WalletMovementFilters,
-    initialData?: Page<WalletMovement> | null
+    initialData?: Page<MovementEntry> | null
 ): UseWalletMovementsPaginatedReturn {
     const router = useRouter();
     const pathname = usePathname();
@@ -31,7 +32,7 @@ export function useWalletMovementsPaginated(
     const page = !Number.isNaN(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
     const pageSize = !Number.isNaN(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : 10;
 
-    const [data, setData] = useState<Page<WalletMovement> | null>(initialData ?? null);
+    const [data, setData] = useState<Page<MovementEntry> | null>(initialData ?? null);
     const [isLoading, setIsLoading] = useState<boolean>(!initialData);
     const [error, setError] = useState<string | null>(null);
     const hasMountedRef = useRef(false);
@@ -64,15 +65,24 @@ export function useWalletMovementsPaginated(
         }
     }, [walletId, page, pageSize, filters]);
 
+    const hasActiveFilters = Boolean(
+        filters.q ||
+        filters.from ||
+        filters.to ||
+        filters.direction ||
+        (filters.types && filters.types.length > 0) ||
+        filters.includeReversed
+    );
+
     useEffect(() => {
         if (!hasMountedRef.current) {
             hasMountedRef.current = true;
-            if (initialData && page === 1) {
+            if (initialData && page === 1 && !hasActiveFilters) {
                 return;
             }
         }
         void loadData();
-    }, [loadData, initialData, page]);
+    }, [loadData, initialData, page, hasActiveFilters]);
 
     const setPage = useCallback(
         (pageIndex: number) => {
@@ -108,7 +118,7 @@ export function useWalletMovementsPaginated(
 }
 
 export interface UseWalletMovementsInfiniteReturn {
-    items: WalletMovement[];
+    items: MovementEntry[];
     total: number;
     hasMore: boolean;
     isLoading: boolean;
@@ -123,9 +133,9 @@ export function useWalletMovementsInfinite(
     walletId: number,
     filters: WalletMovementFilters,
     pageSize = 10,
-    initialData?: Page<WalletMovement> | null
+    initialData?: Page<MovementEntry> | null
 ): UseWalletMovementsInfiniteReturn {
-    const [items, setItems] = useState<WalletMovement[]>(initialData?.data ?? []);
+    const [items, setItems] = useState<MovementEntry[]>(initialData?.data ?? []);
     const [pageIndex, setPageIndex] = useState<number>(initialData?.pageIndex ?? 0);
     const [pageCount, setPageCount] = useState<number>(initialData?.pageCount ?? 1);
     const [total, setTotal] = useState<number>(initialData?.total ?? 0);
