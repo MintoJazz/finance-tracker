@@ -6,7 +6,7 @@ export function createObligationCyclesStep(
   nature: "PAY" | "RECEIVE"
 ): StepDefinition<OperationIntentKey> {
   const isPay = nature === "PAY"
-  const key: OperationIntentKey = isPay ? "PAY_OBLIGATION" : "RECEIVE_OBLIGATION"
+  const key: OperationIntentKey = isPay ? "SETTLE_PAYABLE" : "SETTLE_RECEIVABLE"
 
   return {
     id: `intent.${key.toLowerCase()}.cycles`,
@@ -20,7 +20,9 @@ export function createObligationCyclesStep(
         return [
           {
             path: [key, "allocations"],
-            message: "Selecione ao menos um ciclo para quitar",
+            message: isPay
+              ? "Selecione ao menos um ciclo para pagar"
+              : "Selecione ao menos um ciclo para receber",
           },
         ]
       }

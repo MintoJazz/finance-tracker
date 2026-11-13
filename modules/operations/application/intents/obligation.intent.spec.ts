@@ -5,16 +5,16 @@ import { resolveSteps } from "../steps/interpreter"
 import { compileOperationPlan } from "../plan/compiler"
 import { resolveSummaryCards } from "../summary/resolver"
 
-describe("Obligation Intents (PAY_OBLIGATION & RECEIVE_OBLIGATION)", () => {
+describe("Obligation Intents (SETTLE_PAYABLE & SETTLE_RECEIVABLE)", () => {
   it("está registrado no catálogo com schemas, slices e steps adequados", () => {
-    const payDef = OPERATION_STEP_CATALOG.intents.PAY_OBLIGATION
-    const receiveDef = OPERATION_STEP_CATALOG.intents.RECEIVE_OBLIGATION
+    const payDef = OPERATION_STEP_CATALOG.intents.SETTLE_PAYABLE
+    const receiveDef = OPERATION_STEP_CATALOG.intents.SETTLE_RECEIVABLE
 
-    assert.ok(payDef, "PAY_OBLIGATION deve estar no catálogo")
-    assert.ok(receiveDef, "RECEIVE_OBLIGATION deve estar no catálogo")
+    assert.ok(payDef, "SETTLE_PAYABLE deve estar no catálogo")
+    assert.ok(receiveDef, "SETTLE_RECEIVABLE deve estar no catálogo")
 
-    assert.equal(payDef.key, "PAY_OBLIGATION")
-    assert.equal(receiveDef.key, "RECEIVE_OBLIGATION")
+    assert.equal(payDef.key, "SETTLE_PAYABLE")
+    assert.equal(receiveDef.key, "SETTLE_RECEIVABLE")
 
     assert.ok(payDef.removeSteps?.includes("base.amount"))
     assert.ok(payDef.removeSteps?.includes("base.category"))
@@ -26,8 +26,8 @@ describe("Obligation Intents (PAY_OBLIGATION & RECEIVE_OBLIGATION)", () => {
   })
 
   it("oferece a intent apenas na etapa base.details respeitando a natureza", () => {
-    const payDef = OPERATION_STEP_CATALOG.intents.PAY_OBLIGATION
-    const receiveDef = OPERATION_STEP_CATALOG.intents.RECEIVE_OBLIGATION
+    const payDef = OPERATION_STEP_CATALOG.intents.SETTLE_PAYABLE
+    const receiveDef = OPERATION_STEP_CATALOG.intents.SETTLE_RECEIVABLE
 
     assert.ok(payDef)
     assert.ok(receiveDef)
@@ -45,7 +45,7 @@ describe("Obligation Intents (PAY_OBLIGATION & RECEIVE_OBLIGATION)", () => {
     const steps = resolveSteps(
       {
         nature: "PAY",
-        intents: ["PAY_OBLIGATION"],
+        intents: ["SETTLE_PAYABLE"],
         seed: { nature: "PAY" },
       },
       OPERATION_STEP_CATALOG
@@ -54,8 +54,8 @@ describe("Obligation Intents (PAY_OBLIGATION & RECEIVE_OBLIGATION)", () => {
     const stepIds = steps.map((s) => s.id)
     assert.deepEqual(stepIds, [
       "base.details",
-      "intent.pay_obligation.contract",
-      "intent.pay_obligation.cycles",
+      "intent.settle_payable.contract",
+      "intent.settle_payable.cycles",
       "base.custody",
       "base.review",
     ])
@@ -65,17 +65,17 @@ describe("Obligation Intents (PAY_OBLIGATION & RECEIVE_OBLIGATION)", () => {
     const steps = resolveSteps(
       {
         nature: "PAY",
-        intents: ["PAY_OBLIGATION"],
+        intents: ["SETTLE_PAYABLE"],
         seed: { nature: "PAY", agreementId: 42 },
       },
       OPERATION_STEP_CATALOG
     )
 
     const stepIds = steps.map((s) => s.id)
-    assert.equal(stepIds.includes("intent.pay_obligation.contract"), false)
+    assert.equal(stepIds.includes("intent.settle_payable.contract"), false)
     assert.deepEqual(stepIds, [
       "base.details",
-      "intent.pay_obligation.cycles",
+      "intent.settle_payable.cycles",
       "base.custody",
       "base.review",
     ])
@@ -85,7 +85,7 @@ describe("Obligation Intents (PAY_OBLIGATION & RECEIVE_OBLIGATION)", () => {
     const plan = compileOperationPlan(
       {
         nature: "PAY",
-        intents: ["PAY_OBLIGATION"],
+        intents: ["SETTLE_PAYABLE"],
         base: {
           custodyBalanceId: 10,
           custodyType: "WALLET",
@@ -93,11 +93,11 @@ describe("Obligation Intents (PAY_OBLIGATION & RECEIVE_OBLIGATION)", () => {
           dueDate: "2026-11-10",
           description: "Quitação de aluguel",
         },
-        PAY_OBLIGATION: {
+        SETTLE_PAYABLE: {
           agreementId: 42,
           allocations: [
-            { referenceDate: "2026-10-01", amount: 25000 },
-            { referenceDate: "2026-11-01", amount: 25000 },
+            { referenceDate: "2026-10-01", amount: 25000, status: "OPEN" },
+            { referenceDate: "2026-11-01", amount: 25000, status: "OPEN" },
           ],
         },
       },
@@ -106,7 +106,7 @@ describe("Obligation Intents (PAY_OBLIGATION & RECEIVE_OBLIGATION)", () => {
 
     assert.equal(plan.nodes.length, 1)
     const node = plan.nodes[0]
-    assert.equal(node.id, "intent.pay_obligation")
+    assert.equal(node.id, "intent.settle_payable")
     assert.equal(node.action.type, "SETTLE_OBLIGATION")
 
     if (node.action.type === "SETTLE_OBLIGATION") {
@@ -124,7 +124,7 @@ describe("Obligation Intents (PAY_OBLIGATION & RECEIVE_OBLIGATION)", () => {
       {
         payload: {
           nature: "PAY",
-          intents: ["PAY_OBLIGATION"],
+          intents: ["SETTLE_PAYABLE"],
           base: {
             custodyBalanceId: 10,
             custodyType: "WALLET",
@@ -132,16 +132,16 @@ describe("Obligation Intents (PAY_OBLIGATION & RECEIVE_OBLIGATION)", () => {
             dueDate: "2026-11-10",
             description: "Pagamento de fatura",
           },
-          PAY_OBLIGATION: {
+          SETTLE_PAYABLE: {
             agreementId: 42,
             allocations: [
-              { referenceDate: "2026-09-01", amount: 25000 },
-              { referenceDate: "2026-10-01", amount: 25000 },
-              { referenceDate: "2026-11-01", amount: 25000 },
+              { referenceDate: "2026-09-01", amount: 25000, status: "OPEN" },
+              { referenceDate: "2026-10-01", amount: 25000, status: "OPEN" },
+              { referenceDate: "2026-11-01", amount: 25000, status: "OPEN" },
             ],
           },
         },
-        activeIntents: ["PAY_OBLIGATION"],
+        activeIntents: ["SETTLE_PAYABLE"],
         lookups: {
           custodies: [
             {
@@ -168,14 +168,14 @@ describe("Obligation Intents (PAY_OBLIGATION & RECEIVE_OBLIGATION)", () => {
     assert.equal(baseCard.badge?.tone, "danger")
     const baseAmountRow = baseCard.rows?.find((r) => r.id === "base_amount")
     assert.deepEqual(baseAmountRow?.value, { kind: "money", cents: 75000 })
-    assert.equal(baseAmountRow?.stepId, "intent.pay_obligation.cycles")
+    assert.equal(baseAmountRow?.stepId, "intent.settle_payable.cycles")
 
     // 2. Card da Intent (Obrigação)
     const obligationCard = cards.find(
-      (c) => c.id === "summary.intent.pay_obligation"
+      (c) => c.id === "summary.intent.settle_payable"
     )
     assert.ok(obligationCard)
-    assert.equal(obligationCard.title, "Quitação de Obrigação")
+    assert.equal(obligationCard.title, "Pagamento de Compromisso")
     assert.equal(obligationCard.badge?.tone, "danger")
 
     assert.ok(obligationCard.rows)

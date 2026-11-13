@@ -22,13 +22,13 @@ export function buildBaseSummaryCard(ctx: SummaryContext): SummaryCard {
   const custody = ctx.lookups.custodies.find((c) => c.id === custodyId)
 
   const isObligation =
-    ctx.activeIntents.includes("PAY_OBLIGATION") ||
-    ctx.activeIntents.includes("RECEIVE_OBLIGATION")
+    ctx.activeIntents.includes("SETTLE_PAYABLE") ||
+    ctx.activeIntents.includes("SETTLE_RECEIVABLE")
 
-  const obligationKey = ctx.activeIntents.includes("PAY_OBLIGATION")
-    ? "PAY_OBLIGATION"
-    : ctx.activeIntents.includes("RECEIVE_OBLIGATION")
-      ? "RECEIVE_OBLIGATION"
+  const obligationKey = ctx.activeIntents.includes("SETTLE_PAYABLE")
+    ? "SETTLE_PAYABLE"
+    : ctx.activeIntents.includes("SETTLE_RECEIVABLE")
+      ? "SETTLE_RECEIVABLE"
       : null
 
   let amountCents =

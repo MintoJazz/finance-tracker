@@ -10,8 +10,8 @@ import type { IntentDefinition } from "./types"
 
 export function createObligationIntent(nature: "PAY" | "RECEIVE") {
   const isPay = nature === "PAY"
-  const key: OperationIntentKey = isPay ? "PAY_OBLIGATION" : "RECEIVE_OBLIGATION"
-  const oppositeKey: OperationIntentKey = isPay ? "RECEIVE_OBLIGATION" : "PAY_OBLIGATION"
+  const key: OperationIntentKey = isPay ? "SETTLE_PAYABLE" : "SETTLE_RECEIVABLE"
+  const oppositeKey: OperationIntentKey = isPay ? "SETTLE_RECEIVABLE" : "SETTLE_PAYABLE"
 
   const contractStep = createObligationContractStep(nature)
   const cyclesStep = createObligationCyclesStep(nature)
@@ -30,10 +30,10 @@ export function createObligationIntent(nature: "PAY" | "RECEIVE") {
     requires: [],
     offer: {
       at: ["base.details"],
-      label: isPay ? "Quitar obrigação" : "Receber obrigação",
+      label: isPay ? "Pagar compromisso" : "Receber cobrança",
       description: isPay
-        ? "Quita ciclos em aberto de contratos a pagar ou fatura de cartão."
-        : "Recebe ciclos em aberto de contratos a receber.",
+        ? "Quita ciclos de contratos, contas fixas ou cartão."
+        : "Recebe cobranças de rateio ou contratos a receber.",
       icon: isPay ? "Receipt" : "HandCoins",
       when: (data) => data.nature === nature,
     },
@@ -72,7 +72,7 @@ export function createObligationIntent(nature: "PAY" | "RECEIVE") {
             payload.base?.dueDate ?? new Date().toISOString().slice(0, 10),
           description:
             payload.base?.description?.trim() ||
-            (isPay ? "Quitação de Obrigação" : "Recebimento de Obrigação"),
+            (isPay ? "Pagamento de Compromisso" : "Recebimento de Cobrança"),
           allocations: slice.allocations,
         },
       })
@@ -101,7 +101,7 @@ export function createObligationIntent(nature: "PAY" | "RECEIVE") {
         ? ctx.lookups.custodies.find((c) => c.id === agreementId)
         : undefined
       const descriptionMatch = ctx.payload.base?.description
-        ?.match(/^(?:Quitação|Recebimento)\s*-\s*(.+)$/i)?.[1]
+        ?.match(/^(?:Quitação|Recebimento|Pagamento)\s*-\s*(.+)$/i)?.[1]
         ?.trim()
       const contractName =
         (slice as any)?.contractName ||
@@ -113,7 +113,7 @@ export function createObligationIntent(nature: "PAY" | "RECEIVE") {
         id: `summary.intent.${key.toLowerCase()}`,
         source: key,
         order: STEP_ORDER.AMOUNT + 10,
-        title: isPay ? "Quitação de Obrigação" : "Recebimento de Obrigação",
+        title: isPay ? "Pagamento de Compromisso" : "Recebimento de Cobrança",
         icon: isPay ? "Receipt" : "HandCoins",
         badge: {
           label: isPay ? "Saída" : "Entrada",
@@ -122,7 +122,7 @@ export function createObligationIntent(nature: "PAY" | "RECEIVE") {
         rows: [
           {
             id: "obligation_contract",
-            label: isPay ? "Contrato / Cartão" : "Contrato",
+            label: isPay ? "Compromisso / Cartão" : "Cobrança / Contrato",
             value: {
               kind: "text",
               text: contractName,
@@ -131,7 +131,7 @@ export function createObligationIntent(nature: "PAY" | "RECEIVE") {
           },
           {
             id: "obligation_cycles",
-            label: "Ciclos Quitados",
+            label: isPay ? "Ciclos a Pagar" : "Ciclos a Receber",
             value: {
               kind: "text",
               text: `${cyclesCount} ciclo${cyclesCount > 1 ? "s" : ""} a liquidar`,

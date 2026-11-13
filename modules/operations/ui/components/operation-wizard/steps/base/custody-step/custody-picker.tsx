@@ -22,7 +22,7 @@ export function CustodyPicker({
   const isReceive = draft.nature === "RECEIVE"
 
   const selectedAgreementId =
-    draft.PAY_OBLIGATION?.agreementId ?? draft.RECEIVE_OBLIGATION?.agreementId
+    draft.SETTLE_PAYABLE?.agreementId ?? draft.SETTLE_RECEIVABLE?.agreementId
   const selectedAgreementIsCredit = Boolean(
     selectedAgreementId &&
       lookups.custodies.some(

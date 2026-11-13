@@ -10,8 +10,8 @@ export const OPERATION_INTENTS = {
   CREATE_CATEGORY: createCategoryIntent,
   CREATE_SUBCATEGORY: createSubcategoryIntent,
   CHOOSE_CARD_INVOICE: chooseCardInvoiceIntent,
-  PAY_OBLIGATION: createObligationIntent("PAY"),
-  RECEIVE_OBLIGATION: createObligationIntent("RECEIVE"),
+  SETTLE_PAYABLE: createObligationIntent("PAY"),
+  SETTLE_RECEIVABLE: createObligationIntent("RECEIVE"),
 } as const
 
 export const OPERATION_STEP_CATALOG: OperationStepCatalog<OperationIntentKey> = {

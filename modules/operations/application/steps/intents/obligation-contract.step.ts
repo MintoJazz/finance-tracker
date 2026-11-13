@@ -6,7 +6,7 @@ export function createObligationContractStep(
   nature: "PAY" | "RECEIVE"
 ): StepDefinition<OperationIntentKey> {
   const isPay = nature === "PAY"
-  const key: OperationIntentKey = isPay ? "PAY_OBLIGATION" : "RECEIVE_OBLIGATION"
+  const key: OperationIntentKey = isPay ? "SETTLE_PAYABLE" : "SETTLE_RECEIVABLE"
 
   return {
     id: `intent.${key.toLowerCase()}.contract`,
@@ -21,7 +21,9 @@ export function createObligationContractStep(
         return [
           {
             path: [key, "agreementId"],
-            message: "Selecione um contrato ou cartão para prosseguir",
+            message: isPay
+              ? "Selecione um compromisso ou cartão para prosseguir"
+              : "Selecione uma cobrança ou contrato para prosseguir",
           },
         ]
       }

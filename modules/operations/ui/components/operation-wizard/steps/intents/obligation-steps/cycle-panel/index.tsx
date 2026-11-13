@@ -33,7 +33,7 @@ export function CyclePanel({
 }: CyclePanelProps) {
   const { draft, updateDraft, lookups } = useOperationWizard()
   const isReceive = draft.nature === "RECEIVE"
-  const sliceKey = isReceive ? "RECEIVE_OBLIGATION" : "PAY_OBLIGATION"
+  const sliceKey = isReceive ? "SETTLE_RECEIVABLE" : "SETTLE_PAYABLE"
 
   const agreementId = (draft as any)?.[sliceKey]?.agreementId
 

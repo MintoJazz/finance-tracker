@@ -307,11 +307,13 @@ export class CycleEngineService {
     }
 
     /**
-     * Projeta ciclos para a tela de quitação de obrigações (PAY_OBLIGATION / RECEIVE_OBLIGATION).
+     * Projeta ciclos para a tela de quitação de obrigações (SETTLE_PAYABLE / SETTLE_RECEIVABLE).
      *
      * Regras:
      * - Status refinados: SETTLED, OPEN, PARTIAL, PROJECTED, UNRECORDED.
-     * - MAX_ADVANCE: não projeta ciclos além de maxAdvanceMonths (padrão 3 meses) do período corrente.
+     * - Não projeta ciclos sintéticos para o passado (apenas a partir do ciclo corrente).
+     * - Janela futura é o maior entre 3 meses e 3 ciclos (ex: semanais têm ~13 semanas/3 meses; anuais têm 3 anos).
+     * - Exclui ciclos 100% liquidados (SETTLED) e ciclos passados sem lançamentos (UNRECORDED).
      * - Omissão de ciclos vazios para cartões de crédito (CREDIT).
      */
     projectObligationCycles(

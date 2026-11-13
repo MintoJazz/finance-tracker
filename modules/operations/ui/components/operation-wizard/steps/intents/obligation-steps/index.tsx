@@ -10,14 +10,16 @@ import { ContractPicker } from "./contract-picker"
 import { CyclePanel } from "./cycle-panel"
 
 function buildContractStep(
-  intentKey: "PAY_OBLIGATION" | "RECEIVE_OBLIGATION",
+  intentKey: "SETTLE_PAYABLE" | "SETTLE_RECEIVABLE",
   variant: "carousel" | "grid"
 ): WizardStep<OperationDraft> {
-  const isPay = intentKey === "PAY_OBLIGATION"
+  const isPay = intentKey === "SETTLE_PAYABLE"
   return {
     id: `intent.${intentKey.toLowerCase()}.contract`,
-    title: isPay ? "Contrato ou Cartão" : "Contrato a Receber",
-    description: "Selecione o compromisso cujos ciclos serão liquidados.",
+    title: isPay ? "Compromisso ou Cartão" : "Cobrança a Receber",
+    description: isPay
+      ? "Selecione o compromisso cujos ciclos serão quitados."
+      : "Selecione a cobrança cujos ciclos serão recebidos.",
     schema: z.object({
       [intentKey]: z.object({
         agreementId: ObligationSliceSchema.shape.agreementId,
@@ -39,13 +41,16 @@ function buildContractStep(
 }
 
 function buildCyclesStep(
-  intentKey: "PAY_OBLIGATION" | "RECEIVE_OBLIGATION",
+  intentKey: "SETTLE_PAYABLE" | "SETTLE_RECEIVABLE",
   viewport: "desktop" | "mobile"
 ): WizardStep<OperationDraft> {
+  const isPay = intentKey === "SETTLE_PAYABLE"
   return {
     id: `intent.${intentKey.toLowerCase()}.cycles`,
-    title: "Ciclos da Obrigação",
-    description: "Marque os ciclos que deseja liquidar nesta operação.",
+    title: isPay ? "Ciclos do Compromisso" : "Ciclos da Cobrança",
+    description: isPay
+      ? "Marque os ciclos que deseja quitar nesta operação."
+      : "Marque os ciclos que deseja receber nesta operação.",
     schema: z.object({
       [intentKey]: z.object({
         allocations: ObligationSliceSchema.shape.allocations,
@@ -74,30 +79,30 @@ function buildCyclesStep(
   }
 }
 
-export const payObligationContractStepViews: StepViews<OperationDraft> = {
-  desktop: buildContractStep("PAY_OBLIGATION", "grid"),
-  mobile: [buildContractStep("PAY_OBLIGATION", "carousel")],
+export const settlePayableContractStepViews: StepViews<OperationDraft> = {
+  desktop: buildContractStep("SETTLE_PAYABLE", "grid"),
+  mobile: [buildContractStep("SETTLE_PAYABLE", "carousel")],
 }
 
-export const payObligationCyclesStepViews: StepViews<OperationDraft> = {
-  desktop: buildCyclesStep("PAY_OBLIGATION", "desktop"),
-  mobile: [buildCyclesStep("PAY_OBLIGATION", "mobile")],
+export const settlePayableCyclesStepViews: StepViews<OperationDraft> = {
+  desktop: buildCyclesStep("SETTLE_PAYABLE", "desktop"),
+  mobile: [buildCyclesStep("SETTLE_PAYABLE", "mobile")],
 }
 
-export const receiveObligationContractStepViews: StepViews<OperationDraft> = {
-  desktop: buildContractStep("RECEIVE_OBLIGATION", "grid"),
-  mobile: [buildContractStep("RECEIVE_OBLIGATION", "carousel")],
+export const settleReceivableContractStepViews: StepViews<OperationDraft> = {
+  desktop: buildContractStep("SETTLE_RECEIVABLE", "grid"),
+  mobile: [buildContractStep("SETTLE_RECEIVABLE", "carousel")],
 }
 
-export const receiveObligationCyclesStepViews: StepViews<OperationDraft> = {
-  desktop: buildCyclesStep("RECEIVE_OBLIGATION", "desktop"),
-  mobile: [buildCyclesStep("RECEIVE_OBLIGATION", "mobile")],
+export const settleReceivableCyclesStepViews: StepViews<OperationDraft> = {
+  desktop: buildCyclesStep("SETTLE_RECEIVABLE", "desktop"),
+  mobile: [buildCyclesStep("SETTLE_RECEIVABLE", "mobile")],
 }
 
 export const obligationStepViewsMap: Record<string, StepViews<OperationDraft>> = {
-  "intent.pay_obligation.contract": payObligationContractStepViews,
-  "intent.pay_obligation.cycles": payObligationCyclesStepViews,
-  "intent.receive_obligation.contract": receiveObligationContractStepViews,
-  "intent.receive_obligation.cycles": receiveObligationCyclesStepViews,
+  "intent.settle_payable.contract": settlePayableContractStepViews,
+  "intent.settle_payable.cycles": settlePayableCyclesStepViews,
+  "intent.settle_receivable.contract": settleReceivableContractStepViews,
+  "intent.settle_receivable.cycles": settleReceivableCyclesStepViews,
 }
 

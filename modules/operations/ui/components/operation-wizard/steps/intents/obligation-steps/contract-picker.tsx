@@ -26,7 +26,7 @@ export function ContractPicker({
 }: ContractPickerProps) {
   const { draft, updateDraft } = useOperationWizard()
   const isReceive = draft.nature === "RECEIVE"
-  const sliceKey = isReceive ? "RECEIVE_OBLIGATION" : "PAY_OBLIGATION"
+  const sliceKey = isReceive ? "SETTLE_RECEIVABLE" : "SETTLE_PAYABLE"
 
   const [loading, setLoading] = React.useState(true)
   const [contracts, setContracts] = React.useState<ObligationContractItem[]>([])
@@ -63,7 +63,7 @@ export function ContractPicker({
         base: {
           description: isReceive
             ? `Recebimento - ${contract.name}`
-            : `Quitação - ${contract.name}`,
+            : `Pagamento - ${contract.name}`,
           amount: 0,
         },
       })
@@ -145,10 +145,14 @@ export function ContractPicker({
       listClassName="max-h-[260px]"
       searchPlaceholder={
         isReceive
-          ? "Buscar contrato a receber por nome..."
-          : "Buscar contrato ou cartão por nome..."
+          ? "Buscar cobrança ou contrato por nome..."
+          : "Buscar compromisso ou cartão por nome..."
       }
-      emptyMessage="Nenhum compromisso encontrado"
+      emptyMessage={
+        isReceive
+          ? "Nenhuma cobrança encontrada"
+          : "Nenhum compromisso encontrado"
+      }
       className={className}
     />
   )

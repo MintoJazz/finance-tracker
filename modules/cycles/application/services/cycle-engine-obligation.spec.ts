@@ -15,6 +15,7 @@ describe("CycleEngineService - projectObligationCycles", () => {
     const source: AgreementCycleSourceData = {
       agreementId: 1,
       balanceId: 10,
+      balanceName: "Aluguel",
       balanceType: "PAYABLE",
       startsAt: new Date(2026, 0, 1, 12),
       endsAt: null,
@@ -34,7 +35,6 @@ describe("CycleEngineService - projectObligationCycles", () => {
           entries: [
             // Ciclo Julho 2026 (passado consolidado e quitado: DEBIT -500 e CREDIT 500)
             {
-              entryId: 101,
               type: "ACCRUAL",
               reversesEntryType: null,
               amount: 50000,
@@ -43,7 +43,6 @@ describe("CycleEngineService - projectObligationCycles", () => {
               count: 1,
             },
             {
-              entryId: 102,
               type: "SETTLEMENT",
               reversesEntryType: null,
               amount: 50000,
@@ -53,7 +52,6 @@ describe("CycleEngineService - projectObligationCycles", () => {
             },
             // Ciclo Junho 2026 (passado consolidado em aberto/vencido: apenas ACCRUAL DEBIT -500)
             {
-              entryId: 100,
               type: "ACCRUAL",
               reversesEntryType: null,
               amount: 50000,
@@ -96,6 +94,7 @@ describe("CycleEngineService - projectObligationCycles", () => {
     const weeklySource: AgreementCycleSourceData = {
       agreementId: 2,
       balanceId: 20,
+      balanceName: "Contrato Semanal",
       balanceType: "PAYABLE",
       startsAt: new Date(2026, 7, 1, 12),
       endsAt: null,
