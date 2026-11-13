@@ -53,6 +53,16 @@ export const CYCLE_STATUS_CONFIG: Record<
         icon: Sparkles,
         iconClassName: "text-indigo-600 dark:text-indigo-400",
     },
+    SETTLED: {
+        label: "Liquidado",
+        icon: CheckCircle2,
+        iconClassName: "text-emerald-600 dark:text-emerald-400",
+    },
+    UNRECORDED: {
+        label: "Não registrado",
+        icon: Clock,
+        iconClassName: "text-muted-foreground",
+    },
 };
 
 export const CONTRACT_CYCLE_COLUMNS: ColumnDef<ContractCycleItem>[] = [

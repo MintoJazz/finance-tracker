@@ -49,6 +49,15 @@ export const CYCLE_STATUS_CONFIG: Record<
         className:
             "border-indigo-500/30 text-indigo-700 dark:text-indigo-400 bg-indigo-500/10",
     },
+    SETTLED: {
+        label: "Liquidado",
+        className:
+            "border-emerald-500/30 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10",
+    },
+    UNRECORDED: {
+        label: "Não registrado",
+        className: "border-border text-muted-foreground bg-muted/40",
+    },
 };
 
 export interface ContractCycleNavigatorProps {

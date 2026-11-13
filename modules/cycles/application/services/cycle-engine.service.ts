@@ -529,10 +529,19 @@ export class CycleEngineService {
                 continue;
             }
 
+            const fromStr = format(boundaries.beginsAt, "yyyy-MM-dd");
+            const toStr = format(boundaries.endsAt, "yyyy-MM-dd");
+            const dueStr = format(boundaries.dueDate, "yyyy-MM-dd");
+
             result.push({
                 agreementId: source.agreementId,
-                referenceDate: format(boundaries.beginsAt, "yyyy-MM-dd"),
-                dueDate: format(boundaries.dueDate, "yyyy-MM-dd"),
+                from: fromStr,
+                to: toStr,
+                referenceDate: fromStr,
+                dueDate: dueStr,
+                totalAmount: expectedAmount ?? 0,
+                paidAmount,
+                remainingAmount,
                 expected: expectedAmount,
                 accrued: recognizedAmount,
                 settled: paidAmount,

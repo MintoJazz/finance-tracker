@@ -61,7 +61,7 @@ export function ContractCycleList({
             <div className="w-full flex flex-col divide-y divide-border border-y border-border">
                 {items.map((cycle) => (
                     <ContractCycleListItem
-                        key={cycle.cycleKey}
+                        key={`${cycle.from}_${cycle.to}`}
                         cycle={cycle}
                         isPayable={isPayable}
                         onSelect={

@@ -1,48 +1,27 @@
 import z from "zod";
+import {
+    CycleRangeSchema,
+    CycleStatusSchema,
+    type CycleRange,
+    type CycleStatus,
+} from "./cycle-primitives.schema";
+import {
+    CycleItemSchema,
+    CycleFiltersSchema,
+    type CycleItem,
+    type CycleFilters,
+} from "./cycle-item.schema";
 
-export const ContractCycleStatusEnumSchema = z.enum([
-    "PROJECTED", // Fase zero: ciclo puramente projetado/estimado sem lançamentos consolidados
-    "OPEN",      // Em aberto / previsto
-    "PENDING",   // Fechado/provisionado aguardando quitação no prazo
-    "PARTIAL",   // Quitado parcialmente
-    "OVERDUE",   // Vencido
-    "PAID",      // Quitado integralmente
-    "TRANSFERRED", // Quitado por transferência/parcelamento
-]);
+export { CycleRangeSchema, type CycleRange, CycleStatusSchema, type CycleStatus };
 
-export type ContractCycleStatusEnum = z.infer<typeof ContractCycleStatusEnumSchema>;
+export const ContractCycleStatusEnumSchema = CycleStatusSchema;
+export type ContractCycleStatusEnum = CycleStatus;
 
-export const ContractCycleItemSchema = z.object({
-    cycleKey: z.string().min(1),           // Identificador estável (ex: "contract-1-2026-10")
-    contractId: z.number().int().positive(),
-    label: z.string().min(1),              // Ex: "Outubro 2026"
-    from: z.string().min(1),               // Data inicial da competência (YYYY-MM-DD)
-    to: z.string().min(1),                 // Data final da competência (YYYY-MM-DD)
-    closingDate: z.date().optional(),       // Data de fechamento do ciclo
-    dueDate: z.date(),                     // Data de vencimento do ciclo
-    status: ContractCycleStatusEnumSchema, // PROJECTED | OPEN | PENDING | PARTIAL | OVERDUE | PAID
-    
-    // Valores monetários em centavos
-    totalAmount: z.number().int().nonnegative(),     // Valor total/previsto da obrigação
-    paidAmount: z.number().int().nonnegative(),      // Valor pago/liquidado
-    remainingAmount: z.number().int().nonnegative(), // Saldo pendente a liquidar
-    
-    movementsCount: z.number().int().nonnegative().default(0), // Quantidade de entradas contábeis vinculadas
-    settlementDate: z.date().nullable().optional(),            // Data do pagamento integral, se houver
-});
+export const ContractCycleItemSchema = CycleItemSchema;
+export type ContractCycleItem = CycleItem;
 
-export type ContractCycleItem = z.infer<typeof ContractCycleItemSchema>;
-
-export const ContractCycleFiltersSchema = z.object({
-    q: z.string().optional(),
-    from: z.string().optional(),
-    to: z.string().optional(),
-    year: z.number().int().optional(),
-    statuses: z.array(ContractCycleStatusEnumSchema).optional(),
-    includeProjected: z.boolean().default(true),
-});
-
-export type ContractCycleFilters = z.infer<typeof ContractCycleFiltersSchema>;
+export const ContractCycleFiltersSchema = CycleFiltersSchema;
+export type ContractCycleFilters = CycleFilters;
 
 export const GetContractCyclesDTOSchema = z.object({
     contractId: z.number().int().positive("ID do contrato inválido"),
@@ -58,21 +37,6 @@ export type GetContractCyclesDTO = z.infer<typeof GetContractCyclesDTOSchema>;
 // ==========================================
 // Perfil Detalhado do Ciclo de Contrato
 // ==========================================
-
-export const CycleRangeSchema = z
-    .object({
-        from: z
-            .string()
-            .regex(/^\d{4}-\d{2}-\d{2}$/, "Data inicial no formato YYYY-MM-DD"),
-        to: z
-            .string()
-            .regex(/^\d{4}-\d{2}-\d{2}$/, "Data final no formato YYYY-MM-DD"),
-    })
-    .refine((data) => data.from <= data.to, {
-        message: "A data inicial (from) deve ser menor ou igual à data final (to)",
-    });
-
-export type CycleRange = z.infer<typeof CycleRangeSchema>;
 
 export { type EntryTypeEnum } from "@/modules/cycles/models/cycle-entries.schema";
 import { EntryTypeEnumSchema } from "@/modules/cycles/models/cycle-entries.schema";

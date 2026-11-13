@@ -1,14 +1,8 @@
-import { z } from "zod"
+import { z } from "zod";
+import { CycleStatusSchema, type CycleStatus } from "./cycle-primitives.schema";
+import { CycleOptionSchema } from "./cycle-option.schema";
 
-export const CycleStatusSchema = z.enum([
-  "SETTLED",
-  "OPEN",
-  "PARTIAL",
-  "PROJECTED",
-  "UNRECORDED",
-])
-
-export type CycleStatus = z.infer<typeof CycleStatusSchema>
+export { CycleStatusSchema, type CycleStatus };
 
 export const CycleViewSchema = z.object({
   agreementId: z.number().int().positive(),
@@ -21,9 +15,16 @@ export const CycleViewSchema = z.object({
   status: CycleStatusSchema,
   isOverdue: z.boolean(),
   label: z.string().min(1),
-})
 
-export type CycleView = z.infer<typeof CycleViewSchema>
+  // Campos interoperáveis do CycleOption
+  from: z.string().optional(),
+  to: z.string().optional(),
+  totalAmount: z.number().int().nonnegative().optional(),
+  paidAmount: z.number().int().nonnegative().optional(),
+  remainingAmount: z.number().int().nonnegative().optional(),
+});
+
+export type CycleView = z.infer<typeof CycleViewSchema>;
 
 export const GetObligationCyclesInputSchema = z.object({
   agreementId: z.number().int().positive(),

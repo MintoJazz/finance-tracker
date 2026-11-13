@@ -106,13 +106,7 @@ export class ContractProfileMapper {
         engineCycle: CommitmentCycleItem,
         contractId: number
     ): ContractCycleItem {
-        const rawKey = engineCycle.cycleKey ?? format(engineCycle.dueDate, "yyyy-MM");
-        const cycleKey = rawKey.startsWith("contract-")
-            ? rawKey
-            : `contract-${contractId}-${rawKey}`;
-
         return {
-            cycleKey,
             contractId,
             label: engineCycle.label,
             from: engineCycle.from,
@@ -120,6 +114,7 @@ export class ContractProfileMapper {
             closingDate: engineCycle.closingDate ?? engineCycle.dueDate,
             dueDate: engineCycle.dueDate,
             status: engineCycle.status,
+            isOverdue: engineCycle.status === "OVERDUE",
             totalAmount: engineCycle.totalAmount,
             paidAmount: engineCycle.paidAmount,
             remainingAmount: engineCycle.remainingAmount,
@@ -170,9 +165,9 @@ export class ContractProfileMapper {
                 totalProjected += c.totalAmount;
             }
 
-            const due = startOfDay(c.dueDate);
+            const due = startOfDay(new Date(c.dueDate));
             if (!isBefore(due, today) && (!nextDueDate || isBefore(due, nextDueDate))) {
-                nextDueDate = c.dueDate;
+                nextDueDate = new Date(c.dueDate);
             }
         }
 
@@ -248,9 +243,9 @@ export class ContractProfileMapper {
 
         // Ordenação cronológica garantida por vencimento ASC
         filtered.sort((a, b) => {
-            const timeDiff = a.dueDate.getTime() - b.dueDate.getTime();
+            const timeDiff = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
             if (timeDiff !== 0) return timeDiff;
-            return a.contractId - b.contractId;
+            return (a.contractId ?? 0) - (b.contractId ?? 0);
         });
 
         return paginate(filtered, resolvedPageRequest);

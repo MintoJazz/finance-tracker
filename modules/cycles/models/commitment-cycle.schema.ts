@@ -1,6 +1,11 @@
 import z from "zod";
 import { Page } from "@/types/pagination.types";
 
+import {
+    CycleStatusSchema,
+    type CycleStatus,
+} from "./cycle-primitives.schema";
+
 export const CommitmentCycleKindEnumSchema = z.enum([
     "ACTUAL",    // Ciclo gerado com entradas reais registradas
     "PROJECTED", // Ciclo puramente projetado por regra sem lançamentos
@@ -15,16 +20,8 @@ export const CommitmentSourceTypeEnumSchema = z.enum([
 
 export type CommitmentSourceTypeEnum = z.infer<typeof CommitmentSourceTypeEnumSchema>;
 
-export const CommitmentCycleStatusEnumSchema = z.enum([
-    "PROJECTED",
-    "OPEN",
-    "PENDING",
-    "PARTIAL",
-    "OVERDUE",
-    "PAID",
-]);
-
-export type CommitmentCycleStatusEnum = z.infer<typeof CommitmentCycleStatusEnumSchema>;
+export const CommitmentCycleStatusEnumSchema = CycleStatusSchema;
+export type CommitmentCycleStatusEnum = CycleStatus;
 
 export const CommitmentCycleItemSchema = z.object({
     balanceId: z.number().int().positive(),
