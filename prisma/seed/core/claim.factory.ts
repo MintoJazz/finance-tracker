@@ -266,11 +266,11 @@ export class ClaimSeedFactory {
           startsAt: date,
           endsAt: date,
           includeInProjection: true,
+          frequency: CycleFrequency.ONCE,
+          interval: 1,
           rules: {
             create: {
               effectiveFrom: date,
-              frequency: CycleFrequency.ONCE,
-              interval: 1,
               dueDay,
               closingDay: null,
             },

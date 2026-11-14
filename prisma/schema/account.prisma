@@ -38,12 +38,16 @@ model Balance {
 }
 
 model Agreement {
-  balanceId           Int       @id
-  includeInProjection Boolean   @default(true)
-  startsAt            DateTime  @db.Date
-  endsAt              DateTime? @db.Date
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  balanceId Int @id
+
+  includeInProjection Boolean        @default(true)
+  frequency           CycleFrequency @default(MONTHLY)
+  interval            Int            @default(1)
+
+  startsAt  DateTime  @db.Date
+  endsAt    DateTime? @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   balance       Balance                @relation(fields: [balanceId], references: [id], onDelete: Restrict)
   rules         CycleRule[]
@@ -51,17 +55,19 @@ model Agreement {
 }
 
 model CycleRule {
-  id            Int            @id @default(autoincrement())
-  agreementId   Int
-  effectiveFrom DateTime       @db.Date
-  frequency     CycleFrequency @default(MONTHLY)
-  interval      Int            @default(1)
-  closingDay    Int?
-  dueDay        Int
-  createdAt     DateTime       @default(now())
+  id          Int @id @default(autoincrement())
+  agreementId Int
+
+  dueDay       Int
+  dueMonth     Int?
+  closingDay   Int?
+  closingMonth Int?
+
+  effectiveFrom DateTime @db.Date
+  createdAt     DateTime @default(now())
 
   agreement           Agreement            @relation(fields: [agreementId], references: [balanceId], onDelete: Restrict)
-  entryCycleRuleViews EntryCycleRuleView[] // <-- ADICIONAR ESTA LINHA
+  entryCycleRuleViews EntryCycleRuleView[]
 
   @@unique([agreementId, effectiveFrom])
   @@index([agreementId])

@@ -359,75 +359,32 @@ describe("Operation Steps & Intents Declarative Interpreter (Clean Core)", () =>
     }
   })
 
-  it("oferece e resolve CHOOSE_CARD_INVOICE na etapa 3100 exclusivamente quando custodyType for CREDIT", () => {
+  it("desabilita CHOOSE_CARD_INVOICE do catálogo e o rejeita em payloads antigos", () => {
     const catalog = OPERATION_STEP_CATALOG
-    const chooseInvoiceDef = catalog.intents.CHOOSE_CARD_INVOICE
-    assert.ok(chooseInvoiceDef, "CHOOSE_CARD_INVOICE deve estar no catálogo")
+    assert.equal("CHOOSE_CARD_INVOICE" in catalog.intents, false)
+    assert.equal(catalog.intents.CHOOSE_CARD_INVOICE, undefined)
 
-    // 1. Não é oferecida para carteira (WALLET)
-    const walletData: Partial<OperationDraft> = {
-      base: { custodyType: "WALLET", custodyBalanceId: 1 },
-    }
-    const isOfferedForWallet = chooseInvoiceDef.offer?.when?.(walletData, {
-      pointers: {
-        custody: { kind: "existing", id: 1 },
-        categoryRoot: null,
-        counterpart: null,
-        mainEntry: null,
-        extras: {},
+    const schema = createOperationInputSchema(catalog)
+    const result = schema.safeParse({
+      nature: "PAY",
+      intents: ["CHOOSE_CARD_INVOICE"],
+      base: {
+        custodyBalanceId: 2,
+        custodyType: "CREDIT",
+        amount: 12000,
+        dueDate: "2026-11-10",
+        description: "Assinatura de software",
+        categoryId: 101,
+      },
+      CHOOSE_CARD_INVOICE: {
+        month: 12,
+        year: 2026,
       },
     })
-    assert.equal(isOfferedForWallet, false)
 
-    // 2. É oferecida para cartão de crédito (CREDIT)
-    const creditData: Partial<OperationDraft> = {
+    assert.equal(result.success, false)
+    assert.deepEqual(sanitizeActiveIntents(["CHOOSE_CARD_INVOICE" as any], catalog, {
       base: { custodyType: "CREDIT", custodyBalanceId: 2 },
-    }
-    const isOfferedForCredit = chooseInvoiceDef.offer?.when?.(creditData, {
-      pointers: {
-        custody: { kind: "existing", id: 2 },
-        categoryRoot: null,
-        counterpart: null,
-        mainEntry: null,
-        extras: {},
-      },
-    })
-    assert.equal(isOfferedForCredit, true)
-
-    // 3. Ao ativar CHOOSE_CARD_INVOICE, insere etapa 3100 entre custódia (3000) e valor (4000)
-    const activeSteps = resolveSteps(
-      {
-        nature: "PAY",
-        intents: ["CHOOSE_CARD_INVOICE"],
-        data: {
-          base: { custodyType: "CREDIT", custodyBalanceId: 2 },
-          CHOOSE_CARD_INVOICE: { month: 12, year: 2026 },
-        },
-      },
-      catalog
-    )
-
-    const stepIds = activeSteps.map((s) => s.id)
-    assert.ok(stepIds.includes("intent.choose_card_invoice"))
-
-    const custodyIdx = stepIds.indexOf("base.custody")
-    const invoiceIdx = stepIds.indexOf("intent.choose_card_invoice")
-    const amountIdx = stepIds.indexOf("base.amount")
-
-    assert.ok(custodyIdx !== -1 && invoiceIdx !== -1 && amountIdx !== -1)
-    assert.ok(
-      custodyIdx < invoiceIdx && invoiceIdx < amountIdx,
-      "intent.choose_card_invoice deve ficar ordenado exatamente entre base.custody e base.amount"
-    )
-
-    // 4. Ao mudar custódia para WALLET, o sanitizador remove CHOOSE_CARD_INVOICE
-    const sanitized = sanitizeActiveIntents(
-      ["CHOOSE_CARD_INVOICE"],
-      catalog,
-      {
-        base: { custodyType: "WALLET", custodyBalanceId: 1 },
-      }
-    )
-    assert.deepEqual(sanitized, [])
+    }), [])
   })
 })

@@ -3,7 +3,7 @@ import { IPlanningAccessProvider } from "@/modules/space/application/interfaces/
 import { IContextMemberRepository } from "@/modules/space/application/interfaces/context-member-repository.interface";
 import { GetSpaceAccessUseCase } from "@/modules/space/application/use-cases/get-acess.use-case";
 import { PrismaContextMembersRepository } from "@/modules/space/infra/repositories/context-members-prisma.repository";
-import { CycleEngineService } from "@/modules/cycles/application/services/cycle-engine.service";
+// import { CycleEngineService } from "@/modules/cycles/application/services/cycle-engine.service";
 import { IContractQueries } from "../../application/interfaces/contract-queries.interface";
 import { IContractRepository } from "../../application/interfaces/contract-repository.interface";
 import { IContractProfileQueries } from "../../application/interfaces/contract-profile-queries.interface";
@@ -39,7 +39,7 @@ export class ContractFactory {
 
     private static readonly contractProfileQueries: IContractProfileQueries =
         new ContractProfilePrismaQueries();
-    private static readonly cycleEngineService = new CycleEngineService();
+    // private static readonly cycleEngineService = new CycleEngineService();
 
     public static readonly makeCreateContractUseCase = () =>
         new CreateContractUseCase(
@@ -71,12 +71,12 @@ export class ContractFactory {
             this.spaceAccessProvider
         );
 
-    public static readonly makeGetContractProfileUseCase = () =>
-        new GetContractProfileUseCase(
-            this.contractProfileQueries,
-            this.planningAccessProvider,
-            this.cycleEngineService
-        );
+    // public static readonly makeGetContractProfileUseCase = () =>
+    //     new GetContractProfileUseCase(
+    //         this.contractProfileQueries,
+    //         this.planningAccessProvider,
+    //         this.cycleEngineService
+    //     );
 
     public static readonly makeRenameContractUseCase = () =>
         new RenameContractUseCase(

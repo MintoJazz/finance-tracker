@@ -6,6 +6,8 @@ import {
 export interface RawContractAgreement {
     id: number;
     balanceId: number;
+    frequency: string;
+    interval: number;
     includeInProjection: boolean;
     startsAt: Date;
     endsAt: Date | null;
@@ -20,8 +22,6 @@ export interface RawContractAgreement {
         id: number;
         agreementId: number;
         effectiveFrom: Date;
-        frequency: string;
-        interval: number;
         closingDay: number | null;
         dueDay: number;
     }[];

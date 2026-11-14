@@ -235,11 +235,11 @@ export class FinancialContextFactory {
             startsAt: startDate,
             endsAt: endDate,
             includeInProjection: params.includeInProjection ?? true,
+            frequency: params.rules[0]?.frequency ?? CycleFrequency.MONTHLY,
+            interval: params.rules[0]?.interval ?? 1,
             rules: {
               create: params.rules.map((r) => ({
                 effectiveFrom: new Date(r.effectiveFrom),
-                frequency: r.frequency ?? CycleFrequency.MONTHLY,
-                interval: r.interval ?? 1,
                 closingDay: r.closingDay ?? null,
                 dueDay: r.dueDay,
               })),
@@ -394,15 +394,11 @@ export class FinancialContextFactory {
       {
         closingDay: params.closingDay,
         dueDay: params.dueDay,
-        frequency: CycleFrequency.MONTHLY,
-        interval: 1,
         effectiveFrom: startDate,
       },
       ...(params.extraRules?.map((r) => ({
         closingDay: r.closingDay ?? params.closingDay,
         dueDay: r.dueDay,
-        frequency: r.frequency ?? CycleFrequency.MONTHLY,
-        interval: r.interval ?? 1,
         effectiveFrom: new Date(r.effectiveFrom),
       })) ?? []),
     ];
@@ -418,6 +414,8 @@ export class FinancialContextFactory {
             startsAt: startDate,
             endsAt: endDate,
             includeInProjection: true,
+            frequency: params.extraRules?.[0]?.frequency ?? CycleFrequency.MONTHLY,
+            interval: params.extraRules?.[0]?.interval ?? 1,
             rules: {
               create: rulesToCreate,
             },

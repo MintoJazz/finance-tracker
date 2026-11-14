@@ -1,367 +1,327 @@
-/**
- * Registry de estratégias de ciclo por frequência (MONTHLY, WEEKLY, YEARLY).
- *
- * REGRAS DE DATAS:
- * - O motor trabalha estritamente com datas civis normalizadas via `startOfDay`.
- * - Nunca chama `new Date()` sem argumentos.
- */
 import {
     addDays,
     addMonths,
     addWeeks,
     addYears,
+    differenceInCalendarMonths,
+    differenceInCalendarWeeks,
+    differenceInCalendarYears,
     endOfMonth,
-    endOfWeek,
-    endOfYear,
     format,
     getDaysInMonth,
+    isAfter,
+    isBefore,
     setDate,
+    setDay,
+    setMonth,
     startOfDay,
     startOfMonth,
-    startOfWeek,
-    startOfYear,
     subMonths,
+    subYears,
 } from "date-fns";
-import { CycleRuleData } from "@/modules/cycles/application/interfaces/commitment-cycle-engine.interface";
+import { ptBR } from "date-fns/locale";
+import { CycleFrequency } from "@/prisma/generated/prisma/client";
 
-const PT_BR_MONTHS = [
-    "Janeiro",
-    "Fevereiro",
-    "Março",
-    "Abril",
-    "Maio",
-    "Junho",
-    "Julho",
-    "Agosto",
-    "Setembro",
-    "Outubro",
-    "Novembro",
-    "Dezembro",
-];
+export interface AgreementScheduleContext {
+    frequency: CycleFrequency;
+    interval: number;
+    startsAt: Date;
+    endsAt: Date | null;
+}
 
-export interface CyclePeriodBoundaries {
-    cycleKey: string;
+export interface CycleRuleRecord {
+    id: number;
+    agreementId: number;
+    dueDay: number;
+    dueMonth: number | null;
+    closingDay: number | null;
+    closingMonth: number | null;
+    effectiveFrom: Date;
+}
+
+export interface RawCycleGeometry {
     beginsAt: Date;
     endsAt: Date;
-    closingDate: Date;
+    closingDate: Date | null;
     dueDate: Date;
     label: string;
 }
 
 export interface ICycleFrequencyStrategy {
     /**
-     * Retorna a data do período base após aplicar o deslocamento de closingDay se aplicável.
+     * Resolve a geometria canônica do ciclo que contém a data `cursor`.
      */
-    resolveReferenceDate(rawRefDate: Date, rule: CycleRuleData): Date;
+    resolveGeometryForDate(
+        cursor: Date,
+        agreement: AgreementScheduleContext,
+        rule: CycleRuleRecord
+    ): RawCycleGeometry;
 
     /**
-     * Calcula os limites de início, fim, vencimento, chave e rótulo para o ciclo que contém `date`.
+     * Desloca uma data âncora em `steps` ciclos (positivos ou negativos).
      */
-    getCycleBoundaries(
-        date: Date,
-        rule: CycleRuleData
-    ): CyclePeriodBoundaries;
-
-    /**
-     * Avança `steps` ciclos a partir de `date`.
-     */
-    stepCycle(date: Date, steps: number, interval: number): Date;
-
-    /**
-     * Retorna o início civil do período corrente para a frequência (ex: startOfMonth para MONTHLY).
-     */
-    resolveCurrentPeriodStart(today: Date): Date;
+    stepDate(
+        anchor: Date,
+        steps: number,
+        interval: number
+    ): Date;
 }
 
 /**
- * Estratégia Mensal (MONTHLY)
+ * Ajusta o dia para não estourar o último dia do mês (ex: dia 31 em fevereiro -> 28/29).
  */
-class MonthlyCycleStrategy implements ICycleFrequencyStrategy {
-    resolveReferenceDate(rawRefDate: Date, rule: CycleRuleData): Date {
-        const civilDate = startOfDay(rawRefDate);
-        if (rule.closingDay !== null && civilDate.getDate() > rule.closingDay) {
-            return startOfDay(addMonths(civilDate, 1));
-        }
-        return civilDate;
-    }
+function clampDayOfMonth(yearMonthDate: Date, targetDay: number): Date {
+    const maxDay = getDaysInMonth(yearMonthDate);
+    return startOfDay(setDate(yearMonthDate, Math.min(Math.max(1, targetDay), maxDay)));
+}
 
-    getCycleBoundaries(
-        date: Date,
-        rule: CycleRuleData
-    ): CyclePeriodBoundaries {
-        const interval = Math.max(1, rule.interval || 1);
-        const anchor = startOfMonth(startOfDay(rule.effectiveFrom));
-        const target = startOfMonth(startOfDay(date));
+/**
+ * Capitaliza a primeira letra do label formatado (ex: "novembro 2026" -> "Novembro 2026").
+ */
+function capitalize(value: string): string {
+    return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
-        // Diferença em meses em relação à âncora
-        const totalMonthsDiff =
-            (target.getFullYear() - anchor.getFullYear()) * 12 +
-            (target.getMonth() - anchor.getMonth());
+// ============================================================================
+// 1. ONCE (Pontual)
+// ============================================================================
+const OnceCycleStrategy: ICycleFrequencyStrategy = {
+    resolveGeometryForDate(_cursor, agreement, rule) {
+        const beginsAt = startOfDay(agreement.startsAt);
+        const endsAt = startOfDay(agreement.endsAt ?? agreement.startsAt);
 
-        const blockIndex = Math.floor(totalMonthsDiff / interval);
-        const blockStartMonth = startOfDay(addMonths(anchor, blockIndex * interval));
-        const blockEndMonth = startOfDay(addMonths(blockStartMonth, interval - 1));
+        // Na frequência ONCE, se endsAt existir no acordo, usamos como referência;
+        // caso contrário, projetamos o dueDay no mês de startsAt.
+        const dueDate = agreement.endsAt
+            ? startOfDay(agreement.endsAt)
+            : clampDayOfMonth(beginsAt, rule.dueDay);
 
-        // 1. beginsAt do primeiro mês do bloco
-        let beginsAt: Date;
-        if (rule.closingDay !== null) {
-            // Dia seguinte ao endsAt do mês anterior ao início do bloco
-            const prevMonth = startOfDay(subMonths(blockStartMonth, 1));
-            const prevDaysInMonth = getDaysInMonth(prevMonth);
-            const prevClosingClamped = Math.min(rule.closingDay, prevDaysInMonth);
-            const prevEndsAt = startOfDay(setDate(prevMonth, prevClosingClamped));
-            beginsAt = startOfDay(addDays(prevEndsAt, 1));
-        } else {
-            beginsAt = startOfDay(startOfMonth(blockStartMonth));
-        }
-
-        // 2. endsAt do último mês do bloco
-        let endsAt: Date;
-        if (rule.closingDay !== null) {
-            const endDaysInMonth = getDaysInMonth(blockEndMonth);
-            const closingClamped = Math.min(rule.closingDay, endDaysInMonth);
-            endsAt = startOfDay(setDate(blockEndMonth, closingClamped));
-        } else {
-            endsAt = startOfDay(endOfMonth(blockEndMonth));
-        }
-
-        // 3. dueDate (baseado no fechamento do último mês do bloco)
-        let dueMonth: Date;
-        if (rule.closingDay !== null && rule.dueDay < rule.closingDay) {
-            dueMonth = startOfDay(addMonths(blockEndMonth, 1));
-        } else {
-            dueMonth = blockEndMonth;
-        }
-
-        const dueDaysInMonth = getDaysInMonth(dueMonth);
-        const dueClamped = Math.min(Math.max(1, rule.dueDay), dueDaysInMonth);
-        const dueDate = startOfDay(setDate(dueMonth, dueClamped));
-
-        // 4. closingDate (com fallback para dueDate se closingDay for nulo)
-        const closingDate = rule.closingDay !== null ? endsAt : dueDate;
-
-        // 5. cycleKey: YYYY-MM do primeiro mês do bloco
-        const cycleKey = format(blockStartMonth, "yyyy-MM");
-
-        // 6. label: Mês do bloco inicial (pt-BR capitalizado) + ano de dueDate
-        const monthName = PT_BR_MONTHS[blockStartMonth.getMonth()];
-        const label = `${monthName} ${dueDate.getFullYear()}`;
+        const closingDate =
+            rule.closingDay !== null
+                ? clampDayOfMonth(beginsAt, rule.closingDay)
+                : null;
 
         return {
-            cycleKey,
             beginsAt,
             endsAt,
             closingDate,
             dueDate,
-            label,
+            label: format(dueDate, "dd/MM/yyyy"),
         };
-    }
+    },
 
-    stepCycle(date: Date, steps: number, interval: number): Date {
-        const effectiveInterval = Math.max(1, interval || 1);
-        return startOfDay(addMonths(date, steps * effectiveInterval));
-    }
+    stepDate(anchor) {
+        return startOfDay(anchor);
+    },
+};
 
-    resolveCurrentPeriodStart(today: Date): Date {
-        return startOfMonth(startOfDay(today));
-    }
-}
+// ============================================================================
+// 2. WEEKLY (Semanal / Quinzenal via interval)
+// ============================================================================
+const WeeklyCycleStrategy: ICycleFrequencyStrategy = {
+    resolveGeometryForDate(cursor, agreement, rule) {
+        const normalizedCursor = startOfDay(cursor);
+        const interval = Math.max(1, agreement.interval);
 
-/**
- * Estratégia Semanal (WEEKLY)
- */
-class WeeklyCycleStrategy implements ICycleFrequencyStrategy {
-    resolveReferenceDate(rawRefDate: Date): Date {
-        return startOfDay(rawRefDate);
-    }
+        // closingDay/dueDay representam o dia da semana (0 = Dom .. 6 = Sáb)
+        const targetClosingDow = (rule.closingDay ?? rule.dueDay) % 7;
+        const targetDueDow = rule.dueDay % 7;
 
-    getCycleBoundaries(
-        date: Date,
-        rule: CycleRuleData
-    ): CyclePeriodBoundaries {
-        const interval = Math.max(1, rule.interval || 1);
-        const anchor = startOfWeek(startOfDay(rule.effectiveFrom), { weekStartsOn: 1 });
-        const target = startOfWeek(startOfDay(date), { weekStartsOn: 1 });
+        // Encontra o fechamento da semana atual ou subsequente respeitando o intervalo desde effectiveFrom
+        const weeksDiff = differenceInCalendarWeeks(
+            normalizedCursor,
+            startOfDay(rule.effectiveFrom),
+            { weekStartsOn: 0 }
+        );
+        const alignedWeeks =
+            weeksDiff >= 0
+                ? Math.floor(weeksDiff / interval) * interval
+                : Math.ceil(weeksDiff / interval) * interval;
 
-        const msDiff = target.getTime() - anchor.getTime();
-        const weeksDiff = Math.floor(msDiff / (7 * 24 * 60 * 60 * 1000));
-        const blockIndex = Math.floor(weeksDiff / interval);
+        const baseWeekDate = addWeeks(startOfDay(rule.effectiveFrom), alignedWeeks);
+        let endsAt = startOfDay(setDay(baseWeekDate, targetClosingDow, { weekStartsOn: 0 }));
 
-        const blockStartWeek = startOfDay(addWeeks(anchor, blockIndex * interval));
-        const blockEndWeek = startOfDay(addWeeks(blockStartWeek, interval - 1));
-
-        const beginsAt = startOfDay(startOfWeek(blockStartWeek, { weekStartsOn: 1 }));
-        const endsAt = startOfDay(endOfWeek(blockEndWeek, { weekStartsOn: 1 }));
-
-        // dueDay é dia da semana ISO (1 = Segunda, 7 = Domingo)
-        const clampedDueDay = Math.min(Math.max(1, rule.dueDay), 7);
-        const dueDate = startOfDay(addDays(beginsAt, clampedDueDay - 1));
-
-        // Fallback de closingDate para dueDate quando closingDay for nulo
-        let closingDate: Date;
-        if (rule.closingDay !== null) {
-            const clampedClosingDay = Math.min(Math.max(1, rule.closingDay), 7);
-            closingDate = startOfDay(addDays(beginsAt, clampedClosingDay - 1));
-        } else {
-            closingDate = dueDate;
+        if (isBefore(endsAt, normalizedCursor)) {
+            endsAt = addWeeks(endsAt, interval);
         }
 
-        const cycleKey = format(blockStartWeek, "yyyy-'W'II");
-        const weekNumber = format(blockStartWeek, "II");
-        const label = `Semana ${weekNumber}, ${blockStartWeek.getFullYear()}`;
+        const beginsAt = addDays( addWeeks(endsAt, -interval), 1 );
+        while (isAfter(beginsAt, normalizedCursor)) {
+            endsAt = addWeeks(endsAt, -interval);
+        }
+
+        const finalBeginsAt = addDays(addWeeks(endsAt, -interval), 1);
+        const closingDate = rule.closingDay !== null ? endsAt : null;
+
+        // Se o dia de vencimento na semana for menor que o de fechamento, vence na semana seguinte
+        let dueDate = startOfDay(setDay(endsAt, targetDueDow, { weekStartsOn: 0 }));
+        if (isBefore(dueDate, endsAt)) {
+            dueDate = addWeeks(dueDate, 1);
+        }
 
         return {
-            cycleKey,
-            beginsAt,
+            beginsAt: finalBeginsAt,
             endsAt,
             closingDate,
             dueDate,
-            label,
+            label: `${format(finalBeginsAt, "dd/MM")} - ${format(endsAt, "dd/MM/yyyy")}`,
         };
-    }
+    },
 
-    stepCycle(date: Date, steps: number, interval: number): Date {
-        const effectiveInterval = Math.max(1, interval || 1);
-        return startOfDay(addWeeks(date, steps * effectiveInterval));
-    }
+    stepDate(anchor, steps, interval) {
+        return addWeeks(startOfDay(anchor), steps * Math.max(1, interval));
+    },
+};
 
-    resolveCurrentPeriodStart(today: Date): Date {
-        return startOfWeek(startOfDay(today), { weekStartsOn: 1 });
-    }
-}
+// ============================================================================
+// 3. MONTHLY (Mensal / Bimestral / Trimestral via interval)
+// ============================================================================
+const MonthlyCycleStrategy: ICycleFrequencyStrategy = {
+    resolveGeometryForDate(cursor, agreement, rule) {
+        const normalizedCursor = startOfDay(cursor);
+        const interval = Math.max(1, agreement.interval);
 
-/**
- * Estratégia Anual (YEARLY)
- */
-class YearlyCycleStrategy implements ICycleFrequencyStrategy {
-    resolveReferenceDate(rawRefDate: Date): Date {
-        return startOfDay(rawRefDate);
-    }
+        // Alinha o mês com base no intervalo a partir de effectiveFrom
+        const monthsDiff = differenceInCalendarMonths(
+            normalizedCursor,
+            startOfDay(rule.effectiveFrom)
+        );
+        const alignedMonths =
+            monthsDiff >= 0
+                ? Math.floor(monthsDiff / interval) * interval
+                : Math.ceil(monthsDiff / interval) * interval;
 
-    getCycleBoundaries(
-        date: Date,
-        rule: CycleRuleData
-    ): CyclePeriodBoundaries {
-        const interval = Math.max(1, rule.interval || 1);
-        const anchor = startOfYear(startOfDay(rule.effectiveFrom));
-        const target = startOfYear(startOfDay(date));
+        let referenceMonth = addMonths(startOfMonth(rule.effectiveFrom), alignedMonths);
 
-        const yearsDiff = target.getFullYear() - anchor.getFullYear();
-        const blockIndex = Math.floor(yearsDiff / interval);
+        const buildBoundsForMonth = (monthAnchor: Date) => {
+            if (rule.closingDay === null) {
+                const beginsAt = startOfMonth(monthAnchor);
+                const endsAt = startOfDay(endOfMonth(addMonths(monthAnchor, interval - 1)));
+                const dueDate = clampDayOfMonth(endsAt, rule.dueDay);
+                return { beginsAt, endsAt, closingDate: null, dueDate };
+            }
 
-        const blockStartYear = startOfDay(addYears(anchor, blockIndex * interval));
-        const blockEndYear = startOfDay(addYears(blockStartYear, interval - 1));
+            const closingMonthAnchor = addMonths(monthAnchor, interval - 1);
+            const endsAt = clampDayOfMonth(closingMonthAnchor, rule.closingDay);
+            const prevClosingEnd = clampDayOfMonth(
+                subMonths(closingMonthAnchor, interval),
+                rule.closingDay
+            );
+            const beginsAt = addDays(prevClosingEnd, 1);
 
-        const beginsAt = startOfDay(startOfYear(blockStartYear));
-        const endsAt = startOfDay(endOfYear(blockEndYear));
+            // Se dueDay <= closingDay, o vencimento cai no mês seguinte ao fechamento
+            const dueMonthAnchor =
+                rule.dueDay <= rule.closingDay
+                    ? addMonths(closingMonthAnchor, 1)
+                    : closingMonthAnchor;
+            const dueDate = clampDayOfMonth(dueMonthAnchor, rule.dueDay);
 
-        // dueDate: dia dueDay (clamp) do mês da effectiveFrom no ano final do bloco
-        const ruleMonth = startOfDay(rule.effectiveFrom).getMonth();
-        const targetYear = blockEndYear.getFullYear();
-        const dueYearDate = startOfDay(new Date(targetYear, ruleMonth, 1));
-        const daysInDueMonth = getDaysInMonth(dueYearDate);
-        const clampedDay = Math.min(Math.max(1, rule.dueDay), daysInDueMonth);
-        const dueDate = startOfDay(new Date(targetYear, ruleMonth, clampedDay));
+            return { beginsAt, endsAt, closingDate: endsAt, dueDate };
+        };
 
-        // Fallback de closingDate para dueDate quando closingDay for nulo
-        let closingDate: Date;
-        if (rule.closingDay !== null) {
-            const clampedClosingDay = Math.min(Math.max(1, rule.closingDay), daysInDueMonth);
-            closingDate = startOfDay(new Date(targetYear, ruleMonth, clampedClosingDay));
-        } else {
-            closingDate = dueDate;
+        let bounds = buildBoundsForMonth(referenceMonth);
+
+        if (isAfter(normalizedCursor, bounds.endsAt)) {
+            referenceMonth = addMonths(referenceMonth, interval);
+            bounds = buildBoundsForMonth(referenceMonth);
+        } else if (isBefore(normalizedCursor, bounds.beginsAt)) {
+            referenceMonth = subMonths(referenceMonth, interval);
+            bounds = buildBoundsForMonth(referenceMonth);
         }
 
-        const cycleKey = format(blockStartYear, "yyyy");
-        const label = `Ano ${blockStartYear.getFullYear()}`;
-
         return {
-            cycleKey,
-            beginsAt,
-            endsAt,
-            closingDate,
-            dueDate,
-            label,
+            ...bounds,
+            label: capitalize(format(bounds.dueDate, "MMMM yyyy", { locale: ptBR })),
         };
-    }
+    },
 
-    stepCycle(date: Date, steps: number, interval: number): Date {
-        const effectiveInterval = Math.max(1, interval || 1);
-        return startOfDay(addYears(date, steps * effectiveInterval));
-    }
+    stepDate(anchor, steps, interval) {
+        return addMonths(startOfDay(anchor), steps * Math.max(1, interval));
+    },
+};
 
-    resolveCurrentPeriodStart(today: Date): Date {
-        return startOfYear(startOfDay(today));
-    }
-}
+// ============================================================================
+// 4. YEARLY (Anual / Multi-anual via interval)
+// ============================================================================
+const YearlyCycleStrategy: ICycleFrequencyStrategy = {
+    resolveGeometryForDate(cursor, agreement, rule) {
+        const normalizedCursor = startOfDay(cursor);
+        const interval = Math.max(1, agreement.interval);
 
-/**
- * Estratégia Pontual (ONCE)
- */
-class OnceCycleStrategy implements ICycleFrequencyStrategy {
-    resolveReferenceDate(rawRefDate: Date): Date {
-        return startOfDay(rawRefDate);
-    }
+        const closingMonthIndex = ((rule.closingMonth ?? rule.dueMonth ?? 12) - 1 + 12) % 12;
+        const dueMonthIndex = ((rule.dueMonth ?? rule.closingMonth ?? 12) - 1 + 12) % 12;
+        const closingDay = rule.closingDay ?? rule.dueDay;
 
-    getCycleBoundaries(
-        _date: Date,
-        rule: CycleRuleData
-    ): CyclePeriodBoundaries {
-        const beginsAt = startOfDay(rule.effectiveFrom);
-        const endsAt = startOfDay(rule.effectiveFrom);
+        const yearsDiff = differenceInCalendarYears(
+            normalizedCursor,
+            startOfDay(rule.effectiveFrom)
+        );
+        const alignedYears =
+            yearsDiff >= 0
+                ? Math.floor(yearsDiff / interval) * interval
+                : Math.ceil(yearsDiff / interval) * interval;
 
-        const daysInMonth = getDaysInMonth(rule.effectiveFrom);
-        const clampedDueDay = Math.min(Math.max(1, rule.dueDay), daysInMonth);
-        const dueDate = startOfDay(setDate(rule.effectiveFrom, clampedDueDay));
+        let referenceYearDate = addYears(startOfDay(rule.effectiveFrom), alignedYears);
 
-        let closingDate: Date;
-        if (rule.closingDay !== null) {
-            const clampedClosingDay = Math.min(Math.max(1, rule.closingDay), daysInMonth);
-            closingDate = startOfDay(setDate(rule.effectiveFrom, clampedClosingDay));
-        } else {
-            closingDate = dueDate;
+        const buildBoundsForYear = (yearAnchor: Date) => {
+            const closingYearMonth = setMonth(yearAnchor, closingMonthIndex);
+            const endsAt = clampDayOfMonth(closingYearMonth, closingDay);
+
+            const prevEndsAt = clampDayOfMonth(
+                subYears(closingYearMonth, interval),
+                closingDay
+            );
+            const beginsAt = addDays(prevEndsAt, 1);
+
+            // Se o mês/dia de vencimento for anterior ao fechamento no calendário, vence no ano seguinte
+            let dueYearMonth = setMonth(yearAnchor, dueMonthIndex);
+            let dueDate = clampDayOfMonth(dueYearMonth, rule.dueDay);
+            if (isBefore(dueDate, endsAt)) {
+                dueYearMonth = setMonth(addYears(yearAnchor, 1), dueMonthIndex);
+                dueDate = clampDayOfMonth(dueYearMonth, rule.dueDay);
+            }
+
+            return {
+                beginsAt,
+                endsAt,
+                closingDate: rule.closingDay !== null ? endsAt : null,
+                dueDate,
+            };
+        };
+
+        let bounds = buildBoundsForYear(referenceYearDate);
+
+        if (isAfter(normalizedCursor, bounds.endsAt)) {
+            referenceYearDate = addYears(referenceYearDate, interval);
+            bounds = buildBoundsForYear(referenceYearDate);
+        } else if (isBefore(normalizedCursor, bounds.beginsAt)) {
+            referenceYearDate = subYears(referenceYearDate, interval);
+            bounds = buildBoundsForYear(referenceYearDate);
         }
 
-        const cycleKey = `ONCE-${format(beginsAt, "yyyy-MM-dd")}`;
-        const label = "Pontual";
-
         return {
-            cycleKey,
-            beginsAt,
-            endsAt,
-            closingDate,
-            dueDate,
-            label,
+            ...bounds,
+            label: format(bounds.dueDate, "yyyy"),
         };
-    }
+    },
 
-    stepCycle(date: Date, steps: number): Date {
-        return startOfDay(addDays(date, steps));
-    }
+    stepDate(anchor, steps, interval) {
+        return addYears(startOfDay(anchor), steps * Math.max(1, interval));
+    },
+};
 
-    resolveCurrentPeriodStart(today: Date): Date {
-        return startOfDay(today);
-    }
-}
+// ============================================================================
+// REGISTRY O(1) POR FREQUÊNCIA
+// ============================================================================
+export const CYCLE_ENGINE_REGISTRY: Record<CycleFrequency, ICycleFrequencyStrategy> = {
+    ONCE: OnceCycleStrategy,
+    WEEKLY: WeeklyCycleStrategy,
+    MONTHLY: MonthlyCycleStrategy,
+    YEARLY: YearlyCycleStrategy,
+};
 
 export class CycleEngineRegistry {
-    private static readonly strategies: Record<
-        "ONCE" | "MONTHLY" | "WEEKLY" | "YEARLY",
-        ICycleFrequencyStrategy
-    > = {
-        ONCE: new OnceCycleStrategy(),
-        MONTHLY: new MonthlyCycleStrategy(),
-        WEEKLY: new WeeklyCycleStrategy(),
-        YEARLY: new YearlyCycleStrategy(),
-    };
-
-    static getStrategy(
-        frequency: "ONCE" | "MONTHLY" | "WEEKLY" | "YEARLY"
-    ): ICycleFrequencyStrategy {
-        const strategy = this.strategies[frequency];
-        if (!strategy) {
-            throw new Error(`Estratégia de frequência não suportada: ${frequency}`);
-        }
-        return strategy;
+    static getStrategy(frequency: CycleFrequency): ICycleFrequencyStrategy {
+        return CYCLE_ENGINE_REGISTRY[frequency];
     }
 }

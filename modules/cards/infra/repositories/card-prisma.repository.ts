@@ -25,12 +25,12 @@ export class CardPrismaRepository implements ICardRepository {
         agreement: {
           create: {
             includeInProjection: true,
-            startsAt: todayUtc,
-            rules: {
-              create: {
-                effectiveFrom: todayUtc,
-                frequency: "MONTHLY",
-                interval: 1,
+        frequency: "MONTHLY",
+        interval: 1,
+        startsAt: todayUtc,
+        rules: {
+          create: {
+            effectiveFrom: todayUtc,
                 closingDay: data.closingDay,
                 dueDay: data.dueDay,
               },
@@ -171,8 +171,6 @@ export class CardPrismaRepository implements ICardRepository {
             data: {
               agreementId: agreement.balanceId,
               effectiveFrom: today,
-              frequency: "MONTHLY",
-              interval: 1,
               closingDay: data.closingDay,
               dueDay: data.dueDay,
             },

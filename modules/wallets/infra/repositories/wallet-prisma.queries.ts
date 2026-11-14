@@ -118,12 +118,7 @@ export class WalletPrismaQueries implements IWalletQueries {
                 name: true,
                 agreement: {
                     select: {
-                        rules: {
-                            take: 1,
-                            select: {
-                                frequency: true,
-                            },
-                        },
+                        frequency: true,
                     },
                 },
             },
@@ -131,7 +126,7 @@ export class WalletPrismaQueries implements IWalletQueries {
 
         if (!contract) return null;
 
-        const isOnce = contract.agreement?.rules[0]?.frequency === "ONCE";
+        const isOnce = contract.agreement?.frequency === "ONCE";
 
         return {
             id: contract.id,

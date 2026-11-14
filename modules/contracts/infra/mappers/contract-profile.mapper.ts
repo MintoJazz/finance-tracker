@@ -52,7 +52,7 @@ export class ContractProfileMapper {
                 ? pastRules.at(-1) ?? null
                 : sortedRules[0] ?? null;
 
-        const frequency = (currentRule?.frequency as "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY") ?? "MONTHLY";
+        const frequency = (raw.frequency as "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY") ?? "MONTHLY";
         const dueDay = currentRule?.dueDay ?? 1;
         const closingDay = currentRule?.closingDay ?? null;
 

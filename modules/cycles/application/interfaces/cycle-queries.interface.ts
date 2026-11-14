@@ -1,56 +1,77 @@
-export interface CycleRuleItem {
-    id: number;
-    agreementId: number;
-    effectiveFrom: Date;
-    effectiveTo: Date | null;
-    frequency: "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY";
+import { BalanceType, CycleFrequency } from "@/prisma/generated/prisma/client";
+import { CycleStatus } from "@/modules/cycles/models/cycle-primitives.schema";
+import { CycleRuleRecord } from "@/modules/cycles/application/services/cycle-engine.registry";
+import { CycleWindowBoundaries } from "@/modules/cycles/application/services/cycle-window.engine";
+
+export interface AgreementContextRecord {
+    balanceId: number;
+    balanceName: string;
+    balanceType: BalanceType;
+    includeInProjection: boolean;
+    frequency: CycleFrequency;
     interval: number;
-    closingDay: number | null;
-    dueDay: number;
+    startsAt: Date;
+    endsAt: Date | null;
 }
 
-export interface CycleRulesWindowData {
-    balance: {
-        id: number;
-        name: string;
-        balanceType: "CREDIT" | "PAYABLE" | "RECEIVABLE" | "WALLET" | "RESERVE" | "CATEGORY";
-        contextId: number;
-    };
-    agreement: {
-        startsAt: Date;
-        endsAt: Date | null;
-        includeInProjection: boolean;
-    };
-    rules: CycleRuleItem[];
-    amountLog: Array<{
-        amount: number;
-        effectiveAt: Date;
-    }>;
+export interface FindCycleRulesInWindowParams {
+    agreementId: number;
+    from: Date;
+    to: Date;
 }
 
-export interface CycleAggregatedAmounts {
+export interface AggregateCyclesParams {
+    balanceId: number;
+    balanceType: BalanceType;
+    windows: CycleWindowBoundaries[];
+    today: Date;
+    isOnce: boolean;
+    includeProjected?: boolean;
+    statuses?: CycleStatus[];
+}
+
+export interface AggregatedCycleRow {
+    from: Date;
+    to: Date;
+    dueDate: Date;
+    closingDate: Date | null;
+    label: string;
+    ruleId: number;
     movementsCount: number;
-    recognizedSignedAmount: number;
-    settledSignedAmount: number;
-    transferredSignedAmount: number;
-    netSignedAmount: number;
-    hasSettlementReceipt: boolean;
-    latestSettlementDate: Date | null;
+    isConsolidated: boolean;
+    recognizedAmount: number;
+    paidAmount: number;
+    transferredAmount: number;
+    remainingAmount: number;
+    totalAmount: number;
+    settlementDate: Date | null;
+    hasReceipt: boolean;
+    isOverdue: boolean;
+    status: CycleStatus;
 }
 
 export interface ICycleQueries {
-    findAdjacentCycleRules(
-        contextId: number,
+    /**
+     * 1. Busca o cabeçalho leve (Balance + Agreement) validando o escopo do contextId.
+     */
+    findAgreementContext(
         balanceId: number,
-        from: Date,
-        to: Date
-    ): Promise<CycleRulesWindowData | null>;
+        contextId: number
+    ): Promise<AgreementContextRecord | null>;
 
-    aggregateCycleAmounts(
-        balanceId: number,
-        from: Date,
-        to: Date,
-        isOnce?: boolean,
-        balanceType?: CycleRulesWindowData["balance"]["balanceType"]
-    ): Promise<CycleAggregatedAmounts>;
+    /**
+     * 2. Busca as CycleRules vigentes no intervalo [from, to] com 1 regra de folga
+     * imediatamente anterior (âncora) e 1 imediatamente posterior (borda de transição).
+     */
+    findCycleRulesInWindow(
+        params: FindCycleRulesInWindowParams
+    ): Promise<CycleRuleRecord[]>;
+
+    /**
+     * 3. Agrega em lote (ou unitariamente) as vigências informadas, resolvendo saldos,
+     * polaridade, valor esperado do AgreementAmountEntry e inferência/filtro de status no SQL.
+     */
+    aggregateCycles(
+        params: AggregateCyclesParams
+    ): Promise<AggregatedCycleRow[]>;
 }

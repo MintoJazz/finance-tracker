@@ -1,101 +1,100 @@
-import { isAfter, isBefore, startOfDay } from "date-fns";
-import { failure, Result, success } from "@/types/result.types";
-import {
-    CycleRange,
-    CycleRangeSchema,
-} from "../../models/cycle-primitives.schema";
-import { CycleRuleItem } from "../interfaces/cycle-queries.interface";
-import type { CycleWindowBoundaries } from "./cycle-detail-engine.service";
+import { isAfter, isBefore, parseISO, startOfDay } from "date-fns";
+import { CycleRange } from "@/modules/cycles/models/cycle-primitives.schema";
+import { AgreementScheduleContext } from "./cycle-engine.registry";
+import { CycleWindowBoundaries } from "./cycle-window.engine";
 
-export function parseCivilDate(dateStr: string): Date {
-    const parts = dateStr.split("-").map(Number);
-    if (parts.length === 3 && !parts.some(Number.isNaN)) {
-        return new Date(parts[0], parts[1] - 1, parts[2]);
-    }
-    return new Date(dateStr);
+export type CycleDetailValidationError =
+    | {
+          code: "INVALID_RANGE_ORDER";
+          message: string;
+      }
+    | {
+          code: "OUT_OF_AGREEMENT_BOUNDS";
+          message: string;
+      }
+    | {
+          code: "NON_CANONICAL_CYCLE_WINDOW";
+          message: string;
+      };
+
+export interface ValidatedCycleNeighborhood {
+    prev: CycleWindowBoundaries | null;
+    current: CycleWindowBoundaries;
+    next: CycleWindowBoundaries | null;
 }
 
 export class CycleDetailValidator {
     /**
-     * Validação preliminar do balanceId e formato do range de datas.
+     * Valida a vigência solicitada contra os limites do Agreement e localiza
+     * `{ prev, current, next }` dentro das janelas geradas pela CycleWindowEngine.
      */
-    static validateInput(params: {
-        balanceId: number;
-        range: CycleRange;
-    }): Result<{ from: Date; to: Date }> {
-        if (!params.balanceId || params.balanceId <= 0) {
-            return failure("Identificador de saldo inválido.");
-        }
-
-        const parsed = CycleRangeSchema.safeParse(params.range);
-        if (!parsed.success) {
-            return failure(
-                parsed.error.issues[0]?.message ?? "Período de vigência inválido."
-            );
-        }
-
-        return success({
-            from: parseCivilDate(params.range.from),
-            to: parseCivilDate(params.range.to),
-        });
-    }
-
-    /**
-     * Validação de existência de regras para o compromisso.
-     */
-    static validateRulesNotEmpty(rules: CycleRuleItem[]): Result<void> {
-        if (!rules || rules.length === 0) {
-            return failure("Nenhuma regra de ciclo encontrada para o compromisso.");
-        }
-        return success(undefined);
-    }
-
-    /**
-     * Validação dos limites do ciclo resolvido frente ao range solicitado e à vigência do acordo.
-     */
-    static validateResolvedWindow(params: {
+    static validateAndExtractNeighborhood(params: {
         requestedRange: CycleRange;
-        resolvedCurrent: CycleWindowBoundaries;
-        agreement: { startsAt: Date; endsAt: Date | null };
-    }): Result<void> {
-        // 1. Verificar match exato do período solicitado
-        if (
-            params.resolvedCurrent.range.from !== params.requestedRange.from ||
-            params.resolvedCurrent.range.to !== params.requestedRange.to
-        ) {
-            return failure(
-                "Período de vigência informado não corresponde a um ciclo válido para as regras deste compromisso."
-            );
+        agreement: AgreementScheduleContext;
+        generatedWindows: CycleWindowBoundaries[];
+    }):
+        | { ok: true; value: ValidatedCycleNeighborhood }
+        | { ok: false; error: CycleDetailValidationError } {
+        const { requestedRange, agreement, generatedWindows } = params;
+
+        const reqFrom = startOfDay(parseISO(requestedRange.from));
+        const reqTo = startOfDay(parseISO(requestedRange.to));
+
+        // 1. Ordem cronológica básica
+        if (isAfter(reqFrom, reqTo)) {
+            return {
+                ok: false,
+                error: {
+                    code: "INVALID_RANGE_ORDER",
+                    message: `A data inicial (${requestedRange.from}) não pode ser posterior à data final (${requestedRange.to}).`,
+                },
+            };
         }
 
-        // 2. Verificar limite inicial do acordo (agreement.startsAt)
-        // Se a data final do ciclo for anterior ao início do contrato, o ciclo é inválido
+        // 2. Interseção com a vigência do Agreement [startsAt, endsAt]
+        const agreementStart = startOfDay(agreement.startsAt);
+        const agreementEnd = agreement.endsAt ? startOfDay(agreement.endsAt) : null;
+
         if (
-            isBefore(
-                startOfDay(parseCivilDate(params.resolvedCurrent.range.to)),
-                startOfDay(params.agreement.startsAt)
-            )
+            isBefore(reqTo, agreementStart) ||
+            (agreementEnd !== null && isAfter(reqFrom, agreementEnd))
         ) {
-            return failure(
-                "Período de vigência informado é anterior ao início do compromisso."
-            );
+            return {
+                ok: false,
+                error: {
+                    code: "OUT_OF_AGREEMENT_BOUNDS",
+                    message: `O ciclo solicitado (${requestedRange.from} a ${requestedRange.to}) está fora da vigência do acordo.`,
+                },
+            };
         }
 
-        // 3. Verificar limite final do acordo (agreement.endsAt)
-        // Se a data inicial do ciclo for posterior ao término do contrato, o ciclo é inválido
-        if (
-            params.agreement.endsAt &&
-            isAfter(
-                startOfDay(parseCivilDate(params.resolvedCurrent.range.from)),
-                startOfDay(params.agreement.endsAt)
-            )
-        ) {
-            return failure(
-                "Período de vigência informado é posterior ao término do compromisso."
-            );
+        // 3. Busca a vigência exata nas janelas canônicas geradas pela CycleWindowEngine
+        const currentIndex = generatedWindows.findIndex(
+            (w) =>
+                w.range.from === requestedRange.from &&
+                w.range.to === requestedRange.to
+        );
+
+        if (currentIndex === -1) {
+            return {
+                ok: false,
+                error: {
+                    code: "NON_CANONICAL_CYCLE_WINDOW",
+                    message: `O intervalo (${requestedRange.from} a ${requestedRange.to}) não corresponde a uma vigência válida para as regras deste acordo.`,
+                },
+            };
         }
 
-        return success(undefined);
+        return {
+            ok: true,
+            value: {
+                prev: currentIndex > 0 ? generatedWindows[currentIndex - 1] : null,
+                current: generatedWindows[currentIndex],
+                next:
+                    currentIndex < generatedWindows.length - 1
+                        ? generatedWindows[currentIndex + 1]
+                        : null,
+            },
+        };
     }
 }
-

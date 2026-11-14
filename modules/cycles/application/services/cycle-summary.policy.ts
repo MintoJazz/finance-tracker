@@ -1,17 +1,21 @@
-import {
-    CommitmentCycleItem,
-    CommitmentCycleStatusEnum,
-    CommitmentsPeriodSummary,
-} from "../../models/commitment-cycle.schema";
+import { z } from "zod";
+import { CycleItem } from "../../models/cycle-item.schema";
+import { CycleStatus } from "../../models/cycle-primitives.schema";
 
 export type CycleFinancialRole = "OVERDUE" | "PENDING" | "SETTLED";
 
-/**
- * Mapeamento Strategy/Classifier que associa cada status de ciclo ao seu papel financeiro
- * na sumarização do período de planejamento.
- */
+export const CommitmentsPeriodSummarySchema = z.object({
+    totalAmount: z.number().int().nonnegative(),
+    paidAmount: z.number().int().nonnegative(),
+    pendingAmount: z.number().int().nonnegative(),
+    overdueAmount: z.number().int().nonnegative(),
+    overdueCount: z.number().int().nonnegative(),
+});
+
+export type CommitmentsPeriodSummary = z.infer<typeof CommitmentsPeriodSummarySchema>;
+
 export const COMMITMENT_STATUS_FINANCIAL_ROLE: Record<
-    CommitmentCycleStatusEnum,
+    CycleStatus,
     CycleFinancialRole
 > = {
     OVERDUE: "OVERDUE",
@@ -25,11 +29,8 @@ export const COMMITMENT_STATUS_FINANCIAL_ROLE: Record<
     TRANSFERRED: "SETTLED",
 };
 
-/**
- * Calculadora pura responsável por totalizar os valores e contagens dos ciclos.
- */
 export class CycleSummaryCalculator {
-    static summarize(cycles: CommitmentCycleItem[]): CommitmentsPeriodSummary {
+    static summarize(cycles: Pick<CycleItem, "totalAmount" | "paidAmount" | "remainingAmount" | "status">[]): CommitmentsPeriodSummary {
         let totalAmount = 0;
         let paidAmount = 0;
         let overdueAmount = 0;
@@ -47,7 +48,6 @@ export class CycleSummaryCalculator {
             } else if (role === "PENDING") {
                 pendingAmount += cycle.remainingAmount;
             }
-            // "SETTLED" não incrementa valores em aberto
         }
 
         return {

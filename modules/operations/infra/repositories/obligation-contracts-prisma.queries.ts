@@ -6,8 +6,8 @@ import {
   ObligationContractItem,
 } from "../../application/interfaces/obligation-contracts-queries.interface"
 import { ContractProfilePrismaQueries } from "@/modules/contracts/infra/repositories/contract-profile-prisma.queries"
-import { CycleEngineService } from "@/modules/cycles/application/services/cycle-engine.service"
-import { CycleWindow } from "@/modules/cycles/application/interfaces/commitment-cycle-engine.interface"
+// import { CycleEngineService } from "@/modules/cycles/application/services/cycle-engine.service"
+// import { CycleWindow } from "@/modules/cycles/application/interfaces/commitment-cycle-engine.interface"
 
 export class ObligationContractsPrismaQueries
   implements IObligationContractsQueries

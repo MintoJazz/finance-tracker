@@ -11,21 +11,21 @@ import {
   createCategoryStepViewsMap,
   createSubcategoryStepViewsMap,
 } from "./intents/category-creation-steps"
-import { cardInvoiceStepViews } from "./intents/card-invoice-step"
-import { obligationStepViewsMap } from "./intents/obligation-steps"
+// import { cardInvoiceStepViews } from "./intents/card-invoice-step"
+// import { obligationStepViewsMap } from "./intents/obligation-steps"
 
 export const STEP_VIEWS_CATALOG = {
   "base.entry": entryStepViews,
   "base.details": detailsStepViews,
   "base.custody": custodyStepViews,
-  "intent.choose_card_invoice": cardInvoiceStepViews,
+  // "intent.choose_card_invoice": cardInvoiceStepViews,
   "base.amount": amountStepViews,
   "base.category": categoryStepViews,
   "base.subcategory": subcategoryStepViews,
   "base.review": reviewStepViews,
   ...createCategoryStepViewsMap,
   ...createSubcategoryStepViewsMap,
-  ...obligationStepViewsMap,
+  // ...obligationStepViewsMap,
 } as const satisfies StepViewsCatalog<string, OperationDraft>
 
 export type CatalogStepId = keyof typeof STEP_VIEWS_CATALOG

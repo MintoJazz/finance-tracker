@@ -35,11 +35,11 @@ export class ContractPrismaRepository implements IContractRepository {
                         startsAt,
                         endsAt,
                         includeInProjection: data.includeInProjection,
+                        frequency: data.frequency,
+                        interval: 1,
                         rules: {
                             create: {
                                 effectiveFrom,
-                                frequency: data.frequency,
-                                interval: 1,
                                 dueDay: data.schedule.dueDay,
                                 closingDay,
                             },
@@ -167,8 +167,8 @@ export class ContractPrismaRepository implements IContractRepository {
             rules: agreement.rules.map((r) => ({
                 id: r.id,
                 effectiveFrom: r.effectiveFrom,
-                frequency: r.frequency,
-                interval: r.interval,
+                frequency: agreement.frequency,
+                interval: agreement.interval,
                 dueDay: r.dueDay,
                 closingDay: r.closingDay,
             })),
@@ -211,27 +211,33 @@ export class ContractPrismaRepository implements IContractRepository {
             throw new Error("Contract not found or access denied.");
         }
 
-        await prisma.cycleRule.upsert({
-            where: {
-                agreementId_effectiveFrom: {
+        await prisma.$transaction(async (tx) => {
+            await tx.agreement.update({
+                where: { balanceId: id },
+                data: {
+                    frequency: data.frequency,
+                    interval: data.interval ?? 1,
+                },
+            });
+
+            await tx.cycleRule.upsert({
+                where: {
+                    agreementId_effectiveFrom: {
+                        agreementId: id,
+                        effectiveFrom: data.effectiveFrom,
+                    }
+                },
+                create: {
                     agreementId: id,
                     effectiveFrom: data.effectiveFrom,
+                    dueDay: data.dueDay,
+                    closingDay: data.closingDay,
+                },
+                update: {
+                    dueDay: data.dueDay,
+                    closingDay: data.closingDay,
                 }
-            },
-            create: {
-                agreementId: id,
-                effectiveFrom: data.effectiveFrom,
-                frequency: data.frequency,
-                interval: data.interval ?? 1,
-                dueDay: data.dueDay,
-                closingDay: data.closingDay,
-            },
-            update: {
-                frequency: data.frequency,
-                interval: data.interval ?? 1,
-                dueDay: data.dueDay,
-                closingDay: data.closingDay,
-            }
+            });
         });
     }
 }

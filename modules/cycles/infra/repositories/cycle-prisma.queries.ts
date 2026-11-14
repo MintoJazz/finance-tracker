@@ -1,268 +1,343 @@
-import { prisma } from "@/lib/prisma";
-import { addMonths, endOfDay, startOfDay } from "date-fns";
-import { toCivilDate } from "@/lib/formatters";
-import {
-    CycleAggregatedAmounts,
-    CycleRuleItem,
-    CycleRulesWindowData,
-    ICycleQueries,
-} from "../../application/interfaces/cycle-queries.interface";
+import { format } from "date-fns";
+import { Prisma, PrismaClient } from "@/prisma/generated/prisma/client";
+import { CycleRuleRecord } from "@/modules/cycles/application/services/cycle-engine.registry";
+import { CycleStatusSqlBuilder } from "./cycle-status-sql.registry";
+import { ICycleQueries, AgreementContextRecord, FindCycleRulesInWindowParams, AggregateCyclesParams, AggregatedCycleRow } from "../../application/interfaces/cycle-queries.interface";
 
 export class CyclePrismaQueries implements ICycleQueries {
-    async findAdjacentCycleRules(
-        contextId: number,
+    constructor(private readonly prisma: PrismaClient) { }
+
+    // ========================================================================
+    // 1. BUSCA DE METADADOS (Balance + Agreement)
+    // ========================================================================
+    async findAgreementContext(
         balanceId: number,
-        from: Date,
-        to: Date
-    ): Promise<CycleRulesWindowData | null> {
-        const balance = await prisma.balance.findFirst({
+        contextId: number
+    ): Promise<AgreementContextRecord | null> {
+        const agreement = await this.prisma.agreement.findFirst({
             where: {
-                id: balanceId,
-                contextId,
-                removedAt: null,
+                balanceId,
+                balance: {
+                    contextId,
+                },
             },
-            include: {
-                agreement: {
-                    include: {
-                        amountEntries: {
-                            orderBy: { effectiveAt: "asc" },
-                        },
+            select: {
+                balanceId: true,
+                includeInProjection: true,
+                frequency: true,
+                interval: true,
+                startsAt: true,
+                endsAt: true,
+                balance: {
+                    select: {
+                        name: true,
+                        balanceType: true,
                     },
                 },
             },
         });
 
-        if (!balance?.agreement) {
+        if (!agreement) {
             return null;
         }
 
-        const civilFrom = startOfDay(from);
-        const civilTo = endOfDay(to);
-
-        // 1. Regra âncora: última regra com effectiveFrom <= civilFrom
-        const anchorRule = await prisma.cycleRule.findFirst({
-            where: {
-                agreementId: balanceId,
-                effectiveFrom: { lte: civilFrom },
-            },
-            orderBy: { effectiveFrom: "desc" },
-        });
-
-        // 2. Regras no horizonte: da âncora até 3 meses após to
-        const horizonStart = anchorRule ? anchorRule.effectiveFrom : civilFrom;
-        const horizonEnd = addMonths(civilTo, 3);
-
-        const rawRules = await prisma.cycleRule.findMany({
-            where: {
-                agreementId: balanceId,
-                effectiveFrom: {
-                    gte: horizonStart,
-                    lte: horizonEnd,
-                },
-            },
-            orderBy: { effectiveFrom: "asc" },
-        });
-
-        // Se rawRules estiver vazio (ex: todas as regras começam depois do horizonte), pega a primeira regra existente
-        if (rawRules.length === 0) {
-            const earliestRule = await prisma.cycleRule.findFirst({
-                where: { agreementId: balanceId },
-                orderBy: { effectiveFrom: "asc" },
-            });
-            if (earliestRule) {
-                rawRules.push(earliestRule);
-            }
-        }
-
-        // 3. Regra posterior ao horizonte para saber o effectiveTo da última regra
-        const lastRule = rawRules[rawRules.length - 1];
-        const trailingRule = lastRule
-            ? await prisma.cycleRule.findFirst({
-                  where: {
-                      agreementId: balanceId,
-                      effectiveFrom: { gt: lastRule.effectiveFrom },
-                  },
-                  orderBy: { effectiveFrom: "asc" },
-              })
-            : null;
-
-        const rules: CycleRuleItem[] = rawRules.map((r, idx) => {
-            const nextInArray = rawRules[idx + 1] ?? trailingRule;
-            return {
-                id: r.id,
-                agreementId: r.agreementId,
-                effectiveFrom: toCivilDate(r.effectiveFrom),
-                effectiveTo: nextInArray ? toCivilDate(nextInArray.effectiveFrom) : null,
-                frequency: r.frequency as "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY",
-                interval: r.interval,
-                closingDay: r.closingDay,
-                dueDay: r.dueDay,
-            };
-        });
-
-        const amountLog = balance.agreement.amountEntries.map((e) => ({
-            amount: e.amount,
-            effectiveAt: toCivilDate(e.effectiveAt),
-        }));
-
         return {
-            balance: {
-                id: balance.id,
-                name: balance.name,
-                balanceType: balance.balanceType,
-                contextId: balance.contextId,
-            },
-            agreement: {
-                startsAt: toCivilDate(balance.agreement.startsAt),
-                endsAt: balance.agreement.endsAt
-                    ? toCivilDate(balance.agreement.endsAt)
-                    : null,
-                includeInProjection: balance.agreement.includeInProjection,
-            },
-            rules,
-            amountLog,
+            balanceId: agreement.balanceId,
+            balanceName: agreement.balance.name,
+            balanceType: agreement.balance.balanceType,
+            includeInProjection: agreement.includeInProjection,
+            frequency: agreement.frequency,
+            interval: agreement.interval,
+            startsAt: agreement.startsAt,
+            endsAt: agreement.endsAt,
         };
     }
 
-    async aggregateCycleAmounts(
-        balanceId: number,
-        from: Date,
-        to: Date,
-        isOnce: boolean = false,
-        balanceType: CycleRulesWindowData["balance"]["balanceType"] = "PAYABLE"
-    ): Promise<CycleAggregatedAmounts> {
-        const start = startOfDay(from);
-        const end = endOfDay(to);
+    // ========================================================================
+    // 2. BUSCA DE REGRAS NO HORIZONTE (Com 1 de folga para cada lado em 1 query)
+    // ========================================================================
+    async findCycleRulesInWindow(
+        params: FindCycleRulesInWindowParams
+    ): Promise<CycleRuleRecord[]> {
+        const { agreementId, from, to } = params;
 
-        const isReceivable = balanceType === "RECEIVABLE";
-        const increaseDirection = isReceivable ? "CREDIT" : "DEBIT";
-        const decreaseDirection = isReceivable ? "DEBIT" : "CREDIT";
+        const rows = await this.prisma.$queryRaw<CycleRuleRecord[]>(Prisma.sql`
+            WITH boundary_rules AS (
+                (
+                    -- 1. Regra Ancora: ultima regra com effectiveFrom <= from
+                    SELECT
+                        r.id,
+                        r."agreementId",
+                        r."dueDay",
+                        r."dueMonth",
+                        r."closingDay",
+                        r."closingMonth",
+                        r."effectiveFrom"
+                    FROM "CycleRule" r
+                    WHERE r."agreementId" = ${agreementId}
+                      AND r."effectiveFrom" <= ${from}::date
+                    ORDER BY r."effectiveFrom" DESC
+                    LIMIT 1
+                )
+                UNION
+                (
+                    -- Fallback caso todas as regras comecem depois de from: garante a 1a regra do acordo
+                    SELECT
+                        r.id,
+                        r."agreementId",
+                        r."dueDay",
+                        r."dueMonth",
+                        r."closingDay",
+                        r."closingMonth",
+                        r."effectiveFrom"
+                    FROM "CycleRule" r
+                    WHERE r."agreementId" = ${agreementId}
+                    ORDER BY r."effectiveFrom" ASC
+                    LIMIT 1
+                )
+                UNION
+                (
+                    -- 2. Regras intermediarias dentro de (from, to]
+                    SELECT
+                        r.id,
+                        r."agreementId",
+                        r."dueDay",
+                        r."dueMonth",
+                        r."closingDay",
+                        r."closingMonth",
+                        r."effectiveFrom"
+                    FROM "CycleRule" r
+                    WHERE r."agreementId" = ${agreementId}
+                      AND r."effectiveFrom" > ${from}::date
+                      AND r."effectiveFrom" <= ${to}::date
+                )
+                UNION
+                (
+                    -- 3. Regra Posterior: 1a regra apos to para fechar o effectiveTo e ciclos ponte
+                    SELECT
+                        r.id,
+                        r."agreementId",
+                        r."dueDay",
+                        r."dueMonth",
+                        r."closingDay",
+                        r."closingMonth",
+                        r."effectiveFrom"
+                    FROM "CycleRule" r
+                    WHERE r."agreementId" = ${agreementId}
+                      AND r."effectiveFrom" > ${to}::date
+                    ORDER BY r."effectiveFrom" ASC
+                    LIMIT 1
+                )
+            )
+            SELECT *
+            FROM boundary_rules
+            ORDER BY "effectiveFrom" ASC;
+        `);
 
-        const dateCondition = isOnce
-            ? {}
-            : {
-                  OR: [
-                      { competanceDate: { not: null, gte: start, lte: end } },
-                      { competanceDate: null, dueDate: { gte: start, lte: end } },
-                  ],
-              };
+        return rows;
+    }
 
-        const activeEntryCondition = {
-            reversesEntryId: null,
-            reversedBy: null,
-            ...dateCondition,
-        };
+    // ========================================================================
+    // 3. AGREGAÇÃO EM LOTE / UNITÁRIA COM POLARIDADE E STATUS NO SQL
+    // ========================================================================
+    async aggregateCycles(
+        params: AggregateCyclesParams
+    ): Promise<AggregatedCycleRow[]> {
+        const {
+            balanceId,
+            balanceType,
+            windows,
+            today,
+            isOnce,
+            includeProjected = true,
+            statuses,
+        } = params;
 
-        const [recognizedAgg, settledAgg, transferredAgg, lastSettlementEntry] =
-            await Promise.all([
-                // 1. Total reconhecido (ACCRUAL, CLAIM_OPENING que aumenta, ADJUSTMENT, DIRECT)
-                prisma.movement.aggregate({
-                    where: {
-                        balanceId,
-                        OR: [
-                            {
-                                entry: {
-                                    ...activeEntryCondition,
-                                    type: { in: ["ACCRUAL", "ADJUSTMENT", "DIRECT"] },
-                                },
-                            },
-                            {
-                                direction: increaseDirection,
-                                entry: {
-                                    ...activeEntryCondition,
-                                    type: "CLAIM_OPENING",
-                                },
-                            },
-                        ],
-                    },
-                    _sum: { amount: true },
-                    _count: { id: true },
-                }),
+        if (windows.length === 0) {
+            return [];
+        }
 
-                // 2. Total liquidado (SETTLEMENT, CLAIM_PAYMENT, CLAIM_RECEIPT)
-                prisma.movement.aggregate({
-                    where: {
-                        balanceId,
-                        entry: {
-                            ...activeEntryCondition,
-                            type: { in: ["SETTLEMENT", "CLAIM_PAYMENT", "CLAIM_RECEIPT"] },
-                        },
-                    },
-                    _sum: { amount: true },
-                    _count: { id: true },
-                }),
+        // Polaridade unificada:
+        // Em RECEIVABLE (+1), entradas que aumentam o direito são > 0 e baixas são < 0.
+        // Em PAYABLE/CREDIT (-1), provisões/compras são < 0 no banco, então multiplicadas por -1 ficam > 0!
+        const polarity: 1 | -1 = balanceType === "RECEIVABLE" ? 1 : -1;
 
-                // 3. Transferências / Cessões (TRANSFER e CLAIM_OPENING na direção de redução/cessão)
-                prisma.movement.aggregate({
-                    where: {
-                        balanceId,
-                        OR: [
-                            {
-                                entry: {
-                                    ...activeEntryCondition,
-                                    type: "TRANSFER",
-                                },
-                            },
-                            {
-                                direction: decreaseDirection,
-                                entry: {
-                                    ...activeEntryCondition,
-                                    type: "CLAIM_OPENING",
-                                },
-                            },
-                        ],
-                    },
-                    _sum: { amount: true },
-                    _count: { id: true },
-                }),
+        const froms = windows.map((w) => w.range.from);
+        const tos = windows.map((w) => w.range.to);
+        const dueDates = windows.map((w) => format(w.dueDate, "yyyy-MM-dd"));
+        const closingDates = windows.map((w) =>
+            w.closingDate ? format(w.closingDate, "yyyy-MM-dd") : null
+        );
+        const labels = windows.map((w) => w.label);
+        const ruleIds = windows.map((w) => w.rule.id);
 
-                // 4. Última liquidação para capturar settlementDate e comprovante
-                prisma.entry.findFirst({
-                    where: {
-                        reversesEntryId: null,
-                        reversedBy: null,
-                        type: { in: ["SETTLEMENT", "CLAIM_PAYMENT", "CLAIM_RECEIPT"] },
-                        movements: { some: { balanceId } },
-                        ...dateCondition,
-                    },
-                    orderBy: [
-                        { competanceDate: "desc" },
-                        { dueDate: "desc" },
-                        { createdAt: "desc" },
-                    ],
-                    select: {
-                        competanceDate: true,
-                        dueDate: true,
-                        movements: {
-                            where: { balanceId },
-                            select: { direction: true },
-                        },
-                    },
-                }),
-            ]);
+        // 1. Pré-filtro SQL (corta vigências antes do JOIN se houver filtro de status)
+        const preFilterWhereSql = CycleStatusSqlBuilder.buildPreFilterWhere(statuses, {
+            balanceId,
+            polarity,
+            today,
+            isOnce,
+        });
 
-        const movementsCount =
-            (recognizedAgg._count.id ?? 0) +
-            (settledAgg._count.id ?? 0) +
-            (transferredAgg._count.id ?? 0);
+        // 2. Expressão CASE WHEN de inferência de status pós-soma
+        const statusCaseWhenSql = CycleStatusSqlBuilder.buildStatusCaseWhen(today);
 
-        const hasSettlementReceipt =
-            lastSettlementEntry?.movements.some((m) => m.direction === decreaseDirection) ?? false;
+        // 3. Filtro final exato sobre o status inferido
+        const finalStatusFilterSql =
+            statuses && statuses.length > 0
+                ? Prisma.sql`AND ec."status" IN (${Prisma.join(statuses)})`
+                : Prisma.empty;
 
-        const latestSettlementDate =
-            lastSettlementEntry?.competanceDate ?? lastSettlementEntry?.dueDate ?? null;
+        const entryDateJoinCondition = isOnce
+            ? Prisma.sql`TRUE`
+            : Prisma.sql`COALESCE(e."competanceDate", e."dueDate")::date BETWEEN w.win_from AND w.win_to`;
 
-        return {
-            movementsCount,
-            recognizedSignedAmount: recognizedAgg._sum.amount ?? 0,
-            settledSignedAmount: settledAgg._sum.amount ?? 0,
-            transferredSignedAmount: transferredAgg._sum.amount ?? 0,
-            netSignedAmount:
-                (recognizedAgg._sum.amount ?? 0) +
-                (settledAgg._sum.amount ?? 0) +
-                (transferredAgg._sum.amount ?? 0),
-            hasSettlementReceipt,
-            latestSettlementDate,
-        };
+        return this.prisma.$queryRaw<AggregatedCycleRow[]>(Prisma.sql`
+            WITH input_windows AS (
+                SELECT *
+                FROM UNNEST(
+                    ${froms}::date[],
+                    ${tos}::date[],
+                    ${dueDates}::date[],
+                    ${closingDates}::date[],
+                    ${labels}::text[],
+                    ${ruleIds}::int[]
+                ) AS t(win_from, win_to, due_date, closing_date, label, rule_id)
+            ),
+
+            -- Etapa A: Poda vigências incompatíveis antes do JOIN pesado
+            candidate_windows AS (
+                SELECT w.*
+                FROM input_windows w
+                WHERE ${preFilterWhereSql}
+            ),
+
+            -- Etapa B: Soma movimentos já normalizados pela polaridade (m.amount * polarity)
+            raw_aggregates AS (
+                SELECT
+                    w.win_from,
+                    w.win_to,
+                    w.due_date,
+                    w.closing_date,
+                    w.label,
+                    w.rule_id,
+                    COUNT(m.id)::int AS movements_count,
+
+                    -- Reconhecido: provisões, compras, ajustes ou abertura que aumenta o saldo do ciclo
+                    GREATEST(0, COALESCE(SUM(m.amount * ${polarity}) FILTER (
+                        WHERE e.type IN ('ACCRUAL'::"EntryType", 'ADJUSTMENT'::"EntryType", 'DIRECT'::"EntryType")
+                           OR (e.type = 'CLAIM_OPENING'::"EntryType" AND (m.amount * ${polarity}) > 0)
+                    ), 0))::int AS recognized_amount,
+
+                    -- Pago: liquidações invertendo o sinal redutor para positivo
+                    GREATEST(0, COALESCE(SUM(-(m.amount * ${polarity})) FILTER (
+                        WHERE e.type IN ('SETTLEMENT'::"EntryType", 'CLAIM_PAYMENT'::"EntryType", 'CLAIM_RECEIPT'::"EntryType")
+                    ), 0))::int AS paid_amount,
+
+                    -- Transferido: cessões/renegociações que baixam o ciclo
+                    GREATEST(0, COALESCE(SUM(-(m.amount * ${polarity})) FILTER (
+                        WHERE e.type = 'TRANSFER'::"EntryType"
+                           OR (e.type = 'CLAIM_OPENING'::"EntryType" AND (m.amount * ${polarity}) < 0)
+                    ), 0))::int AS transferred_amount,
+
+                    -- Saldo líquido em aberto dos movimentos reais
+                    GREATEST(0, COALESCE(SUM(m.amount * ${polarity}), 0))::int AS net_open_amount,
+
+                    MAX(COALESCE(e."competanceDate", e."dueDate")::date) FILTER (
+                        WHERE e.type IN ('SETTLEMENT'::"EntryType", 'CLAIM_PAYMENT'::"EntryType", 'CLAIM_RECEIPT'::"EntryType")
+                    ) AS latest_settlement_date,
+
+                    COALESCE(BOOL_OR((m.amount * ${polarity}) < 0) FILTER (
+                        WHERE e.type IN ('SETTLEMENT'::"EntryType", 'CLAIM_PAYMENT'::"EntryType", 'CLAIM_RECEIPT'::"EntryType")
+                    ), false) AS has_settlement_receipt,
+
+                    -- Valor projetado do contrato (somente quando movements_count = 0 e não é cartão de crédito)
+                    CASE
+                        WHEN ${balanceType}::"BalanceType" = 'CREDIT'::"BalanceType" THEN 0
+                        ELSE COALESCE((
+                            SELECT GREATEST(0, SUM(ae.amount))::int
+                            FROM "AgreementAmountEntry" ae
+                            WHERE ae."agreementId" = ${balanceId}
+                              AND ae."effectiveAt"::date <= w.due_date
+                        ), 0)
+                    END AS expected_amount
+
+                FROM candidate_windows w
+                LEFT JOIN (
+                    "Movement" m
+                    INNER JOIN "Entry" e
+                        ON e.id = m."entryId"
+                       AND e."reversesEntryId" IS NULL
+                       AND NOT EXISTS (
+                           SELECT 1 FROM "Entry" rev WHERE rev."reversesEntryId" = e.id
+                       )
+                ) ON m."balanceId" = ${balanceId}
+                 AND ${entryDateJoinCondition}
+                GROUP BY
+                    w.win_from,
+                    w.win_to,
+                    w.due_date,
+                    w.closing_date,
+                    w.label,
+                    w.rule_id
+            ),
+
+            -- Etapa C: Consolida total_amount e remaining_amount entre projetado vs consolidado
+            normalized_cycles AS (
+                SELECT
+                    r.win_from,
+                    r.win_to,
+                    r.due_date,
+                    r.closing_date,
+                    r.label,
+                    r.rule_id,
+                    r.movements_count,
+                    (r.movements_count > 0) AS is_consolidated,
+                    r.recognized_amount,
+                    r.paid_amount,
+                    r.transferred_amount,
+                    r.latest_settlement_date,
+                    r.has_settlement_receipt,
+                    CASE
+                        WHEN r.movements_count = 0 THEN r.expected_amount
+                        ELSE r.net_open_amount
+                    END::int AS remaining_amount,
+                    CASE
+                        WHEN r.movements_count = 0 THEN r.expected_amount
+                        WHEN r.recognized_amount > 0 THEN r.recognized_amount
+                        ELSE r.paid_amount
+                    END::int AS total_amount
+                FROM raw_aggregates r
+            ),
+
+            -- Etapa D: Carimba o status final pelo CASE WHEN do Registry
+            evaluated_cycles AS (
+                SELECT
+                    c.win_from AS "from",
+                    c.win_to AS "to",
+                    c.due_date AS "dueDate",
+                    c.closing_date AS "closingDate",
+                    c.label,
+                    c.rule_id AS "ruleId",
+                    c.movements_count AS "movementsCount",
+                    c.is_consolidated AS "isConsolidated",
+                    c.recognized_amount AS "recognizedAmount",
+                    c.paid_amount AS "paidAmount",
+                    c.transferred_amount AS "transferredAmount",
+                    c.remaining_amount AS "remainingAmount",
+                    c.total_amount AS "totalAmount",
+                    c.latest_settlement_date AS "settlementDate",
+                    c.has_settlement_receipt AS "hasReceipt",
+                    (c.remaining_amount > 0 AND c.due_date < ${today}::date) AS "isOverdue",
+                    (${statusCaseWhenSql})::text AS "status"
+                FROM normalized_cycles c
+            )
+
+            SELECT *
+            FROM evaluated_cycles ec
+            WHERE (${includeProjected} = true OR ec."isConsolidated" = true)
+                ${finalStatusFilterSql}
+            ORDER BY ec."dueDate" ASC, ec."from" ASC;
+        `);
     }
 }

@@ -14,8 +14,8 @@ import type { IOperationPlanExecutor } from "../../application/interfaces/operat
 import { GetOperationOptionsUseCase } from "../../application/use-cases/get-operation-options.use-case"
 import { GetCustodyOptionsUseCase } from "../../application/use-cases/get-custody-options.use-case"
 import { ExecuteOperationUseCase } from "../../application/use-cases/execute-operation.use-case"
-import { GetObligationContractsUseCase } from "../../application/use-cases/get-obligation-contracts.use-case"
-import { ObligationContractsPrismaQueries } from "../repositories/obligation-contracts-prisma.queries"
+// import { GetObligationContractsUseCase } from "../../application/use-cases/get-obligation-contracts.use-case"
+// import { ObligationContractsPrismaQueries } from "../repositories/obligation-contracts-prisma.queries"
 
 export class OperationOptionsFactory {
   private static readonly memberRepository: IContextMemberRepository =
@@ -29,8 +29,8 @@ export class OperationOptionsFactory {
     new CategoryOptionsPrismaProvider()
   private static readonly planExecutor: IOperationPlanExecutor =
     new PrismaOperationPlanExecutor()
-  private static readonly obligationContractsQueries =
-    new ObligationContractsPrismaQueries()
+  // private static readonly obligationContractsQueries =
+  //   new ObligationContractsPrismaQueries()
 
   public static makeCustodyOptionsProvider(): ICustodyOptionsProvider {
     return this.custodyOptionsProvider
@@ -68,11 +68,11 @@ export class OperationOptionsFactory {
       this.makeOperationPlanExecutor()
     )
 
-  public static readonly makeGetObligationContractsUseCase = () =>
-    new GetObligationContractsUseCase(
-      this.spaceAccessProvider,
-      this.obligationContractsQueries
-    )
+  // public static readonly makeGetObligationContractsUseCase = () =>
+  //   new GetObligationContractsUseCase(
+  //     this.spaceAccessProvider,
+  //     this.obligationContractsQueries
+  //   )
 }
 
 

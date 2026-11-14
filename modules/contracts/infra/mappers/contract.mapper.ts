@@ -9,11 +9,12 @@ type RawContractBalance = {
     removedAt: Date | null;
     agreement?: {
         balanceId: number;
+        frequency: string;
+        interval: number;
         startsAt: Date;
         endsAt: Date | null;
         includeInProjection: boolean;
         rules: {
-            frequency: string;
             dueDay: number;
             effectiveFrom?: Date;
         }[];
@@ -47,7 +48,7 @@ export class ContractMapper {
             name: balance.name,
             type: balance.balanceType as "PAYABLE" | "RECEIVABLE",
             value,
-            frequency: (currentRule?.frequency as "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY") ?? "MONTHLY",
+            frequency: (agreement.frequency as "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY") ?? "MONTHLY",
             dueDay: currentRule?.dueDay ?? 1,
             dueMonth,
             startsAt,
