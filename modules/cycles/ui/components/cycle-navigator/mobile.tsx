@@ -22,7 +22,7 @@ export function CycleNavigatorMobile({
     return (
         <div
             className={cn(
-                "-mx-4 w-[calc(100%+2rem)] flex items-center justify-between p-2 border-y border-border/60 bg-card/60 backdrop-blur-xs min-h-[58px]",
+                "-mx-4 w-[calc(100%+2rem)] flex items-center justify-between p-2 px-6 border-y border-border/60 backdrop-blur-xs min-h-[58px]",
                 className
             )}
         >

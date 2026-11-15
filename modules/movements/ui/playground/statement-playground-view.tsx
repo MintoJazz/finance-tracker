@@ -13,7 +13,6 @@ import {
     Code2,
     Wallet,
     CreditCard,
-    FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
@@ -27,7 +26,6 @@ import {
 import {
     MOCK_WALLET_ENTRIES,
     MOCK_CARD_ENTRIES,
-    MOCK_CONTRACT_CYCLE_ENTRIES,
 } from "../../infra/mock/movement-entries.mock";
 import { MovementEntryTable } from "../components/movement-entry-table";
 import { MovementEntryList } from "../components/movement-entry-list";
@@ -49,8 +47,7 @@ export function StatementPlaygroundView() {
     // Mocks conforme o escopo selecionado
     const rawEntries = useMemo(() => {
         if (scope === "WALLET") return MOCK_WALLET_ENTRIES;
-        if (scope === "CARD") return MOCK_CARD_ENTRIES;
-        return MOCK_CONTRACT_CYCLE_ENTRIES;
+        return MOCK_CARD_ENTRIES;
     }, [scope]);
 
     // Filtragem em memória
@@ -188,19 +185,6 @@ export function StatementPlaygroundView() {
                                 <CreditCard className="size-3.5" />
                                 Cartões
                             </Button>
-                            <Button
-                                type="button"
-                                variant={scope === "CONTRACT_CYCLE" ? "secondary" : "ghost"}
-                                size="sm"
-                                onClick={() => {
-                                    setScope("CONTRACT_CYCLE");
-                                    setSelectedEntry(null);
-                                }}
-                                className="h-7 px-2.5 text-xs gap-1.5"
-                            >
-                                <FileText className="size-3.5" />
-                                Ciclos
-                            </Button>
                         </div>
 
                         {/* Seletor de Viewport */}
@@ -297,9 +281,7 @@ export function StatementPlaygroundView() {
                                 <h2 className="text-sm font-semibold tracking-tight">
                                     {scope === "WALLET"
                                         ? "Extrato de Carteira"
-                                        : scope === "CARD"
-                                        ? "Extrato da Fatura"
-                                        : "Lançamentos do Ciclo Contratual"}
+                                        : "Extrato da Fatura"}
                                 </h2>
                                 <Badge variant="secondary" className="text-xs">
                                     {filteredEntries.length} itens

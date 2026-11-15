@@ -12,9 +12,10 @@ import {
 import { PageRequest, Page } from "@/types/pagination.types";
 import { CardMapper } from "../mappers/card.mapper";
 import { CardSummary } from "@/modules/cards/models/card.schema";
+import { CardProfile } from "@/modules/cards/models/card-profile.schema";
 
 export class CardPrismaQueries implements ICardQueries {
-    private static readonly includeDetails = {
+    private static readonly includeAgreement = {
         agreement: {
             include: {
                 rules: {
@@ -26,6 +27,10 @@ export class CardPrismaQueries implements ICardQueries {
                 },
             },
         },
+    } satisfies BalanceInclude;
+
+    private static readonly includeDetails = {
+        ...CardPrismaQueries.includeAgreement,
         movements: {
             take: 1,
             orderBy: {
@@ -107,19 +112,7 @@ export class CardPrismaQueries implements ICardQueries {
                 contextId,
                 balanceType: "CREDIT",
             },
-            include: {
-                agreement: {
-                    include: {
-                        rules: {
-                            orderBy: { effectiveFrom: "desc" },
-                            take: 1,
-                        },
-                        amountEntries: {
-                            orderBy: { effectiveAt: "asc" },
-                        },
-                    },
-                },
-            },
+            include: CardPrismaQueries.includeAgreement,
         });
 
         if (!card) return null;
@@ -137,6 +130,28 @@ export class CardPrismaQueries implements ICardQueries {
             closingDay: currentRule?.closingDay ?? currentRule?.dueDay ?? 1,
             dueDay: currentRule?.dueDay ?? 10,
         };
+    }
+
+    async findCardProfileById(
+        id: number,
+        contextId: number
+    ): Promise<CardProfile | null> {
+        const [card, usedLimitByBalanceId] = await Promise.all([
+            prisma.balance.findFirst({
+                where: {
+                    id,
+                    contextId,
+                    balanceType: "CREDIT",
+                },
+                include: CardPrismaQueries.includeAgreement,
+            }),
+            this.sumAmountsByBalance([id]),
+        ]);
+
+        if (!card) return null;
+
+        const usedLimit = usedLimitByBalanceId.get(card.id) ?? 0;
+        return CardMapper.toProfile(card, usedLimit);
     }
 
     async sumAmountsByBalance(

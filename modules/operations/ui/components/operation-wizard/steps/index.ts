@@ -12,7 +12,6 @@ import {
   createSubcategoryStepViewsMap,
 } from "./intents/category-creation-steps"
 // import { cardInvoiceStepViews } from "./intents/card-invoice-step"
-// import { obligationStepViewsMap } from "./intents/obligation-steps"
 
 export const STEP_VIEWS_CATALOG = {
   "base.entry": entryStepViews,
@@ -25,7 +24,6 @@ export const STEP_VIEWS_CATALOG = {
   "base.review": reviewStepViews,
   ...createCategoryStepViewsMap,
   ...createSubcategoryStepViewsMap,
-  // ...obligationStepViewsMap,
 } as const satisfies StepViewsCatalog<string, OperationDraft>
 
 export type CatalogStepId = keyof typeof STEP_VIEWS_CATALOG

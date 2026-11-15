@@ -22,7 +22,7 @@ export function CycleSummaryMobile({
         <section
             aria-label="Resumo do ciclo"
             className={cn(
-                "-mx-4 w-[calc(100%+2rem)] px-4 pt-4 pb-3.5 flex flex-col",
+                "px-4 pt-4 pb-3.5 flex flex-col",
                 className
             )}
         >

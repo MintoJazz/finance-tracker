@@ -103,50 +103,6 @@ export class MovementEntryFilterPrismaRegistry {
                 entry: { type: "REVERSAL" },
             }),
         },
-
-        CONTRACT_CYCLE: {
-            PROVISION: (balanceId) => ({
-                entry: {
-                    type: { in: ["ACCRUAL", "CLAIM_OPENING", "DIRECT"] },
-                    movements: {
-                        some: {
-                            balanceId: { not: balanceId },
-                            balance: { balanceType: "CATEGORY" },
-                        },
-                    },
-                },
-            }),
-            SETTLEMENT: (balanceId) => ({
-                entry: {
-                    type: { in: ["SETTLEMENT", "CLAIM_PAYMENT", "CLAIM_RECEIPT"] },
-                    movements: {
-                        some: {
-                            balanceId: { not: balanceId },
-                            balance: {
-                                balanceType: { in: ["WALLET", "RESERVE", "CREDIT"] },
-                            },
-                        },
-                    },
-                },
-            }),
-            TRANSFER: (balanceId) => ({
-                entry: {
-                    type: "TRANSFER",
-                    movements: {
-                        some: {
-                            balanceId: { not: balanceId },
-                            balance: { balanceType: { in: ["PAYABLE", "RECEIVABLE"] } },
-                        },
-                    },
-                },
-            }),
-            ADJUSTMENT: () => ({
-                entry: { type: "ADJUSTMENT" },
-            }),
-            REVERSAL: () => ({
-                entry: { type: "REVERSAL" },
-            }),
-        },
     };
 
     /**

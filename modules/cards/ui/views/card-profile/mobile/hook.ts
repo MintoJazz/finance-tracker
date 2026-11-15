@@ -1,31 +1,29 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CardProfileInput, CardProfileMobileProps } from "../types";
-import {
-    useCardCycleNavigation,
-    useCardProfileData,
-} from "../hooks/use-card-profile-data";
-import { useWalletMovementFilters } from "@/modules/movements/ui/hooks/use-wallet-movement-filters";
-import { useCardMovementsInfinite } from "@/modules/movements/ui/hooks/use-card-movements-data";
+import { useCardProfileData } from "../hooks/use-card-profile-data";
+import { useCycleStatementMobile } from "@/modules/cycles/ui/views/cycle-statement/mobile/hook";
 import { CardSummary } from "@/modules/cards/models/card.schema";
 import { useArchiveRestore } from "@/hooks/use-archive-restore";
 import { CardActionContext } from "@/modules/cards/ui/components/card-actions-drawer";
 import { useBreadcrumbLabel } from "@/components/header";
-import { MovementActionContext } from "@/modules/movements/ui/components/wallet-movements-actions-menu";
 import { archiveCardAction } from "@/modules/cards/ui/actions/archive-card.action";
 import { restoreCardAction } from "@/modules/cards/ui/actions/restore-card.action";
 
 export function useCardProfileMobile({
     cardId,
     profile: initialProfile,
+    initialDetail,
     initialMovements,
+    range,
 }: CardProfileInput): CardProfileMobileProps {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState<boolean>(false);
 
-    // 1. Busca isolada do perfil + lista de ciclos do cartão (hidratado via SSR)
+    // 1. Busca isolada do perfil do cartão (hidratado via SSR)
     const {
         profile,
         isLoadingProfile,
@@ -35,31 +33,25 @@ export function useCardProfileMobile({
 
     useBreadcrumbLabel("cardProfile", profile?.name);
 
-    // 2. Filtros sincronizados na URL
-    const { filters, applyFilters } = useWalletMovementFilters();
+    // 2. Extrai range ativo a partir da URL se presente
+    const urlFrom = searchParams.get("from");
+    const urlTo = searchParams.get("to");
+    const effectiveRange = useMemo(() => {
+        if (urlFrom && urlTo) return { from: urlFrom, to: urlTo };
+        return range;
+    }, [urlFrom, urlTo, range]);
 
-    // 3. Resolução do ciclo ativo (from/to)
-    const {
-        cycleNavigation,
-        effectiveFilters,
-        activeExtraFilterCount,
-        clearExtraFilters,
-    } = useCardCycleNavigation(profile, filters, applyFilters);
+    // 3. Extrato e ciclo genéricos via CycleStatement
+    const statementProps = useCycleStatementMobile({
+        balanceId: cardId,
+        range: effectiveRange,
+        scope: "CARD",
+        initialDetail,
+        initialMovements,
+        onOpenFilters: () => setIsFilterDrawerOpen(true),
+    });
 
-    // 4. Busca em scroll infinito apenas do ciclo ativo (hidratado via SSR)
-    const {
-        items,
-        total,
-        hasMore,
-        isLoading: isLoadingMovements,
-        isLoadingMore,
-        error: movementsError,
-        reload: reloadMovements,
-        loadMore,
-        sentinelRef,
-    } = useCardMovementsInfinite(cardId, effectiveFilters, 10, initialMovements);
-
-    // 5. Modais secundários por estado (Arquivar / Desarquivar)
+    // 4. Modais de Arquivamento e Restauração
     const cardSummaryItem = useMemo<CardSummary | undefined>(() => {
         if (!profile) return undefined;
         return {
@@ -95,7 +87,7 @@ export function useCardProfileMobile({
             },
         });
 
-    // 6. Contexto de ações do cartão (Rota para Editar + Estado para Arquivar/Desarquivar)
+    // 5. Contexto de ações rápidas
     const cardActionsContext = useMemo<CardActionContext>(
         () => ({
             onEdit: (c) => router.push(`/cards/${c.id}/edit`),
@@ -103,16 +95,6 @@ export function useCardProfileMobile({
             onRestore,
         }),
         [router, onArchive, onRestore]
-    );
-
-    const movementActionContext = useMemo<MovementActionContext>(
-        () => ({
-            onViewDetails: (m) =>
-                console.log("[Ação Visual] Ver detalhes lançamento:", m.movementId),
-            onViewReceipt: (m) =>
-                console.log("[Ação Visual] Ver comprovante:", m.movementId),
-        }),
-        []
     );
 
     return {
@@ -123,22 +105,11 @@ export function useCardProfileMobile({
         cardActionsContext,
         archiveContext,
         restoreContext,
-        cycleNavigation,
-        items,
-        total,
-        hasMore,
-        isLoadingMovements,
-        isLoadingMore,
-        movementsError,
-        reloadMovements,
-        loadMore,
-        sentinelRef,
-        movementActionContext,
-        filters: effectiveFilters,
-        activeFilterCount: activeExtraFilterCount,
-        applyFilters,
-        clearFilters: clearExtraFilters,
+        statementProps,
         isFilterDrawerOpen,
         setIsFilterDrawerOpen,
+        filters: statementProps.filters,
+        applyFilters: statementProps.applyFilters,
+        clearFilters: statementProps.clearFilters,
     };
 }

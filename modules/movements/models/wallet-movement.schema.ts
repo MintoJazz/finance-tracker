@@ -84,14 +84,3 @@ export const GetWalletMovementsDTOSchema = z.object({
 });
 
 export type GetWalletMovementsDTO = z.infer<typeof GetWalletMovementsDTOSchema>;
-
-export const GetCardMovementsDTOSchema = z.object({
-    cardId: z.number().int().positive("ID do cartão inválido"),
-    pageRequest: z.object({
-        page: z.coerce.number().int().positive().optional(),
-        pageSize: z.coerce.number().int().positive().optional(),
-    }),
-    filter: WalletMovementFiltersSchema.optional(),
-});
-
-export type GetCardMovementsDTO = z.infer<typeof GetCardMovementsDTOSchema>;

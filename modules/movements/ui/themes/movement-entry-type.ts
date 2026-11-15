@@ -59,8 +59,7 @@ export const MOVEMENT_ENTRY_TYPE_THEMES: Record<
             "border-emerald-500/30 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10",
     },
     TRANSFER: {
-        resolveLabel: (scope) =>
-            scope === "CONTRACT_CYCLE" ? "Cessão de Dívida" : "Transferência",
+        resolveLabel: () => "Transferência",
         icon: ArrowLeftRight,
         badgeClassName:
             "border-blue-500/30 text-blue-700 dark:text-blue-400 bg-blue-500/10",

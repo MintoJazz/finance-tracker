@@ -10,8 +10,8 @@ import { RowAction } from "@/components/data-table";
 
 export interface CycleStatementInput<TContext = unknown> {
     balanceId: number;
-    range: CycleRange;
-    scope: MovementEntryScope; // "CARD" | "CONTRACT_CYCLE" | "WALLET"
+    range?: CycleRange;
+    scope: MovementEntryScope; // "CARD" | "WALLET"
     initialDetail?: CycleDetail | null;
     initialMovements?: Page<MovementEntry> | null;
     onNavigateCycle?: (range: CycleRange) => void;

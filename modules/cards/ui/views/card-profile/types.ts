@@ -1,29 +1,25 @@
 import { Page } from "@/types/pagination.types";
+import { CardProfile } from "@/modules/cards/models/card-profile.schema";
+import { CycleDetail } from "@/modules/cycles/models/cycle-detail.schema";
+import { CycleRange } from "@/modules/cycles/models/cycle-primitives.schema";
 import {
-    CardCycleOption,
-    CardProfile,
-} from "@/modules/cards/models/card-profile.schema";
+    MovementEntry,
+    MovementEntryFilters,
+} from "@/modules/movements/models/movement-entry.schema";
 import { ArchiveCardModalProps } from "../archive-card-modal/types";
 import { RestoreCardModalProps } from "../restore-card-modal/types";
 import { CardActionContext } from "@/modules/cards/ui/components/card-actions-drawer";
 import {
-    WalletMovement,
-    WalletMovementFilters,
-} from "@/modules/movements/models/wallet-movement.schema";
-import { MovementActionContext } from "@/modules/movements/ui/components/wallet-movements-actions-menu";
+    CycleStatementDesktopProps,
+    CycleStatementMobileProps,
+} from "@/modules/cycles/ui/views/cycle-statement/types";
 
 export interface CardProfileInput {
     cardId: number;
     profile?: CardProfile | null;
-    initialMovements?: Page<WalletMovement> | null;
-}
-
-export interface CardCycleNavigationContext {
-    activeCycle: CardCycleOption | null;
-    hasPrevCycle: boolean;
-    hasNextCycle: boolean;
-    onPrevCycle: () => void;
-    onNextCycle: () => void;
+    initialDetail?: CycleDetail | null;
+    initialMovements?: Page<MovementEntry> | null;
+    range?: CycleRange;
 }
 
 export interface CardProfileDesktopProps {
@@ -34,20 +30,7 @@ export interface CardProfileDesktopProps {
     cardActionsContext: CardActionContext;
     archiveContext: ArchiveCardModalProps;
     restoreContext: RestoreCardModalProps;
-    cycleNavigation: CardCycleNavigationContext;
-    movementsData: Page<WalletMovement> | null;
-    isLoadingMovements: boolean;
-    movementsError: string | null;
-    reloadMovements: () => Promise<void>;
-    movementActionContext: MovementActionContext;
-    filters: WalletMovementFilters;
-    activeFilterCount: number;
-    applyFilters: (updates: Partial<WalletMovementFilters>) => void;
-    clearFilters: () => void;
-    paginationContext: {
-        setPage: (pageIndex: number) => void;
-        setPageSize: (size: number) => void;
-    };
+    statementProps: CycleStatementDesktopProps;
 }
 
 export interface CardProfileMobileProps {
@@ -58,21 +41,10 @@ export interface CardProfileMobileProps {
     cardActionsContext: CardActionContext;
     archiveContext: ArchiveCardModalProps;
     restoreContext: RestoreCardModalProps;
-    cycleNavigation: CardCycleNavigationContext;
-    items: WalletMovement[];
-    total: number;
-    hasMore: boolean;
-    isLoadingMovements: boolean;
-    isLoadingMore: boolean;
-    movementsError: string | null;
-    reloadMovements: () => Promise<void>;
-    loadMore: () => Promise<void>;
-    sentinelRef: (node: HTMLDivElement | null) => void;
-    movementActionContext: MovementActionContext;
-    filters: WalletMovementFilters;
-    activeFilterCount: number;
-    applyFilters: (updates: Partial<WalletMovementFilters>) => void;
-    clearFilters: () => void;
+    statementProps: CycleStatementMobileProps;
     isFilterDrawerOpen: boolean;
     setIsFilterDrawerOpen: (open: boolean) => void;
+    filters: MovementEntryFilters;
+    applyFilters: (newFilters: Partial<MovementEntryFilters>) => void;
+    clearFilters: () => void;
 }

@@ -7,8 +7,4 @@ export interface IBalanceLookupProvider {
         id: number,
         contextId: number
     ): Promise<{ id: number; name: string } | null>;
-    findContractById?(
-        id: number,
-        contextId: number
-    ): Promise<{ id: number; name: string; isOnce: boolean } | null>;
 }

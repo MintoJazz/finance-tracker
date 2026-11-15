@@ -65,26 +65,9 @@ export interface CreateDirectEntryAction {
   readonly competanceDate: string | null
 }
 
-export interface SettleObligationAction {
-  readonly type: "SETTLE_OBLIGATION"
-  readonly nature: OperationNature
-  readonly agreementId: number
-  readonly custody: EntityRef | null
-  readonly custodyType: CustodyBalanceType
-  readonly dueDate: string
-  readonly description: string
-  readonly totalAmount?: number
-  readonly allocations: readonly {
-    readonly referenceDate: string
-    readonly amount: number
-    readonly status?: import("@/modules/cycles/models/obligation-cycle.schema").CycleStatus
-  }[]
-}
-
 export type OperationNodeAction =
   | CreateCategoryBalanceAction
   | CreateDirectEntryAction
-  | SettleObligationAction
 
 export interface OperationPlanNode<
   TIntentKey extends string = OperationIntentKey,

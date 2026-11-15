@@ -77,12 +77,7 @@ export const COUNTERPART_KIND_THEMES: Record<
         avatarClassName: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
         badgeClassName:
             "border-amber-500/30 text-amber-700 dark:text-amber-400 bg-amber-500/10",
-        resolveSubtitlePrefix: (scope) => {
-            if (scope === "CONTRACT_CYCLE") {
-                return "Transferido para: ";
-            }
-            return "Contrato: ";
-        },
+        resolveSubtitlePrefix: () => "Contrato: ",
         isNavigable: () => true,
         resolveHref: (id) => `/contracts/${id}`,
     },

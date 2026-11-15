@@ -102,39 +102,6 @@ export class WalletPrismaQueries implements IWalletQueries {
         return card;
     }
 
-    async findContractById(
-        id: number,
-        contextId: number
-    ): Promise<{ id: number; name: string; isOnce: boolean } | null> {
-        const contract = await prisma.balance.findFirst({
-            where: {
-                id,
-                contextId,
-                balanceType: { in: ["PAYABLE", "RECEIVABLE"] },
-                removedAt: null,
-            },
-            select: {
-                id: true,
-                name: true,
-                agreement: {
-                    select: {
-                        frequency: true,
-                    },
-                },
-            },
-        });
-
-        if (!contract) return null;
-
-        const isOnce = contract.agreement?.frequency === "ONCE";
-
-        return {
-            id: contract.id,
-            name: contract.name,
-            isOnce,
-        };
-    }
-
     async findWalletProfileById(id: number, contextId: number): Promise<WalletProfile | null> {
         const wallet = await prisma.balance.findFirst({
             where: {

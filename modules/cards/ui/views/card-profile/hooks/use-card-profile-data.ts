@@ -1,14 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import {
-    CardCycleOption,
-    CardProfile,
-} from "@/modules/cards/models/card-profile.schema";
+import { CardProfile } from "@/modules/cards/models/card-profile.schema";
 import { getCardProfileAction } from "@/modules/cards/ui/actions/get-card-profile.action";
-import { WalletMovementFilters } from "@/modules/movements/models/wallet-movement.schema";
-import { CardCycleNavigationContext } from "../types";
 
 export interface UseCardProfileDataReturn {
     profile: CardProfile | null;
@@ -61,7 +56,6 @@ export function useCardProfileData(
         if (!hasMountedRef.current) {
             hasMountedRef.current = true;
             if (!initialProfile) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 void fetchProfile();
             }
             return;
@@ -86,92 +80,5 @@ export function useCardProfileData(
         isLoadingProfile,
         profileError,
         reloadProfile,
-    };
-}
-
-export function useCardCycleNavigation(
-    profile: CardProfile | null,
-    filters: WalletMovementFilters,
-    applyFilters: (updates: Partial<WalletMovementFilters>) => void
-) {
-    const cycles = useMemo(() => profile?.cycles ?? [], [profile]);
-
-    const activeCycleIndex = useMemo(() => {
-        if (cycles.length === 0) return -1;
-        if (filters.from && filters.to) {
-            const matchedIdx = cycles.findIndex(
-                (c) => c.from === filters.from && c.to === filters.to
-            );
-            if (matchedIdx !== -1) return matchedIdx;
-        }
-        const openIdx = cycles.findIndex((c) => c.status === "OPEN");
-        return openIdx !== -1 ? openIdx : cycles.length - 1;
-    }, [cycles, filters.from, filters.to]);
-
-    const activeCycle: CardCycleOption | null =
-        activeCycleIndex >= 0 ? (cycles[activeCycleIndex] ?? null) : null;
-
-    const hasPrevCycle = activeCycleIndex > 0;
-    const hasNextCycle =
-        activeCycleIndex !== -1 && activeCycleIndex < cycles.length - 1;
-
-    const onPrevCycle = useCallback(() => {
-        if (!hasPrevCycle) return;
-        const target = cycles[activeCycleIndex - 1];
-        if (target) {
-            applyFilters({ from: target.from, to: target.to });
-        }
-    }, [hasPrevCycle, cycles, activeCycleIndex, applyFilters]);
-
-    const onNextCycle = useCallback(() => {
-        if (!hasNextCycle) return;
-        const target = cycles[activeCycleIndex + 1];
-        if (target) {
-            applyFilters({ from: target.from, to: target.to });
-        }
-    }, [hasNextCycle, cycles, activeCycleIndex, applyFilters]);
-
-    const effectiveFilters = useMemo<WalletMovementFilters>(() => {
-        return {
-            ...filters,
-            from: activeCycle?.from ?? filters.from,
-            to: activeCycle?.to ?? filters.to,
-        };
-    }, [filters, activeCycle]);
-
-    const activeExtraFilterCount = useMemo(() => {
-        let count = 0;
-        if (filters.q && filters.q.trim().length > 0) count++;
-        if (filters.direction) count++;
-        if (filters.types && filters.types.length > 0) count += filters.types.length;
-        if (filters.includeReversed) count++;
-        return count;
-    }, [filters]);
-
-    const clearExtraFilters = useCallback(() => {
-        applyFilters({
-            q: undefined,
-            direction: undefined,
-            types: undefined,
-            includeReversed: undefined,
-        });
-    }, [applyFilters]);
-
-    const cycleNavigation: CardCycleNavigationContext = useMemo(
-        () => ({
-            activeCycle,
-            hasPrevCycle,
-            hasNextCycle,
-            onPrevCycle,
-            onNextCycle,
-        }),
-        [activeCycle, hasPrevCycle, hasNextCycle, onPrevCycle, onNextCycle]
-    );
-
-    return {
-        cycleNavigation,
-        effectiveFilters,
-        activeExtraFilterCount,
-        clearExtraFilters,
     };
 }

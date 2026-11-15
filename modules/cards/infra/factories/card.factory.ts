@@ -13,8 +13,6 @@ import { ICardQueries } from "../../application/interfaces/card-queries.interfac
 import { ICardRepository } from "../../application/interfaces/card-repository.interface"
 import { IContextMemberRepository } from "@/modules/space/application/interfaces/context-member-repository.interface"
 import { PrismaContextMembersRepository } from "@/modules/space/infra/repositories/context-members-prisma.repository"
-// import { CycleEngineService } from "@/modules/cycles/application/services/cycle-engine.service"
-import { ContractProfilePrismaQueries } from "@/modules/contracts/infra/repositories/contract-profile-prisma.queries"
 
 export class CardFactory {
   private static readonly cardQueries: ICardQueries = new CardPrismaQueries()
@@ -25,8 +23,6 @@ export class CardFactory {
 
   private static readonly spaceAccessProvider: ISpaceAccessProvider =
     new GetSpaceAccessUseCase(this.memberRepository)
-  // private static readonly cycleEngineService = new CycleEngineService()
-  private static readonly contractProfileQueries = new ContractProfilePrismaQueries()
 
   public static readonly makeGetContextCardsUseCase = () =>
     new GetContextCardsUseCase(this.cardQueries, this.spaceAccessProvider)
@@ -40,12 +36,6 @@ export class CardFactory {
     new RestoreCardUseCase(this.cardRepository, this.spaceAccessProvider)
   public static readonly makeGetCardByIdUseCase = () =>
     new GetCardByIdUseCase(this.cardQueries, this.spaceAccessProvider)
-  // public static readonly makeGetCardProfileUseCase = () =>
-  //   new GetCardProfileUseCase(
-  //     this.cardQueries,
-  //     this.spaceAccessProvider,
-  //     this.cycleEngineService,
-  //     this.contractProfileQueries
-  //   )
+  public static readonly makeGetCardProfileUseCase = () =>
+    new GetCardProfileUseCase(this.cardQueries, this.spaceAccessProvider)
 }
-

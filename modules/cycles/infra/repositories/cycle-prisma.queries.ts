@@ -64,7 +64,7 @@ export class CyclePrismaQueries implements ICycleQueries {
         const rows = await this.prisma.$queryRaw<CycleRuleRecord[]>(Prisma.sql`
             WITH boundary_rules AS (
                 (
-                    -- 1. Regra Ancora: ultima regra com effectiveFrom <= from
+                    -- 1. Regra Ancora: ate 2 ultimas regras com effectiveFrom <= from (regra ativa e predecessora imediata para ciclos ponte)
                     SELECT
                         r.id,
                         r."agreementId",
@@ -77,7 +77,7 @@ export class CyclePrismaQueries implements ICycleQueries {
                     WHERE r."agreementId" = ${agreementId}
                       AND r."effectiveFrom" <= ${from}::date
                     ORDER BY r."effectiveFrom" DESC
-                    LIMIT 1
+                    LIMIT 2
                 )
                 UNION
                 (
@@ -113,7 +113,7 @@ export class CyclePrismaQueries implements ICycleQueries {
                 )
                 UNION
                 (
-                    -- 3. Regra Posterior: 1a regra apos to para fechar o effectiveTo e ciclos ponte
+                    -- 3. Regra Posterior: ate 2 regras apos to para fechar o effectiveTo e ciclos ponte
                     SELECT
                         r.id,
                         r."agreementId",
@@ -126,7 +126,7 @@ export class CyclePrismaQueries implements ICycleQueries {
                     WHERE r."agreementId" = ${agreementId}
                       AND r."effectiveFrom" > ${to}::date
                     ORDER BY r."effectiveFrom" ASC
-                    LIMIT 1
+                    LIMIT 2
                 )
             )
             SELECT *

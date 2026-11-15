@@ -7,8 +7,16 @@ import {
     GetBalanceMovementEntriesDTO,
     GetBalanceMovementEntriesDTOSchema,
     MovementEntry,
+    MovementEntryFilters,
+    MovementEntryScope,
 } from "@/modules/movements/models/movement-entry.schema";
+import { CycleRange } from "@/modules/cycles/models/cycle-primitives.schema";
 import { MovementFactory } from "@/modules/movements/infra/factories/movement.factory";
+
+export interface GetCycleMovementEntriesDTO extends GetBalanceMovementEntriesDTO {
+    range?: CycleRange;
+    scope?: MovementEntryScope;
+}
 
 export async function getCardMovementEntriesAction(
     dto: GetBalanceMovementEntriesDTO
@@ -25,7 +33,7 @@ export async function getCardMovementEntriesAction(
     }
 
     const useCase = MovementFactory.makeGetCardMovementsUseCase();
-    return await useCase.executeEntries({
+    return await useCase.execute({
         session,
         cardId: parsed.data.balanceId,
         pageRequest: {
@@ -36,29 +44,21 @@ export async function getCardMovementEntriesAction(
     });
 }
 
-export async function getContractCycleMovementEntriesAction(
-    dto: GetBalanceMovementEntriesDTO
+export async function getCycleMovementEntriesAction(
+    dto: GetCycleMovementEntriesDTO
 ): Promise<Result<Page<MovementEntry>>> {
-    const session = await SessionHandler.getSession();
-    if (!session) return failure("Não autenticado");
+    const effectiveFilter: MovementEntryFilters = {
+        ...dto.filter,
+        includeReversed: dto.filter?.includeReversed ?? false,
+        ...(dto.range && !dto.filter?.from ? { from: dto.range.from } : {}),
+        ...(dto.range && !dto.filter?.to ? { to: dto.range.to } : {}),
+    };
 
-    const parsed = GetBalanceMovementEntriesDTOSchema.safeParse(dto);
-    if (!parsed.success) {
-        return failure(
-            parsed.error.issues[0]?.message ??
-                "Parâmetros de busca do ciclo inválidos"
-        );
-    }
+    const payload: GetBalanceMovementEntriesDTO = {
+        balanceId: dto.balanceId,
+        pageRequest: dto.pageRequest,
+        filter: effectiveFilter,
+    };
 
-    const useCase = MovementFactory.makeGetContractCycleMovementsUseCase();
-    return await useCase.execute({
-        session,
-        contractId: parsed.data.balanceId,
-        pageRequest: {
-            page: parsed.data.pageRequest?.page ?? 1,
-            pageSize: parsed.data.pageRequest?.pageSize ?? 10,
-        },
-        filter: parsed.data.filter,
-    });
+    return await getCardMovementEntriesAction(payload);
 }
-

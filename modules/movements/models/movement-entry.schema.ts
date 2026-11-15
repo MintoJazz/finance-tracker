@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const MovementEntryScopeSchema = z.enum(["WALLET", "CARD", "CONTRACT_CYCLE"]);
+export const MovementEntryScopeSchema = z.enum(["WALLET", "CARD"]);
 export type MovementEntryScope = z.infer<typeof MovementEntryScopeSchema>;
 
 export const MovementEntryTypeSchema = z.enum([

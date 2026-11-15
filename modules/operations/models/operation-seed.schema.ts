@@ -9,8 +9,6 @@ export type CustodyBalanceType = z.infer<typeof CustodyBalanceTypeSchema>
 export const OperationSeedSchema = z.object({
   nature: OperationNatureSchema.optional(),
   intents: z.array(z.string()).optional(),
-  agreementId: z.number().int().positive().optional(),
-  cycleReferenceDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   custodyBalanceId: z.number().int().positive().optional(),
   custodyType: CustodyBalanceTypeSchema.optional(),
   categoryId: z.number().int().positive().optional(),
@@ -55,16 +53,6 @@ export function parseOperationSeedFromSearchParams(
 
   const custodyBalanceId = parsePositiveInt(raw.custodyBalanceId ?? raw.walletId)
   if (custodyBalanceId) seed.custodyBalanceId = custodyBalanceId
-
-  const agreementId = parsePositiveInt(raw.agreementId ?? raw.contractId)
-  if (agreementId) seed.agreementId = agreementId
-
-  if (
-    typeof raw.cycleReferenceDate === "string" &&
-    /^\d{4}-\d{2}-\d{2}$/.test(raw.cycleReferenceDate)
-  ) {
-    seed.cycleReferenceDate = raw.cycleReferenceDate
-  }
 
   const parsedCustodyType = CustodyBalanceTypeSchema.safeParse(raw.custodyType)
   if (parsedCustodyType.success) {

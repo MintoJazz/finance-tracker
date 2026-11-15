@@ -11,13 +11,6 @@ export const CYCLE_SUMMARY_LABELS: Record<MovementEntryScope, CycleSummaryLabels
         paid: "Pago",
         open: "Em aberto",
     },
-    CONTRACT_CYCLE: {
-        total: "Total do ciclo",
-        period: "Competência",
-        dueDate: "Vencimento",
-        paid: "Pago",
-        open: "Em aberto",
-    },
     WALLET: {
         total: "Total",
         period: "Período",

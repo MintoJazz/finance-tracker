@@ -26,26 +26,6 @@ describe("MovementEntryTypeResolver", () => {
         });
     });
 
-    describe("CONTRACT_CYCLE Scope", () => {
-        it("deve mapear DIRECT, ACCRUAL e CLAIM_OPENING para PROVISION", () => {
-            assert.equal(MovementEntryTypeResolver.resolve("CONTRACT_CYCLE", "DIRECT", "DEBIT"), "PROVISION");
-            assert.equal(MovementEntryTypeResolver.resolve("CONTRACT_CYCLE", "ACCRUAL", "DEBIT"), "PROVISION");
-            assert.equal(MovementEntryTypeResolver.resolve("CONTRACT_CYCLE", "CLAIM_OPENING", "DEBIT"), "PROVISION");
-        });
-
-        it("deve mapear liquidações para SETTLEMENT", () => {
-            assert.equal(MovementEntryTypeResolver.resolve("CONTRACT_CYCLE", "SETTLEMENT", "CREDIT"), "SETTLEMENT");
-            assert.equal(MovementEntryTypeResolver.resolve("CONTRACT_CYCLE", "CLAIM_PAYMENT", "CREDIT"), "SETTLEMENT");
-            assert.equal(MovementEntryTypeResolver.resolve("CONTRACT_CYCLE", "CLAIM_RECEIPT", "CREDIT"), "SETTLEMENT");
-        });
-
-        it("deve mapear TRANSFER, ADJUSTMENT e REVERSAL diretamente", () => {
-            assert.equal(MovementEntryTypeResolver.resolve("CONTRACT_CYCLE", "TRANSFER", "DEBIT"), "TRANSFER");
-            assert.equal(MovementEntryTypeResolver.resolve("CONTRACT_CYCLE", "ADJUSTMENT", "DEBIT"), "ADJUSTMENT");
-            assert.equal(MovementEntryTypeResolver.resolve("CONTRACT_CYCLE", "REVERSAL", "CREDIT"), "REVERSAL");
-        });
-    });
-
     describe("WALLET Scope", () => {
         it("deve diferenciar CREDIT (INCOME) e DEBIT (EXPENSE) para DIRECT, ACCRUAL e CLAIM_OPENING", () => {
             assert.equal(MovementEntryTypeResolver.resolve("WALLET", "DIRECT", "CREDIT"), "INCOME");
@@ -75,7 +55,6 @@ describe("MovementEntryTypeResolver", () => {
         it("deve conter todos os escopos suportados", () => {
             assert.deepEqual(Object.keys(SCOPED_ENTRY_TYPE_REGISTRY).sort(), [
                 "CARD",
-                "CONTRACT_CYCLE",
                 "WALLET",
             ]);
         });

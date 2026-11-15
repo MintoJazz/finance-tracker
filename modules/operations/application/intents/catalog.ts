@@ -4,12 +4,9 @@ import type { OperationStepCatalog } from "../steps/interpreter"
 // import { chooseCardInvoiceIntent } from "./choose-card-invoice.intent"
 import { createCategoryIntent } from "./create-category.intent"
 import { createSubcategoryIntent } from "./create-subcategory.intent"
-// import { createObligationIntent } from "./obligation.factory"
 
 export const DISABLED_OPERATION_INTENTS = {
   // CHOOSE_CARD_INVOICE: chooseCardInvoiceIntent,
-  // SETTLE_PAYABLE: createObligationIntent("PAY"),
-  // SETTLE_RECEIVABLE: createObligationIntent("RECEIVE"),
 } as const
 
 export const OPERATION_INTENTS = {

@@ -8,7 +8,7 @@ import { getCycleDetailAction } from "@/modules/cycles/ui/actions/get-cycle-deta
 
 export interface UseCycleDetailDataInput {
     balanceId: number;
-    range: CycleRange;
+    range?: CycleRange;
     scope?: MovementEntryScope;
     initialData?: CycleDetail | null;
 }
@@ -23,14 +23,13 @@ export interface UseCycleDetailDataReturn {
 export function useCycleDetailData({
     balanceId,
     range,
-    scope = "CONTRACT_CYCLE",
+    scope = "CARD",
     initialData,
 }: UseCycleDetailDataInput): UseCycleDetailDataReturn {
     const isMatchingInitial =
-        initialData &&
-        initialData.balanceId === balanceId &&
-        initialData.from === range.from &&
-        initialData.to === range.to;
+        initialData?.balanceId === balanceId &&
+        (!range?.from || initialData.from === range.from) &&
+        (!range?.to || initialData.to === range.to);
 
     const [cycleDetail, setCycleDetail] = useState<CycleDetail | null>(
         isMatchingInitial ? initialData : null
@@ -39,7 +38,7 @@ export function useCycleDetailData({
     const [detailError, setDetailError] = useState<string | null>(null);
 
     const prevRangeKeyRef = useRef<string>(
-        isMatchingInitial ? `${balanceId}_${range.from}_${range.to}` : ""
+        isMatchingInitial ? `${balanceId}_${range?.from ?? ""}_${range?.to ?? ""}` : ""
     );
     const hasMountedRef = useRef(false);
 
@@ -50,7 +49,7 @@ export function useCycleDetailData({
         try {
             const res = await getCycleDetailAction({
                 balanceId,
-                range,
+                range: range?.from && range?.to ? range : undefined,
                 scope,
             });
 
@@ -71,7 +70,7 @@ export function useCycleDetailData({
     }, [balanceId, range, scope]);
 
     useEffect(() => {
-        const currentKey = `${balanceId}_${range.from}_${range.to}`;
+        const currentKey = `${balanceId}_${range?.from ?? ""}_${range?.to ?? ""}`;
 
         if (!hasMountedRef.current) {
             hasMountedRef.current = true;
@@ -86,7 +85,7 @@ export function useCycleDetailData({
             prevRangeKeyRef.current = currentKey;
             void fetchDetail();
         }
-    }, [balanceId, range.from, range.to, isMatchingInitial, fetchDetail]);
+    }, [balanceId, range?.from, range?.to, isMatchingInitial, fetchDetail]);
 
     return {
         cycleDetail,

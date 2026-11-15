@@ -8,10 +8,8 @@ export const STEP_ORDER = {
   /** 1000–1999: Ponto de partida (natureza) */
   ENTRY: 1000,
 
-  /** 2000–2999: Identificação e temporalidade (descrição e data) e compromissos */
+  /** 2000–2999: Identificação e temporalidade (descrição e data) */
   DETAILS: 2000,
-  OBLIGATION_CONTRACT: 2100,
-  OBLIGATION_CYCLES: 2200,
 
   /** 3000–3999: Meio de Pagamento (Custódia) */
   CUSTODY: 3000,

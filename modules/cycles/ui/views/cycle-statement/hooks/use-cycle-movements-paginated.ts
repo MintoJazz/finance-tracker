@@ -13,7 +13,7 @@ import { getCycleMovementEntriesAction } from "@/modules/movements/ui/actions/ge
 
 export interface UseCycleMovementsPaginatedInput {
     balanceId: number;
-    range: CycleRange;
+    range?: CycleRange;
     scope?: MovementEntryScope;
     filters: MovementEntryFilters;
     initialData?: Page<MovementEntry> | null;
@@ -38,7 +38,7 @@ export interface UseCycleMovementsPaginatedReturn {
 export function useCycleMovementsPaginated({
     balanceId,
     range,
-    scope = "CONTRACT_CYCLE",
+    scope = "CARD",
     filters,
     initialData,
 }: UseCycleMovementsPaginatedInput): UseCycleMovementsPaginatedReturn {
@@ -74,7 +74,7 @@ export function useCycleMovementsPaginated({
                 const pageRequest: PageRequest = { page, pageSize };
                 const result = await getCycleMovementEntriesAction({
                     balanceId,
-                    range,
+                    range: range?.from && range?.to ? range : undefined,
                     scope,
                     pageRequest,
                     filter: filters,

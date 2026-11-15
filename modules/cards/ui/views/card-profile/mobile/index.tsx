@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, Eye, EyeOff, SlidersHorizontal } from "lucide-react";
+import { CreditCard, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Toggle } from "@/components/ui/toggle";
 import { ErrorView } from "@/components/error-view";
-import { InputGroupButton } from "@/components/ui/input-group";
 import {
     ProfileCard,
     ProfileCardAvatar,
@@ -15,17 +13,14 @@ import {
 import { getHashColorStyle } from "@/lib/avatar-utils";
 import { formatMoney } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
-import { CardCycleNavigator } from "@/modules/cards/ui/components/card-profile/card-cycle-navigator";
 import { CardLimitProgress } from "@/modules/cards/ui/components/card-profile/card-limit-progress";
 import { CardQuickActions } from "@/modules/cards/ui/components/card-profile/card-quick-actions";
-import { CycleNavigatorSkeleton } from "@/modules/cards/ui/components/card-profile/skeletons/cycle-navigator-skeleton";
 import { CardProfileSkeleton } from "@/modules/cards/ui/components/card-profile/skeletons/profile-skeleton";
 import { ArchiveCardModalViewMobile } from "../../archive-card-modal";
 import { RestoreCardModalViewMobile } from "../../restore-card-modal";
 import { MovementFilter } from "@/modules/movements/ui/components/movement-filter";
 import { MovementFilterDrawer } from "@/modules/movements/ui/components/movement-filter/drawer";
-import { CreditMovementList } from "@/modules/movements/ui/components/credit-movement-list";
-import { WalletMovementSearch } from "@/modules/movements/ui/components/wallet-movement-search";
+import { CycleStatementMobileView } from "@/modules/cycles/ui/views/cycle-statement/mobile";
 import { CardProfileMobileProps } from "../types";
 
 export default function CardProfileViewMobile({
@@ -35,21 +30,12 @@ export default function CardProfileViewMobile({
     cardActionsContext,
     archiveContext,
     restoreContext,
-    cycleNavigation,
-    items,
-    total,
-    hasMore,
-    isLoadingMovements,
-    isLoadingMore,
-    movementsError,
-    sentinelRef,
-    movementActionContext,
-    filters,
-    activeFilterCount,
-    applyFilters,
-    clearFilters,
+    statementProps,
     isFilterDrawerOpen,
     setIsFilterDrawerOpen,
+    filters,
+    applyFilters,
+    clearFilters,
 }: CardProfileMobileProps) {
     const [isVisible, setIsVisible] = useState(true);
 
@@ -66,11 +52,8 @@ export default function CardProfileViewMobile({
         ? getHashColorStyle(profile.name || "C")
         : { backgroundColor: "", color: "" };
 
-    const { activeCycle, hasPrevCycle, hasNextCycle, onPrevCycle, onNextCycle } =
-        cycleNavigation;
-
     return (
-        <div className="flex w-full flex-col gap-4 pb-12">
+        <div className="flex w-full flex-col pb-12">
             {/* 1. Card do Perfil no Topo */}
             <div className="w-full">
                 {isLoadingProfile || !profile ? (
@@ -164,108 +147,22 @@ export default function CardProfileViewMobile({
                 )}
             </div>
 
-            {/* 2. Seção Extrato da Fatura */}
-            <div className="flex flex-col gap-2.5 pt-1">
-                <div className="flex items-center justify-between px-4">
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-base font-semibold tracking-tight text-foreground">
-                            Fatura
-                        </h2>
-                        <Badge variant="outline" className="tabular-nums text-xs">
-                            {total}
-                        </Badge>
-                    </div>
-                    <Toggle
-                        size="sm"
-                        variant="outline"
-                        pressed={Boolean(filters.includeReversed)}
-                        onPressedChange={(pressed) =>
-                            applyFilters({ includeReversed: pressed })
-                        }
-                        className="text-xs h-8 px-2.5 gap-1.5 border-border/80"
-                        aria-label="Incluir movimentações estornadas"
-                    >
-                        {filters.includeReversed ? (
-                            <Eye className="size-3.5" />
-                        ) : (
-                            <EyeOff className="size-3.5 text-muted-foreground" />
-                        )}
-                        <span>Estornadas</span>
-                    </Toggle>
-                </div>
-
-                {/* Navegador de Faturas / Ciclos */}
-                <div className="px-4">
-                    {isLoadingProfile || !activeCycle ? (
-                        <CycleNavigatorSkeleton />
-                    ) : (
-                        <CardCycleNavigator
-                            activeCycle={activeCycle}
-                            hasPrev={hasPrevCycle}
-                            hasNext={hasNextCycle}
-                            onPrev={onPrevCycle}
-                            onNext={onNextCycle}
-                        />
-                    )}
-                </div>
-
-                {/* Barra de Busca + Botão de Filtros */}
-                <div className="px-4 w-full mb-1">
-                    <WalletMovementSearch
-                        value={filters.q}
-                        onChange={(q: string | undefined) => applyFilters({ q })}
-                    >
-                        <div className="h-3.5 w-px bg-border/70" />
-                        <InputGroupButton
-                            type="button"
-                            variant="ghost"
-                            size="xs"
-                            onClick={() => setIsFilterDrawerOpen(true)}
-                            className="h-6 gap-1 px-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/60"
-                            aria-label="Filtrar fatura"
-                        >
-                            <SlidersHorizontal className="size-3.5 text-muted-foreground" />
-                            <span>Filtros</span>
-                            {activeFilterCount > 0 && (
-                                <Badge
-                                    variant="secondary"
-                                    className="h-4 min-w-4 px-1 text-[10px] font-bold"
-                                >
-                                    {activeFilterCount}
-                                </Badge>
-                            )}
-                        </InputGroupButton>
-                    </WalletMovementSearch>
-                </div>
-
-                {movementsError ? (
-                    <div className="px-4">
-                        <ErrorView
-                            title="Erro ao carregar lançamentos da fatura"
-                            error={movementsError}
-                        />
-                    </div>
-                ) : (
-                    <CreditMovementList
-                        items={items}
-                        isLoading={isLoadingProfile || isLoadingMovements}
-                        isLoadingMore={isLoadingMore}
-                        hasMore={hasMore}
-                        sentinelRef={sentinelRef}
-                        hasFilters={activeFilterCount > 0}
-                        onClearFilters={clearFilters}
-                        actionContext={movementActionContext}
-                    />
-                )}
+            {/* 2. Extrato Genérico da Fatura */}
+            <div className="w-full">
+                <CycleStatementMobileView
+                    {...statementProps}
+                    onOpenFilters={() => setIsFilterDrawerOpen(true)}
+                />
             </div>
 
-            {/* Drawer de Filtros Mobile (Sem DateRangePicker pois o ciclo controla from/to) */}
+            {/* Drawer de Filtros Mobile */}
             <MovementFilterDrawer
                 open={isFilterDrawerOpen}
                 onOpenChange={setIsFilterDrawerOpen}
                 filters={filters}
                 onApply={applyFilters}
                 onClear={clearFilters}
+                scope="CARD"
                 title="Filtros da Fatura"
                 description="Filtre os lançamentos por tipo e direção."
             >

@@ -56,8 +56,8 @@ export const CYCLE_STATUS_SQL_REGISTRY: Record<CycleStatus, CycleStatusSqlRule> 
         priority: 1,
         preFilterSql: (ctx) =>
             Prisma.sql`NOT ${existsActiveMovementSql(ctx)}`,
-        postFilterSql: () =>
-            Prisma.sql`(c.movements_count = 0)`,
+        postFilterSql: (today) =>
+            Prisma.sql`(c.movements_count = 0 AND c.win_from > ${today}::date)`,
     },
 
     PAID: {

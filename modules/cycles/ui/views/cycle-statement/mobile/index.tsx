@@ -98,7 +98,7 @@ export function CycleStatementMobileView({
             {/* 3. Seção Extrato de Movimentações */}
             <div className="flex flex-col gap-2.5 pt-1">
                 {/* Linha de Cabeçalho: Título, Total e Toggle Estornadas */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between px-4">
                     <div className="flex items-center gap-2">
                         <h3 className="text-base font-semibold tracking-tight text-foreground">
                             Extrato
@@ -128,7 +128,7 @@ export function CycleStatementMobileView({
                 </div>
 
                 {/* Toolbar Mobile: Busca com Botão de Filtros Integrado */}
-                <div className="w-full mb-1">
+                <div className="w-full mb-1 px-4">
                     <WalletMovementSearch
                         value={filters.q}
                         onChange={(q: string | undefined) => applyFilters({ q })}

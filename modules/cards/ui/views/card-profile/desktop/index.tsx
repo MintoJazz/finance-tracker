@@ -4,7 +4,6 @@ import { useState } from "react";
 import { CreditCard, Eye, EyeOff, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Toggle } from "@/components/ui/toggle";
 import { ErrorView } from "@/components/error-view";
 import {
     ProfileCard,
@@ -15,16 +14,13 @@ import {
 import { getHashColorStyle } from "@/lib/avatar-utils";
 import { formatMoney } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
-import { CardCycleNavigator } from "@/modules/cards/ui/components/card-profile/card-cycle-navigator";
 import { CardLimitProgress } from "@/modules/cards/ui/components/card-profile/card-limit-progress";
 import { CardQuickActions } from "@/modules/cards/ui/components/card-profile/card-quick-actions";
-import { CycleNavigatorSkeleton } from "@/modules/cards/ui/components/card-profile/skeletons/cycle-navigator-skeleton";
 import { CardProfileSkeleton } from "@/modules/cards/ui/components/card-profile/skeletons/profile-skeleton";
 import { ArchiveCardModalViewDesktop } from "../../archive-card-modal";
 import { RestoreCardModalViewDesktop } from "../../restore-card-modal";
 import { MovementFilter } from "@/modules/movements/ui/components/movement-filter";
-import { WalletMovementSearch } from "@/modules/movements/ui/components/wallet-movement-search";
-import { CreditMovementTable } from "@/modules/movements/ui/components/credit-movement-table";
+import { CycleStatementDesktopView } from "@/modules/cycles/ui/views/cycle-statement/desktop";
 import { CardProfileDesktopProps } from "../types";
 
 export default function CardProfileViewDesktop({
@@ -34,16 +30,7 @@ export default function CardProfileViewDesktop({
     cardActionsContext,
     archiveContext,
     restoreContext,
-    cycleNavigation,
-    movementsData,
-    isLoadingMovements,
-    movementsError,
-    movementActionContext,
-    filters,
-    activeFilterCount,
-    applyFilters,
-    clearFilters,
-    paginationContext,
+    statementProps,
 }: CardProfileDesktopProps) {
     const [isVisible, setIsVisible] = useState(true);
 
@@ -60,86 +47,15 @@ export default function CardProfileViewDesktop({
         ? getHashColorStyle(profile.name || "C")
         : { backgroundColor: "", color: "" };
 
-    const { activeCycle, hasPrevCycle, hasNextCycle, onPrevCycle, onNextCycle } =
-        cycleNavigation;
+    const { filters, activeFilterCount, applyFilters, clearFilters } =
+        statementProps;
 
     return (
         <div className="w-full max-w-5xl lg:max-w-6xl mx-auto flex flex-col gap-5 p-4 md:p-6 lg:p-8 lg:py-2 min-w-0">
             <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_290px] xl:grid-cols-[minmax(0,1fr)_310px] items-start gap-6 w-full min-w-0">
-                {/* Coluna Esquerda: Navegador de Faturas + Extrato da Fatura */}
+                {/* Coluna Esquerda: Extrato da Fatura Genérico */}
                 <main className="min-w-0 w-full flex flex-col gap-3.5">
-                    <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                            <h2 className="text-base font-semibold tracking-tight text-foreground">
-                                Extrato da Fatura
-                            </h2>
-                            <Badge variant="outline" className="tabular-nums text-xs">
-                                {movementsData?.total ?? 0}
-                            </Badge>
-                        </div>
-                        {activeFilterCount > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                                {activeFilterCount}{" "}
-                                {activeFilterCount === 1 ? "filtro ativo" : "filtros ativos"}
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Seletor Horizontal de Fatura / Ciclo */}
-                    {isLoadingProfile || !activeCycle ? (
-                        <CycleNavigatorSkeleton />
-                    ) : (
-                        <CardCycleNavigator
-                            activeCycle={activeCycle}
-                            hasPrev={hasPrevCycle}
-                            hasNext={hasNextCycle}
-                            onPrev={onPrevCycle}
-                            onNext={onNextCycle}
-                        />
-                    )}
-
-                    {/* Busca + Toggle de Estornadas */}
-                    <div className="flex items-center gap-2.5 w-full mb-1">
-                        <WalletMovementSearch
-                            value={filters.q}
-                            onChange={(q: string | undefined) => applyFilters({ q })}
-                            className="flex-1"
-                        />
-                        <Toggle
-                            size="sm"
-                            variant="outline"
-                            pressed={Boolean(filters.includeReversed)}
-                            onPressedChange={(pressed) =>
-                                applyFilters({ includeReversed: pressed })
-                            }
-                            className="text-xs gap-1.5 shrink-0"
-                            aria-label="Incluir movimentações estornadas"
-                        >
-                            {filters.includeReversed ? (
-                                <Eye className="size-3.5" />
-                            ) : (
-                                <EyeOff className="size-3.5 text-muted-foreground" />
-                            )}
-                            Incluir estornadas
-                        </Toggle>
-                    </div>
-
-                    {movementsError ? (
-                        <ErrorView
-                            title="Erro ao carregar lançamentos da fatura"
-                            error={movementsError}
-                        />
-                    ) : (
-                        <CreditMovementTable
-                            data={movementsData}
-                            isLoading={isLoadingProfile || isLoadingMovements}
-                            hasFilters={activeFilterCount > 0}
-                            onClearFilters={clearFilters}
-                            setPage={paginationContext.setPage}
-                            setPageSize={paginationContext.setPageSize}
-                            actionContext={movementActionContext}
-                        />
-                    )}
+                    <CycleStatementDesktopView {...statementProps} />
                 </main>
 
                 {/* Coluna Direita: Sticky Sidebar com Perfil do Cartão + Filtros */}
@@ -232,7 +148,7 @@ export default function CardProfileViewDesktop({
 
                             <div className="border-t border-border/40 mx-4 sm:mx-4.5" />
 
-                            {/* Filtros da Fatura (Sem DateRangePicker pois o ciclo controla from/to) */}
+                            {/* Filtros da Fatura */}
                             <div className="px-4 sm:px-4.5 pb-4 pt-3 flex flex-col gap-3">
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
