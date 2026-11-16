@@ -2,16 +2,18 @@ import { z } from "zod"
 import type { IntentInitialSliceContext } from "../../application/intents/types"
 
 export const ChooseCardInvoiceIntentSliceSchema = z.object({
-  month: z
-    .number({ error: "Mês da fatura é obrigatório" })
-    .int()
-    .min(1, "Mês deve ser entre 1 e 12")
-    .max(12, "Mês deve ser entre 1 e 12"),
-  year: z
-    .number({ error: "Ano da fatura é obrigatório" })
-    .int()
-    .min(2000, "Ano inválido")
-    .max(2100, "Ano inválido"),
+  from: z
+    .string({ error: "Selecione a fatura do cartão" })
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Selecione uma fatura válida"),
+  to: z
+    .string({ error: "Selecione a fatura do cartão" })
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Selecione uma fatura válida"),
+  dueDate: z
+    .string({ error: "Selecione a fatura do cartão" })
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Data de vencimento da fatura inválida"),
+  label: z
+    .string({ error: "Selecione a fatura do cartão" })
+    .min(1, "Selecione uma fatura válida"),
 })
 
 export type ChooseCardInvoiceIntentSlice = z.infer<
@@ -19,14 +21,13 @@ export type ChooseCardInvoiceIntentSlice = z.infer<
 >
 
 export function buildInitialCardInvoiceIntentSlice(
-  ctx?: IntentInitialSliceContext
+  _ctx?: IntentInitialSliceContext
 ): ChooseCardInvoiceIntentSlice {
-  const baseDate = ctx?.seed?.dueDate ? new Date(ctx.seed.dueDate) : new Date()
-  const validDate = isNaN(baseDate.getTime()) ? new Date() : baseDate
-
   return {
-    month: validDate.getMonth() + 1,
-    year: validDate.getFullYear(),
+    from: "",
+    to: "",
+    dueDate: "",
+    label: "",
   }
 }
 

@@ -1,5 +1,20 @@
 import type { ReactNode } from "react"
 
+export interface EntityPickerNavigatorProps {
+  title: ReactNode
+  badge?: {
+    label: string
+    tone?: "destructive" | "amber" | "emerald" | "neutral"
+  }
+  canPrev?: boolean
+  canNext?: boolean
+  onPrev: () => void
+  onNext: () => void
+  isLoading?: boolean
+  prevLabel?: string
+  nextLabel?: string
+}
+
 export interface EntityPickerItem<TId extends string | number = number> {
   id: TId
   title: ReactNode
@@ -27,11 +42,13 @@ export interface EntityPickerSingleProps<TId extends string | number = number> {
   indicator?: "checkbox" | "radio" | "chevron" | "none"
   searchable?: boolean
   searchPlaceholder?: string
+  navigator?: EntityPickerNavigatorProps
   allowDeselect?: boolean
   emptyMessage?: string
   loading?: boolean
   listClassName?: string
   className?: string
+  hideIcon?: boolean
 }
 
 export interface EntityPickerMultipleProps<
@@ -45,10 +62,12 @@ export interface EntityPickerMultipleProps<
   indicator?: "checkbox" | "radio" | "chevron" | "none"
   searchable?: boolean
   searchPlaceholder?: string
+  navigator?: EntityPickerNavigatorProps
   emptyMessage?: string
   loading?: boolean
   listClassName?: string
   className?: string
+  hideIcon?: boolean
 }
 
 export type EntityPickerProps<TId extends string | number = any> =

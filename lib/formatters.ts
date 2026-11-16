@@ -19,9 +19,9 @@ export const formatDate = (data: Date | string | null | undefined): string => {
       return `${match[3]}/${match[2]}/${match[1]}`;
     }
     const d = new Date(data);
-    return Number.isNaN(d.getTime()) ? "" : format(d, "dd'/'MM'/'yyyy", { locale: ptBR });
+    return Number.isNaN(d.getTime()) ? "" : format(toCivilDate(d), "dd'/'MM'/'yyyy", { locale: ptBR });
   }
-  return format(data, "dd'/'MM'/'yyyy", { locale: ptBR });
+  return format(toCivilDate(data), "dd'/'MM'/'yyyy", { locale: ptBR });
 };
 
 export function checkDate(targetDate: Date, dateRange: DateRange): boolean {

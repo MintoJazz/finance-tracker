@@ -100,7 +100,7 @@ describe("Operation Summary Core & Cumulative Cards Resolver", () => {
     assert.equal(cycleRow, undefined)
   })
 
-  it("não emite card de fatura quando a intent CHOOSE_CARD_INVOICE está desabilitada", () => {
+  it("ao ativar CHOOSE_CARD_INVOICE, emite card dedicado para a fatura do cartão", () => {
     const payload: Partial<OperationDraft> = {
       nature: "PAY",
       base: {
@@ -112,22 +112,57 @@ describe("Operation Summary Core & Cumulative Cards Resolver", () => {
         description: "Assinatura de Software",
       },
       CHOOSE_CARD_INVOICE: {
-        month: 12,
-        year: 2026,
+        from: "2026-11-04",
+        to: "2026-12-03",
+        dueDate: "2026-12-09",
+        label: "Dezembro 2026",
       },
     }
 
     const cards = resolveSummaryCards(
       {
         payload,
-        activeIntents: ["CHOOSE_CARD_INVOICE" as any],
+        activeIntents: ["CHOOSE_CARD_INVOICE"],
         lookups: MOCK_OPERATION_OPTIONS,
       },
       OPERATION_STEP_CATALOG
     )
 
-    assert.equal(cards.length, 1)
-    assert.equal(cards.some((card) => card.id === "summary.intent.choose_card_invoice"), false)
+    assert.equal(cards.length, 2)
+
+    const baseCard = cards.find((c) => c.id === "summary.base")
+    assert.ok(baseCard)
+    assert.equal(baseCard.title, "Lançamento Financeiro")
+
+    const invoiceCard = cards.find(
+      (c) => c.id === "summary.intent.choose_card_invoice"
+    )
+    assert.ok(invoiceCard)
+    assert.equal(invoiceCard.title, "Fatura do Cartão")
+    assert.equal(invoiceCard.badge?.label, "Manual")
+
+    const periodRow = invoiceCard.rows?.find((r) => r.id === "invoice_period")
+    assert.ok(periodRow)
+    assert.deepEqual(periodRow.value, {
+      kind: "text",
+      text: "Dezembro 2026",
+    })
+    assert.equal(periodRow.stepId, "intent.choose_card_invoice")
+
+    const dueDateRow = invoiceCard.rows?.find((r) => r.id === "invoice_due_date")
+    assert.ok(dueDateRow)
+    assert.deepEqual(dueDateRow.value, {
+      kind: "date",
+      iso: "2026-12-09",
+    })
+    assert.equal(dueDateRow.stepId, "intent.choose_card_invoice")
+
+    const cardRow = invoiceCard.rows?.find((r) => r.id === "invoice_card")
+    assert.ok(cardRow)
+    assert.deepEqual(cardRow.value, {
+      kind: "text",
+      text: "Nubank Ultravioleta",
+    })
   })
 
   it("cards de criação de categoria e subcategoria geram visualItem com ícone, cor, título e subtítulo", () => {

@@ -1,7 +1,7 @@
 import type { SystemSeedFactory } from "../core/system.factory";
 
 export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
-  console.log("👥 Populando cenários de Bruno, Carla, Diego e Eduarda...");
+  console.log("👥 Populando cenários de Bruno, Carla, Diego e Eduarda (com árvores de subcategorias)...");
 
   // ==========================================
   // Bruno
@@ -13,8 +13,7 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
     phone: "53991110002",
     defaultContextName: "Finanças do Bruno",
   });
-
-  const brunoCategories = await bruno.space.addDefaultCategories();
+  const brunoCatTree = await bruno.space.addDefaultCategoryTree();
   const [brunoInter, brunoPicPay] = await bruno.space.addWallets([
     { name: "Banco Inter", initialBalance: { amount: 320000, date: "2026-09-02T11:00:00Z" } },
     { name: "PicPay", initialBalance: { amount: 45000 } },
@@ -26,14 +25,28 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
       limit: 2000000,
       closingDay: 10,
       dueDay: 17,
-      initialExpenses: [{ description: "Aluguel Carro Localiza", amount: 450000, date: "2026-09-10T14:00:00Z" }],
+      initialExpenses: [
+        {
+          description: "Aluguel Carro Localiza",
+          amount: 450000,
+          date: "2026-09-10T14:00:00Z",
+          categoryId: brunoCatTree.sub.appsTransporte.id,
+        },
+      ],
     },
     {
       name: "Nubank Platinum Mastercard",
       limit: 1200000,
       closingDay: 25,
       dueDay: 2,
-      initialExpenses: [{ description: "Assinatura Spotify", amount: 3490, date: "2026-09-12T10:00:00Z" }],
+      initialExpenses: [
+        {
+          description: "Assinatura Spotify",
+          amount: 3490,
+          date: "2026-09-12T10:00:00Z",
+          categoryId: brunoCatTree.sub.streaming.id,
+        },
+      ],
     },
   ]);
 
@@ -47,8 +60,7 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
     phone: "53991110003",
     defaultContextName: "Finanças da Carla",
   });
-
-  const carlaCategories = await carla.space.addDefaultCategories();
+  const carlaCatTree = await carla.space.addDefaultCategoryTree();
   const [carlaSantander, carlaC6, carlaDinheiro] = await carla.space.addWallets([
     { name: "Conta Santander", initialBalance: { amount: 610000, date: "2026-09-12T16:20:00Z" } },
     { name: "C6 Bank", initialBalance: { amount: 125000, date: "2026-09-15T08:00:00Z" } },
@@ -61,7 +73,14 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
       limit: 800000,
       closingDay: 15,
       dueDay: 22,
-      initialExpenses: [{ description: "Livros Livraria Cultura", amount: 150000, date: "2026-09-14T11:30:00Z" }],
+      initialExpenses: [
+        {
+          description: "Livros Livraria Cultura",
+          amount: 150000,
+          date: "2026-09-14T11:30:00Z",
+          categoryId: carlaCatTree.sub.hobbies.id,
+        },
+      ],
     },
     {
       name: "C6 Mastercard Standard",
@@ -81,8 +100,7 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
     phone: "53991110004",
     defaultContextName: "Finanças do Diego",
   });
-
-  const diegoCategories = await diego.space.addDefaultCategories();
+  const diegoCatTree = await diego.space.addDefaultCategoryTree();
   const [diegoBradesco, diegoMercadoPago] = await diego.space.addWallets([
     { name: "Conta Bradesco", initialBalance: { amount: 185000, date: "2026-09-18T13:45:00Z" } },
     { name: "Mercado Pago", initialBalance: { amount: 78000, date: "2026-09-20T19:00:00Z" } },
@@ -93,7 +111,14 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
     limit: 1500000,
     closingDay: 20,
     dueDay: 28,
-    initialExpenses: [{ description: "Ingressos Cinema & Show", amount: 380000, date: "2026-09-18T20:00:00Z" }],
+    initialExpenses: [
+      {
+        description: "Ingressos Cinema & Show",
+        amount: 380000,
+        date: "2026-09-18T20:00:00Z",
+        categoryId: diegoCatTree.sub.showsEventos.id,
+      },
+    ],
   });
 
   // ==========================================
@@ -106,8 +131,7 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
     phone: "53991110005",
     defaultContextName: "Finanças da Eduarda",
   });
-
-  const eduardaCategories = await eduarda.space.addDefaultCategories();
+  const eduardaCatTree = await eduarda.space.addDefaultCategoryTree();
   const [eduardaNubank, eduardaCaixa] = await eduarda.space.addWallets([
     { name: "Conta Nubank", initialBalance: { amount: 95000, date: "2026-09-22T10:10:00Z" } },
     { name: "Caixa Econômica", initialBalance: { amount: 210000, date: "2026-09-25T15:00:00Z" } },
@@ -117,22 +141,26 @@ export async function seedOtherUsersScenario(factory: SystemSeedFactory) {
     bruno: {
       ...bruno,
       wallets: { inter: brunoInter, picPay: brunoPicPay },
-      categories: brunoCategories,
+      subCategories: brunoCatTree.sub,
+      rootCategories: brunoCatTree.roots,
     },
     carla: {
       ...carla,
       wallets: { santander: carlaSantander, c6: carlaC6, dinheiro: carlaDinheiro },
-      categories: carlaCategories,
+      subCategories: carlaCatTree.sub,
+      rootCategories: carlaCatTree.roots,
     },
     diego: {
       ...diego,
       wallets: { bradesco: diegoBradesco, mercadoPago: diegoMercadoPago },
-      categories: diegoCategories,
+      subCategories: diegoCatTree.sub,
+      rootCategories: diegoCatTree.roots,
     },
     eduarda: {
       ...eduarda,
       wallets: { nubank: eduardaNubank, caixa: eduardaCaixa },
-      categories: eduardaCategories,
+      subCategories: eduardaCatTree.sub,
+      rootCategories: eduardaCatTree.roots,
     },
   };
 }

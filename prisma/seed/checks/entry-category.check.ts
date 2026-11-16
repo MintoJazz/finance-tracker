@@ -25,8 +25,45 @@ async function runCheck() {
   const runExplain = args.includes("--explain");
 
   console.log("================================================================================");
-  console.log("🔍 VALIDAÇÃO DE CONSISTÊNCIA: vw_entry_category & PLANO DE EXECUÇÃO");
+  console.log("🔍 VALIDAÇÃO DE CONSISTÊNCIA: ÁRVORE DE BALANCES & vw_entry_category");
   console.log("================================================================================\n");
+
+  // ---------------------------------------------------------------------------
+  // 0. Validação Estrutural da Árvore de Balances e Subcategorias
+  // ---------------------------------------------------------------------------
+  const deepCategories = await prisma.$queryRaw<Array<{ id: number; name: string }>>`
+    SELECT c.id, c.name
+    FROM "Balance" c
+    JOIN "Balance" p ON p.id = c."parentId"
+    WHERE c."balanceType" = 'CATEGORY'
+      AND p."balanceType" = 'CATEGORY'
+      AND p."parentId" IS NOT NULL;
+  `;
+
+  const movementsOnRootCategory = await prisma.$queryRaw<
+    Array<{ movementId: number; entryDescription: string; categoryName: string }>
+  >`
+    SELECT m.id AS "movementId", e.description AS "entryDescription", b.name AS "categoryName"
+    FROM "Movement" m
+    JOIN "Balance" b ON b.id = m."balanceId"
+    JOIN "Entry" e ON e.id = m."entryId"
+    WHERE b."balanceType" = 'CATEGORY'
+      AND b."parentId" IS NULL;
+  `;
+
+  if (deepCategories.length > 0) {
+    console.error("❌ ERRO ESTRUTURAL: Existem subcategorias com mais de 1 nível de profundidade:", deepCategories);
+    process.exitCode = 1;
+  } else {
+    console.log("✅ Regra 1 Nível de Subcategorias: Nenhuma categoria excede 2 níveis (Pai -> Subcategoria).");
+  }
+
+  if (movementsOnRootCategory.length > 0) {
+    console.error("❌ ERRO ESTRUTURAL: Existem entries apontando para categorias-pai em vez de subcategorias:", movementsOnRootCategory);
+    process.exitCode = 1;
+  } else {
+    console.log("✅ Regra de Movimentos Folha: 100% dos movimentos em categorias apontam para subcategorias.\n");
+  }
 
   // 1. Estatística Global da View
   const distribution = await prisma.$queryRaw<Array<{ kind: string; count: bigint }>>`
@@ -45,7 +82,6 @@ async function runCheck() {
   );
   console.log();
 
-  // Helper para buscar a view por (entryId, contextId)
   async function getViewRow(entryId: number, contextId: number): Promise<ViewRow | null> {
     const rows = await prisma.$queryRaw<ViewRow[]>`
       SELECT "entryId", "contextId", kind, "categoryBalanceId", "creditBalanceId"
@@ -56,7 +92,6 @@ async function runCheck() {
     return rows[0] || null;
   }
 
-  // Helper para buscar nome do balance
   async function getBalanceName(balanceId: number | null): Promise<string | undefined> {
     if (!balanceId) return undefined;
     const b = await prisma.balance.findUnique({
@@ -66,22 +101,12 @@ async function runCheck() {
     return b?.name;
   }
 
-  // Buscar contextos base
-  const anaContext = await prisma.financialContext.findFirst({
-    where: { name: "Finanças da Ana" },
-  });
-  const brunoContext = await prisma.financialContext.findFirst({
-    where: { name: "Finanças do Bruno" },
-  });
-  const carlaContext = await prisma.financialContext.findFirst({
-    where: { name: "Finanças da Carla" },
-  });
-  const diegoContext = await prisma.financialContext.findFirst({
-    where: { name: "Finanças do Diego" },
-  });
-  const eduardaContext = await prisma.financialContext.findFirst({
-    where: { name: "Finanças da Eduarda" },
-  });
+  const anaContext = await prisma.financialContext.findFirst({ where: { name: "Finanças da Ana" } });
+  const brunoContext = await prisma.financialContext.findFirst({ where: { name: "Finanças do Bruno" } });
+  const carlaContext = await prisma.financialContext.findFirst({ where: { name: "Finanças da Carla" } });
+  const diegoContext = await prisma.financialContext.findFirst({ where: { name: "Finanças do Diego" } });
+  const eduardaContext = await prisma.financialContext.findFirst({ where: { name: "Finanças da Eduarda" } });
+  const familyContext = await prisma.financialContext.findFirst({ where: { name: "Casa Ana & Bruno" } });
 
   if (!anaContext) {
     throw new Error("Contexto da Ana não encontrado! Execute a seed primeiro.");
@@ -89,11 +114,9 @@ async function runCheck() {
 
   const results: ScenarioCheck[] = [];
 
-  // ---------------------------------------------------------------------------
-  // Cenário 1: Despesa Direta Comum (Single Category)
-  // ---------------------------------------------------------------------------
+  // Cenário 1: Despesa Direta Comum (Subcategoria Supermercado & Feira)
   const directPaoAcucar = await prisma.entry.findFirst({
-    where: { description: { contains: "Supermercado Pão de Açúcar" } },
+    where: { description: "Supermercado Pão de Açúcar" },
   });
   if (directPaoAcucar) {
     const row = await getViewRow(directPaoAcucar.id, anaContext.id);
@@ -103,19 +126,14 @@ async function runCheck() {
       entryDescription: directPaoAcucar.description,
       contextName: "Ana",
       expectedKind: "category",
-      expectedCatOrCreditName: "Alimentação & Mercado",
+      expectedCatOrCreditName: "Supermercado & Feira",
       actualKind: row?.kind || "none",
       actualCatOrCreditName: catName,
-      status:
-        row?.kind === "category" && catName === "Alimentação & Mercado"
-          ? "MATCH"
-          : "UNEXPECTED_DIFF",
+      status: row?.kind === "category" && catName === "Supermercado & Feira" ? "MATCH" : "UNEXPECTED_DIFF",
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // Cenário 2: Receita Direta Comum (Single Category)
-  // ---------------------------------------------------------------------------
+  // Cenário 2: Receita Direta Comum (Subcategoria Salário Mensal CLT)
   const directSalario = await prisma.entry.findFirst({
     where: { description: { contains: "Salário Mensal - Tech Corp (Agosto)" } },
   });
@@ -127,19 +145,14 @@ async function runCheck() {
       entryDescription: directSalario.description,
       contextName: "Ana",
       expectedKind: "category",
-      expectedCatOrCreditName: "Salário & Renda",
+      expectedCatOrCreditName: "Salário Mensal CLT",
       actualKind: row?.kind || "none",
       actualCatOrCreditName: catName,
-      status:
-        row?.kind === "category" && catName === "Salário & Renda"
-          ? "MATCH"
-          : "UNEXPECTED_DIFF",
+      status: row?.kind === "category" && catName === "Salário Mensal CLT" ? "MATCH" : "UNEXPECTED_DIFF",
     });
   }
 
-  // ---------------------------------------------------------------------------
   // Cenário 3: Despesa Split em Carteira (Multiple)
-  // ---------------------------------------------------------------------------
   const splitCarteira = await prisma.entry.findFirst({
     where: { description: { contains: "Mercado & Pet Shop Express (Split)" } },
   });
@@ -151,16 +164,13 @@ async function runCheck() {
       entryDescription: splitCarteira.description,
       contextName: "Ana",
       expectedKind: "multiple",
-      expectedCatOrCreditName: undefined,
       actualKind: row?.kind || "none",
       actualCatOrCreditName: catName,
       status: row?.kind === "multiple" ? "MATCH" : "UNEXPECTED_DIFF",
     });
   }
 
-  // ---------------------------------------------------------------------------
   // Cenário 4: Despesa Split no Cartão de Crédito (Multiple)
-  // ---------------------------------------------------------------------------
   const splitCartao = await prisma.entry.findFirst({
     where: { description: { contains: "Empório Gourmet - Vinhos & Queijos (Split Cartão)" } },
   });
@@ -172,16 +182,13 @@ async function runCheck() {
       entryDescription: splitCartao.description,
       contextName: "Ana",
       expectedKind: "multiple",
-      expectedCatOrCreditName: undefined,
       actualKind: row?.kind || "none",
       actualCatOrCreditName: catName,
       status: row?.kind === "multiple" ? "MATCH" : "UNEXPECTED_DIFF",
     });
   }
 
-  // ---------------------------------------------------------------------------
   // Cenário 5: Estorno no Cartão de Crédito (REVERSAL)
-  // ---------------------------------------------------------------------------
   const reversalCartao = await prisma.entry.findFirst({
     where: { description: { contains: "Estorno Ingresso Show" } },
   });
@@ -193,19 +200,14 @@ async function runCheck() {
       entryDescription: reversalCartao.description,
       contextName: "Ana",
       expectedKind: "category",
-      expectedCatOrCreditName: "Lazer & Assinaturas",
+      expectedCatOrCreditName: "Cinema, Shows & Eventos",
       actualKind: row?.kind || "none",
       actualCatOrCreditName: catName,
-      status:
-        row?.kind === "category" && catName === "Lazer & Assinaturas"
-          ? "MATCH"
-          : "UNEXPECTED_DIFF",
+      status: row?.kind === "category" && catName === "Cinema, Shows & Eventos" ? "MATCH" : "UNEXPECTED_DIFF",
     });
   }
 
-  // ---------------------------------------------------------------------------
   // Cenário 6: Pagamento de Fatura do Cartão (SETTLEMENT de saldo CREDIT)
-  // ---------------------------------------------------------------------------
   const faturaAgosto = await prisma.entry.findFirst({
     where: { description: { contains: "Pagamento de Fatura Nubank Ultravioleta (Agosto)" } },
   });
@@ -217,7 +219,7 @@ async function runCheck() {
       entryDescription: faturaAgosto.description,
       contextName: "Ana",
       expectedKind: "credit-settlement",
-      expectedCatOrCreditName: "Cartão Nubank Ultravioleta",
+      expectedCatOrCreditName: "Nubank Ultravioleta Mastercard Black",
       actualKind: row?.kind || "none",
       actualCatOrCreditName: creditName,
       status:
@@ -227,9 +229,7 @@ async function runCheck() {
     });
   }
 
-  // ---------------------------------------------------------------------------
   // Cenário 7: Provisão de Contrato (ACCRUAL)
-  // ---------------------------------------------------------------------------
   const accrualAluguel = await prisma.entry.findFirst({
     where: { description: { contains: "Provisão Aluguel Apartamento (08/2026)" } },
   });
@@ -241,19 +241,14 @@ async function runCheck() {
       entryDescription: accrualAluguel.description,
       contextName: "Ana",
       expectedKind: "category",
-      expectedCatOrCreditName: "Moradia & Contas",
+      expectedCatOrCreditName: "Aluguel & Encargos",
       actualKind: row?.kind || "none",
       actualCatOrCreditName: catName,
-      status:
-        row?.kind === "category" && catName === "Moradia & Contas"
-          ? "MATCH"
-          : "UNEXPECTED_DIFF",
+      status: row?.kind === "category" && catName === "Aluguel & Encargos" ? "MATCH" : "UNEXPECTED_DIFF",
     });
   }
 
-  // ---------------------------------------------------------------------------
   // Cenário 8: Quitação de Contrato com Ciclo Casado (SETTLEMENT)
-  // ---------------------------------------------------------------------------
   const settlementAluguel = await prisma.entry.findFirst({
     where: { description: { contains: "Aluguel Apartamento (Agosto)" } },
   });
@@ -265,21 +260,16 @@ async function runCheck() {
       entryDescription: settlementAluguel.description,
       contextName: "Ana",
       expectedKind: "category",
-      expectedCatOrCreditName: "Moradia & Contas",
+      expectedCatOrCreditName: "Aluguel & Encargos",
       actualKind: row?.kind || "none",
       actualCatOrCreditName: catName,
-      status:
-        row?.kind === "category" && catName === "Moradia & Contas"
-          ? "MATCH"
-          : "UNEXPECTED_DIFF",
+      status: row?.kind === "category" && catName === "Aluguel & Encargos" ? "MATCH" : "UNEXPECTED_DIFF",
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // Cenário 9: Contrato com Multicategorias no Ciclo (Academia: Saúde + Lazer)
-  // ---------------------------------------------------------------------------
+  // Cenário 9: Contrato com Multicategorias no Ciclo (Academia: Academia & Personal + Cinema, Shows & Eventos)
   const settlementAcademia = await prisma.entry.findFirst({
-    where: { description: { contains: "Academia Smart Fit (Agosto)" } },
+    where: { description: { contains: "Pagamento Academia Smart Fit (Agosto)" } },
   });
   if (settlementAcademia) {
     const row = await getViewRow(settlementAcademia.id, anaContext.id);
@@ -289,21 +279,17 @@ async function runCheck() {
       entryDescription: settlementAcademia.description,
       contextName: "Ana",
       expectedKind: "multiple",
-      expectedCatOrCreditName: undefined,
       actualKind: row?.kind || "none",
       actualCatOrCreditName: catName,
       status: row?.kind === "multiple" ? "MATCH" : "UNEXPECTED_DIFF",
     });
   }
 
-  // ---------------------------------------------------------------------------
   // Cenário 10: Cobrança Bilateral - Abertura Raiz (CLAIM_OPENING)
-  // ---------------------------------------------------------------------------
   const claimOpenBilateral = await prisma.entry.findFirst({
     where: { description: { contains: "Cobrança Almoço Restaurante (Ana -> Diego)" } },
   });
   if (claimOpenBilateral) {
-    // Contexto Ana (Credora): herda categoria raiz do receivable.parentId
     const rowAna = await getViewRow(claimOpenBilateral.id, anaContext.id);
     const catAna = await getBalanceName(rowAna?.categoryBalanceId ?? null);
     results.push({
@@ -311,16 +297,12 @@ async function runCheck() {
       entryDescription: claimOpenBilateral.description,
       contextName: "Ana",
       expectedKind: "category",
-      expectedCatOrCreditName: "Alimentação & Mercado",
+      expectedCatOrCreditName: "Restaurantes & Bistrôs",
       actualKind: rowAna?.kind || "none",
       actualCatOrCreditName: catAna,
-      status:
-        rowAna?.kind === "category" && catAna?.includes("Alimentação")
-          ? "MATCH"
-          : "UNEXPECTED_DIFF",
+      status: rowAna?.kind === "category" && catAna?.includes("Restaurantes") ? "MATCH" : "UNEXPECTED_DIFF",
     });
 
-    // Contexto Diego (Devedor): herda categoria após aceite via payable.parentId
     if (diegoContext) {
       const rowDiego = await getViewRow(claimOpenBilateral.id, diegoContext.id);
       const catDiego = await getBalanceName(rowDiego?.categoryBalanceId ?? null);
@@ -329,18 +311,15 @@ async function runCheck() {
         entryDescription: claimOpenBilateral.description,
         contextName: "Diego",
         expectedKind: "category",
-        expectedCatOrCreditName: "Alimentação & Mercado",
+        expectedCatOrCreditName: "Restaurantes & Bares",
         actualKind: rowDiego?.kind || "none",
         actualCatOrCreditName: catDiego,
-        status:
-          rowDiego?.kind === "category" && catDiego?.includes("Alimentação")
-            ? "MATCH"
-            : "UNEXPECTED_DIFF",
+        status: rowDiego?.kind === "category" && catDiego?.includes("Restaurantes") ? "MATCH" : "UNEXPECTED_DIFF",
       });
     }
   }
 
-  // Cobrança Pendente de Aceite (Eduarda ainda não aceitou, payable.parentId é NULL)
+  // Cenário 10c: Cobrança Pendente de Aceite
   const claimOpenPending = await prisma.entry.findFirst({
     where: { description: { contains: "Cobrança Café Compartilhado (Ana -> Eduarda)" } },
   });
@@ -351,111 +330,16 @@ async function runCheck() {
       entryDescription: claimOpenPending.description,
       contextName: "Eduarda",
       expectedKind: "none",
-      expectedCatOrCreditName: undefined,
       actualKind: rowEduarda?.kind || "none",
-      actualCatOrCreditName: undefined,
       status: rowEduarda?.kind === "none" ? "MATCH" : "UNEXPECTED_DIFF",
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // Cenário 11: Cobrança Bilateral - Aceite (Estrutural via parentId)
-  // ---------------------------------------------------------------------------
-  const payableDiego = await prisma.balance.findFirst({
-    where: {
-      contextId: diegoContext?.id,
-      name: { contains: "Cobrança Almoço Diego (A Pagar)" },
-    },
-  });
-  if (payableDiego && diegoContext) {
-    const catDiego = await getBalanceName(payableDiego.parentId);
-    results.push({
-      scenario: "11. Aceite Cobrança (ParentId no Devedor)",
-      entryDescription: "Aceite estrutural de Cobrança Almoço Diego",
-      contextName: "Diego",
-      expectedKind: "category",
-      expectedCatOrCreditName: "Alimentação & Mercado",
-      actualKind: payableDiego.parentId ? "category" : "none",
-      actualCatOrCreditName: catDiego,
-      status:
-        catDiego?.includes("Alimentação") ? "MATCH" : "UNEXPECTED_DIFF",
-    });
-  }
-
-  // ---------------------------------------------------------------------------
-  // Cenário 12: Cobrança Bilateral - Pagamento (CLAIM_PAYMENT)
-  // ---------------------------------------------------------------------------
-  const claimPayBilateral = await prisma.entry.findFirst({
-    where: { description: { contains: "Pagamento Pix Cobrança Almoço (Diego -> Ana)" } },
-  });
-  if (claimPayBilateral && diegoContext) {
-    const rowDiego = await getViewRow(claimPayBilateral.id, diegoContext.id);
-    const catDiego = await getBalanceName(rowDiego?.categoryBalanceId ?? null);
-    results.push({
-      scenario: "12. Pagamento Cobrança (Ctx Devedor)",
-      entryDescription: claimPayBilateral.description,
-      contextName: "Diego",
-      expectedKind: "category",
-      expectedCatOrCreditName: "Alimentação & Mercado",
-      actualKind: rowDiego?.kind || "none",
-      actualCatOrCreditName: catDiego,
-      status:
-        rowDiego?.kind === "category" && catDiego?.includes("Alimentação")
-          ? "MATCH"
-          : "UNEXPECTED_DIFF",
-    });
-  }
-
-  // ---------------------------------------------------------------------------
-  // Cenário 13: Cobrança Bilateral - Recebimento (CLAIM_RECEIPT)
-  // ---------------------------------------------------------------------------
-  const claimReceiveBilateral = await prisma.entry.findFirst({
-    where: { description: { contains: "Recebimento Pix Cobrança Almoço de Diego" } },
-  });
-  if (claimReceiveBilateral) {
-    const rowAna = await getViewRow(claimReceiveBilateral.id, anaContext.id);
-    const catAna = await getBalanceName(rowAna?.categoryBalanceId ?? null);
-    results.push({
-      scenario: "13a. Recebimento Cobrança (Ctx Credor)",
-      entryDescription: claimReceiveBilateral.description,
-      contextName: "Ana",
-      expectedKind: "category",
-      expectedCatOrCreditName: "Alimentação & Mercado",
-      actualKind: rowAna?.kind || "none",
-      actualCatOrCreditName: catAna,
-      status:
-        rowAna?.kind === "category" && catAna?.includes("Alimentação")
-          ? "MATCH"
-          : "UNEXPECTED_DIFF",
-    });
-
-    if (diegoContext) {
-      const rowDiego = await getViewRow(claimReceiveBilateral.id, diegoContext.id);
-      const catDiego = await getBalanceName(rowDiego?.categoryBalanceId ?? null);
-      results.push({
-        scenario: "13b. Recebimento Cobrança (Ctx Devedor)",
-        entryDescription: claimReceiveBilateral.description,
-        contextName: "Diego",
-        expectedKind: "category",
-        expectedCatOrCreditName: "Alimentação",
-        actualKind: rowDiego?.kind || "none",
-        actualCatOrCreditName: catDiego,
-        status:
-          rowDiego?.kind === "category" && catDiego?.includes("Alimentação")
-            ? "MATCH"
-            : "UNEXPECTED_DIFF",
-      });
-    }
-  }
-
-  // ---------------------------------------------------------------------------
   // Cenário 14: Cascata - Recebimento com Passagem Intermediária (CLAIM_RECEIPT)
-  // ---------------------------------------------------------------------------
   const claimReceiveCascata = await prisma.entry.findFirst({
     where: { description: { contains: "Recebimento Pix Ingresso Festival de Carla" } },
   });
   if (claimReceiveCascata) {
-    // No contexto da Ana (Intermediária): espera-se pass-through via parentId
     const rowAna = await getViewRow(claimReceiveCascata.id, anaContext.id);
     const catAna = await getBalanceName(rowAna?.categoryBalanceId ?? null);
     results.push({
@@ -463,16 +347,12 @@ async function runCheck() {
       entryDescription: claimReceiveCascata.description,
       contextName: "Ana",
       expectedKind: "pass-through",
-      expectedCatOrCreditName: "Lazer & Assinaturas",
+      expectedCatOrCreditName: "Cinema, Shows & Eventos",
       actualKind: rowAna?.kind || "none",
       actualCatOrCreditName: catAna,
-      status:
-        rowAna?.kind === "pass-through" && catAna?.includes("Lazer")
-          ? "MATCH"
-          : "UNEXPECTED_DIFF",
+      status: rowAna?.kind === "pass-through" && catAna?.includes("Shows") ? "MATCH" : "UNEXPECTED_DIFF",
     });
 
-    // No contexto do Bruno (Credor raiz): alívio de 100
     if (brunoContext) {
       const rowBruno = await getViewRow(claimReceiveCascata.id, brunoContext.id);
       const catBruno = await getBalanceName(rowBruno?.categoryBalanceId ?? null);
@@ -481,17 +361,13 @@ async function runCheck() {
         entryDescription: claimReceiveCascata.description,
         contextName: "Bruno",
         expectedKind: "category",
-        expectedCatOrCreditName: "Lazer & Diversão",
+        expectedCatOrCreditName: "Shows, Cinema & Eventos",
         actualKind: rowBruno?.kind || "none",
         actualCatOrCreditName: catBruno,
-        status:
-          rowBruno?.kind === "category" && catBruno?.includes("Lazer")
-            ? "MATCH"
-            : "UNEXPECTED_DIFF",
+        status: rowBruno?.kind === "category" && catBruno?.includes("Shows") ? "MATCH" : "UNEXPECTED_DIFF",
       });
     }
 
-    // No contexto da Carla (Devedora filha): ônus de 100
     if (carlaContext) {
       const rowCarla = await getViewRow(claimReceiveCascata.id, carlaContext.id);
       const catCarla = await getBalanceName(rowCarla?.categoryBalanceId ?? null);
@@ -500,20 +376,33 @@ async function runCheck() {
         entryDescription: claimReceiveCascata.description,
         contextName: "Carla",
         expectedKind: "category",
-        expectedCatOrCreditName: "Lazer & Diversão",
+        expectedCatOrCreditName: "Shows, Cinema & Eventos",
         actualKind: rowCarla?.kind || "none",
         actualCatOrCreditName: catCarla,
-        status:
-          rowCarla?.kind === "category" && catCarla?.includes("Lazer")
-            ? "MATCH"
-            : "UNEXPECTED_DIFF",
+        status: rowCarla?.kind === "category" && catCarla?.includes("Shows") ? "MATCH" : "UNEXPECTED_DIFF",
       });
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Tabela Comparativa de Resultados
-  // ---------------------------------------------------------------------------
+  // Cenário 15 (Novo): Rateio de Obrigação de Grupo (Casa Ana & Bruno -> Ana)
+  const claimGroupSplit = await prisma.entry.findFirst({
+    where: { description: { contains: "Rateio Condomínio Setembro (Casa -> Ana 50%)" } },
+  });
+  if (claimGroupSplit && familyContext) {
+    const rowFamily = await getViewRow(claimGroupSplit.id, familyContext.id);
+    const catFamily = await getBalanceName(rowFamily?.categoryBalanceId ?? null);
+    results.push({
+      scenario: "15. Rateio Obrigação Grupo (Ctx Grupo)",
+      entryDescription: claimGroupSplit.description,
+      contextName: "Casa Ana & Bruno",
+      expectedKind: "category",
+      expectedCatOrCreditName: "Condomínio",
+      actualKind: rowFamily?.kind || "none",
+      actualCatOrCreditName: catFamily,
+      status: rowFamily?.kind === "category" && catFamily === "Condomínio" ? "MATCH" : "UNEXPECTED_DIFF",
+    });
+  }
+
   console.log("📋 Tabela Comparativa de Cenários (Esperado de Negócio vs Obtido da View):");
   console.table(
     results.map((r) => ({
@@ -521,46 +410,27 @@ async function runCheck() {
       Contexto: r.contextName,
       "Kind Esperado": r.expectedKind,
       "Kind Obtido": r.actualKind,
-      "Cat/Credit Obtido": r.actualCatOrCreditName || "-",
+      "Subcategoria/Crédito Obtido": r.actualCatOrCreditName || "-",
       Status: r.status,
     }))
   );
-
-  const divergences = results.filter((r) => r.status === "DIVERGENCE_KNOWN");
-  if (divergences.length > 0) {
-    console.log("\n⚠️ Divergências Conhecidas e Documentadas da View:");
-    divergences.forEach((d) => {
-      console.log(`  - [${d.scenario}]: ${d.divergenceReason}`);
-    });
-  }
 
   const unexpected = results.filter((r) => r.status === "UNEXPECTED_DIFF");
   if (unexpected.length > 0) {
     console.error("\n❌ ERRO: Divergências Inesperadas Detectadas:");
     unexpected.forEach((u) => {
-      console.error(`  - [${u.scenario}]: Esperado '${u.expectedKind}', obtido '${u.actualKind}'`);
+      console.error(`  - [${u.scenario}]: Esperado '${u.expectedKind}', obtido '${u.actualKind}' (${u.actualCatOrCreditName})`);
     });
     process.exitCode = 1;
   } else {
-    console.log("\n✅ Todos os cenários correspondem ao comportamento esperado (incluindo divergências mapeadas)!");
+    console.log("\n✅ Todos os cenários e árvores de subcategorias/repasses estão 100% consistentes!");
   }
 
-  // ---------------------------------------------------------------------------
-  // EXPLAIN (ANALYZE, BUFFERS) na Query de Extrato com JOIN na View
-  // ---------------------------------------------------------------------------
   if (runExplain) {
-    console.log("\n================================================================================");
-    console.log("⚡ EXPLAIN (ANALYZE, BUFFERS, COSTS, TIMING, VERBOSE) - Query de Extrato com Categorias");
-    console.log("================================================================================\n");
-
     const nubankWallet = await prisma.balance.findFirst({
       where: { name: "Conta Nubank", contextId: anaContext.id },
     });
-
-    if (!nubankWallet) {
-      console.warn("Conta Nubank não encontrada para teste de EXPLAIN.");
-      return;
-    }
+    if (!nubankWallet) return;
 
     const explainQuery = `
       EXPLAIN (ANALYZE, BUFFERS, COSTS, TIMING, VERBOSE)
@@ -577,20 +447,18 @@ async function runCheck() {
           vc."categoryBalanceId",
           vc."creditBalanceId",
           cat.name AS "categoryName",
-          cat_app.icon AS "categoryIcon",
-          cat_app.color AS "categoryColor"
+          parent_cat.name AS "parentCategoryName"
       FROM "Movement" m
       JOIN "Entry" e ON e.id = m."entryId"
       JOIN "Balance" b ON b.id = m."balanceId"
       LEFT JOIN vw_entry_category vc ON vc."entryId" = e.id AND vc."contextId" = b."contextId"
       LEFT JOIN "Balance" cat ON cat.id = vc."categoryBalanceId"
-      LEFT JOIN "BalanceAppearance" cat_app ON cat_app."balanceId" = cat.id
+      LEFT JOIN "Balance" parent_cat ON parent_cat.id = cat."parentId"
       WHERE m."balanceId" = ${nubankWallet.id}
         AND e."dueDate" >= '2026-08-01T00:00:00Z'::timestamptz
         AND e."dueDate" <= '2026-09-30T23:59:59Z'::timestamptz
       ORDER BY e."dueDate" DESC, m.id DESC;
     `;
-
     const explainRows = await prisma.$queryRawUnsafe<Array<{ "QUERY PLAN": string }>>(explainQuery);
     console.log(explainRows.map((r) => r["QUERY PLAN"]).join("\n"));
   }

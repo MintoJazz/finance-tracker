@@ -15,7 +15,7 @@ async function main() {
   const anaData = await seedAnaScenario(factory);
   const othersData = await seedOtherUsersScenario(factory);
 
-  await seedSharedSpacesScenario(factory, {
+  const sharedSpacesData = await seedSharedSpacesScenario(factory, {
     anaId: anaData.party.id,
     brunoId: othersData.bruno.party.id,
     carlaId: othersData.carla.party.id,
@@ -23,10 +23,11 @@ async function main() {
     eduardaId: othersData.eduarda.party.id,
   });
 
-  console.log("🌳 Semeando árvores de cobrança inter-contextos (claims)...");
+  console.log("🌳 Semeando árvores de cobrança e rateios inter-contextos (claims)...");
   await seedClaimsScenario(factory, {
     ana: anaData,
     others: othersData,
+    sharedSpaces: sharedSpacesData,
   });
 
   console.log(`\n✅ Seed concluída com sucesso! Senha padrão: ${DEFAULT_PASSWORD}`);

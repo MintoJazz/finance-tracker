@@ -9,12 +9,20 @@ import { cn } from "@/lib/utils";
 interface Props {
     value?: string;
     onChange: (value: string | undefined) => void;
+    placeholder?: string;
     className?: string;
     autoDebounce?: boolean;
     children?: React.ReactNode;
 }
 
-export function WalletMovementSearch({ value, onChange, className, autoDebounce = true, children }: Props) {
+export function WalletMovementSearch({
+    value,
+    onChange,
+    placeholder = "Ex: Salário, Mercado...",
+    className,
+    autoDebounce = true,
+    children,
+}: Props) {
     const [search, setSearch] = useState<string>(value ?? "");
     const [prevPropQ, setPrevPropQ] = useState(value);
     
@@ -46,7 +54,7 @@ export function WalletMovementSearch({ value, onChange, className, autoDebounce 
             <InputGroupInput
                 value={search}
                 onChange={(e) => handleChange(e.target.value)}
-                placeholder="Ex: Salário, Mercado..."
+                placeholder={placeholder}
             />
             {(search || children) && (
                 <InputGroupAddon align="inline-end" className="gap-1.5">

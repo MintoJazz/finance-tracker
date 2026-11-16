@@ -53,7 +53,7 @@ export const sidebarConfig = {
         isActive: true,
         items: [
           { title: "Compromissos", url: "#" },
-          { title: "Contratos", url: "/contracts" },
+          { title: "Recorrências", url: "/recurrences" },
           { title: "Categorias", url: "/categories" }
         ],
       },

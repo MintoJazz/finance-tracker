@@ -136,6 +136,38 @@ describe("Operation Plan Compiler (DAG & Symbolic Pointers)", () => {
     assert.equal(resolveEntityRef(plan.pointers.mainEntry, resolvedMap), 900)
   })
 
+  it("compila CHOOSE_CARD_INVOICE propagando slice.from como competanceDate no nó base.direct_entry", () => {
+    const plan = compileOperationPlan(
+      {
+        nature: "PAY",
+        intents: ["CHOOSE_CARD_INVOICE"],
+        base: {
+          custodyBalanceId: 2,
+          custodyType: "CREDIT",
+          amount: 25000,
+          dueDate: "2026-11-15",
+          description: "Compra antecipada na fatura seguinte",
+          categoryId: 101,
+        },
+        CHOOSE_CARD_INVOICE: {
+          from: "2026-12-04",
+          to: "2027-01-03",
+          dueDate: "2027-01-09",
+          label: "Janeiro 2027",
+        },
+      },
+      OPERATION_STEP_CATALOG
+    )
+
+    assert.equal(plan.nodes.length, 1)
+    const entryNode = plan.nodes[0]
+    assert.equal(entryNode.id, "base.direct_entry")
+    assert.equal(entryNode.action.type, "CREATE_DIRECT_ENTRY")
+    if (entryNode.action.type === "CREATE_DIRECT_ENTRY") {
+      assert.equal(entryNode.action.competanceDate, "2026-12-04")
+    }
+  })
+
   it("detecta e rejeita ciclos no grafo (DAG inválido)", () => {
     assert.throws(
       () =>

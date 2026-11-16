@@ -53,13 +53,16 @@ export interface CreditCardSeedInput {
 
 export interface CommitmentAgreementSeedInput {
   name: string;
-  balanceType?: BalanceType; // Default: PAYABLE (pode ser RECEIVABLE no futuro)
-  categoryId?: number;
+  balanceType?: BalanceType; // Default: PAYABLE (pode ser RECEIVABLE)
+  /**
+   * ID da subcategoria padrão (ou da obrigação pai, no caso de repasse).
+   */
+  categoryId: number;
   appearance?: {
     icon?: string | null;
     color?: string | null;
   };
-  amount?: number; // Added so we can show default/expected amount in the UI
+  amount?: number;
   amountEntries?: Array<{
     amount: number;
     effectiveAt: string | Date;
@@ -70,6 +73,17 @@ export interface CommitmentAgreementSeedInput {
   includeInProjection?: boolean;
   isArchived?: boolean;
   rules: CycleRuleSeedInput[];
+}
+
+export interface CategoryTreeSeedInput {
+  name: string;
+  appearance?: { icon?: string | null; color?: string | null };
+  subcategories: Array<{
+    key: string;
+    name: string;
+    isArchived?: boolean;
+    appearance?: { icon?: string | null; color?: string | null };
+  }>;
 }
 
 export class FinancialContextFactory {
@@ -88,7 +102,6 @@ export class FinancialContextFactory {
   }) {
     const status = params.status ?? ContextMemberStatus.ACTIVE;
     const invitedAt = params.invitedAt ?? new Date();
-
     return this.prisma.contextMember.create({
       data: {
         contextId: this.contextId,
@@ -138,14 +151,17 @@ export class FinancialContextFactory {
 
   async addCategory(
     name: string,
-    options?: {
-      type?: BalanceType;
-      parentId?: number | null;
-      appearance?: {
-        icon?: string | null;
-        color?: string | null;
-      };
-    } | BalanceType
+    options?:
+      | {
+          type?: BalanceType;
+          parentId?: number | null;
+          isArchived?: boolean;
+          appearance?: {
+            icon?: string | null;
+            color?: string | null;
+          };
+        }
+      | BalanceType
   ) {
     const balanceType =
       typeof options === "string" ? options : (options?.type ?? BalanceType.CATEGORY);
@@ -153,6 +169,8 @@ export class FinancialContextFactory {
       typeof options === "object" && options !== null ? options.appearance : undefined;
     const parentId =
       typeof options === "object" && options !== null ? (options.parentId ?? null) : null;
+    const isArchived =
+      typeof options === "object" && options !== null ? (options.isArchived ?? false) : false;
 
     return this.prisma.balance.create({
       data: {
@@ -160,6 +178,7 @@ export class FinancialContextFactory {
         name,
         balanceType,
         parentId,
+        removedAt: isArchived ? new Date("2026-08-31T23:59:59Z") : null,
         appearance: appearance
           ? {
               create: {
@@ -175,41 +194,124 @@ export class FinancialContextFactory {
     });
   }
 
-  async addCategories(
-    items: Array<{
+  /**
+   * Cria uma árvore de categorias de exatamente 2 níveis (Categoria Pai -> Subcategorias Folha).
+   * Retorna tanto as raízes quanto um mapa tipado de subcategorias para vínculo em Entries e Agreements.
+   */
+  async addCategoryTree<TSubKey extends string>(
+    groups: Array<{
       name: string;
-      parentId?: number | null;
       appearance?: { icon?: string | null; color?: string | null };
-      type?: BalanceType;
+      subcategories: Array<{
+        key: TSubKey;
+        name: string;
+        isArchived?: boolean;
+        appearance?: { icon?: string | null; color?: string | null };
+      }>;
     }>
   ) {
-    const results = [];
-    for (const item of items) {
-      results.push(
-        await this.addCategory(item.name, {
-          type: item.type,
-          parentId: item.parentId,
-          appearance: item.appearance,
-        })
-      );
+    const roots: Record<string, Awaited<ReturnType<typeof this.addCategory>>> = {};
+    const sub: Record<TSubKey, Awaited<ReturnType<typeof this.addCategory>>> = {} as Record<
+      TSubKey,
+      Awaited<ReturnType<typeof this.addCategory>>
+    >;
+
+    for (const group of groups) {
+      const root = await this.addCategory(group.name, {
+        parentId: null,
+        appearance: group.appearance,
+      });
+      roots[group.name] = root;
+
+      for (const item of group.subcategories) {
+        const child = await this.addCategory(item.name, {
+          parentId: root.id,
+          isArchived: item.isArchived,
+          appearance:
+            item.appearance !== undefined ? item.appearance : group.appearance,
+        });
+        sub[item.key] = child;
+      }
     }
-    return results;
+
+    return { roots, sub };
   }
 
-  async addDefaultCategories() {
-    return this.addCategories([
-      { name: "Moradia & Contas", appearance: { icon: "house", color: "sky" } },
-      { name: "Alimentação & Mercado", appearance: { icon: "utensils", color: "orange" } },
-      { name: "Transporte & Combustível", appearance: { icon: "car", color: "amber" } },
-      { name: "Lazer & Diversão", appearance: { icon: "party-popper", color: "violet" } },
-      { name: "Saúde & Farmácia", appearance: { icon: "heart-pulse", color: "rose" } },
-      { name: "Assinaturas & Serviços", appearance: { icon: "tv", color: "indigo" } },
+  /**
+   * Árvore padrão de 2 níveis para contextos de outros usuários e grupos.
+   */
+  async addDefaultCategoryTree() {
+    return this.addCategoryTree([
+      {
+        name: "Renda & Entradas",
+        appearance: { icon: "wallet", color: "emerald" },
+        subcategories: [
+          { key: "salario", name: "Salário CLT" },
+          { key: "freelance", name: "Freelance & Projetos" },
+          { key: "rendimentos", name: "Dividendos & Rendimentos" },
+        ],
+      },
+      {
+        name: "Moradia & Contas",
+        appearance: { icon: "house", color: "sky" },
+        subcategories: [
+          { key: "aluguel", name: "Aluguel" },
+          { key: "condominio", name: "Condomínio" },
+          { key: "energiaAgua", name: "Energia & Água" },
+          { key: "internet", name: "Internet & TV" },
+        ],
+      },
+      {
+        name: "Alimentação & Mercado",
+        appearance: { icon: "utensils", color: "orange" },
+        subcategories: [
+          { key: "supermercado", name: "Supermercado & Feira" },
+          { key: "restaurantes", name: "Restaurantes & Bares" },
+          { key: "delivery", name: "Delivery & Cafés" },
+        ],
+      },
+      {
+        name: "Transporte & Combustível",
+        appearance: { icon: "car", color: "amber" },
+        subcategories: [
+          { key: "combustivel", name: "Combustível" },
+          { key: "appsTransporte", name: "Uber & Transporte Urbano" },
+          { key: "pedagioEstacionamento", name: "Estacionamento & Pedágio" },
+          { key: "impostosAuto", name: "IPVA & Seguro Auto" },
+        ],
+      },
+      {
+        name: "Lazer & Estilo de Vida",
+        appearance: { icon: "party-popper", color: "violet" },
+        subcategories: [
+          { key: "showsEventos", name: "Shows, Cinema & Eventos" },
+          { key: "viagens", name: "Hospedagem & Viagens" },
+          { key: "hobbies", name: "Compras, Livros & Hobbies" },
+        ],
+      },
+      {
+        name: "Saúde & Bem-Estar",
+        appearance: { icon: "heart-pulse", color: "rose" },
+        subcategories: [
+          { key: "farmacia", name: "Farmácia & Medicamentos" },
+          { key: "planoSaude", name: "Plano de Saúde & Consultas" },
+          { key: "academia", name: "Academia & Esportes" },
+        ],
+      },
+      {
+        name: "Assinaturas & Serviços",
+        appearance: { icon: "tv", color: "indigo" },
+        subcategories: [
+          { key: "streaming", name: "Streaming de Vídeo & Música" },
+          { key: "softwares", name: "Apps, Nuvem & Clubes" },
+        ],
+      },
     ]);
   }
 
   /**
-   * Cria um Balance (por padrão COMMITMENT) acoplado a um Agreement e múltiplas CycleRules
-   * para testar histórico de regras (PAST, CURRENT, FUTURE) e vigência (startsAt / endsAt).
+   * Cria um Balance (PAYABLE ou RECEIVABLE) acoplado a um Agreement e múltiplas CycleRules.
+   * Fora os repasses, o parentId deve sempre apontar para uma subcategoria padrão.
    */
   async addCommitmentAgreement(params: CommitmentAgreementSeedInput) {
     const startDate = new Date(params.startsAt);
@@ -220,7 +322,7 @@ export class FinancialContextFactory {
         contextId: this.contextId,
         name: params.name,
         balanceType: params.balanceType ?? BalanceType.PAYABLE,
-        parentId: params.categoryId ?? null,
+        parentId: params.categoryId,
         appearance: params.appearance
           ? {
               create: {
@@ -290,11 +392,9 @@ export class FinancialContextFactory {
     reason?: string;
   }) {
     const targetAgreementId = params.balanceId ?? params.agreementId;
-
     if (!targetAgreementId) {
       throw new Error("É necessário fornecer agreementId ou balanceId");
     }
-
     return this.prisma.agreementAmountEntry.create({
       data: {
         agreementId: targetAgreementId,
@@ -307,7 +407,7 @@ export class FinancialContextFactory {
 
   /**
    * Registra a provisão/geração da obrigação no ciclo (ACCRUAL):
-   * Debita o COMMITMENT (-x) e Credita a CATEGORY (+x) na competanceDate do ciclo.
+   * Debita o PAYABLE (-x) e Credita a SUBCATEGORIA (+x) na competanceDate do ciclo.
    */
   async addAccrual(params: {
     commitmentBalanceId: number;
@@ -348,7 +448,7 @@ export class FinancialContextFactory {
   /**
    * Liquida uma obrigação (SETTLEMENT):
    * Debita a Carteira (-x) na data real do pagamento (dueDate)
-   * e Credita o COMMITMENT/CREDIT (+x) ancorado na competanceDate do ciclo.
+   * e Credita o PAYABLE/CREDIT (+x) ancorado na competanceDate do ciclo.
    */
   async addSettlement(params: {
     walletBalanceId: number;
@@ -491,7 +591,6 @@ export class FinancialContextFactory {
         params.direction === MovementDirection.DEBIT
           ? MovementDirection.CREDIT
           : MovementDirection.DEBIT;
-
       movements.push({
         balanceId: params.counterpartBalanceId,
         amount: -signedAmount,
@@ -546,7 +645,6 @@ export class FinancialContextFactory {
       const splitAbs = Math.abs(split.amount);
       const splitSigned =
         counterpartDirection === MovementDirection.DEBIT ? -splitAbs : splitAbs;
-
       movements.push({
         balanceId: split.categoryId,
         amount: splitSigned,
@@ -617,7 +715,6 @@ export class FinancialContextFactory {
       params.originalDirection === MovementDirection.DEBIT
         ? MovementDirection.CREDIT
         : MovementDirection.DEBIT;
-
     const signedReversalAmount =
       reversalDirection === MovementDirection.DEBIT ? -absAmount : absAmount;
 

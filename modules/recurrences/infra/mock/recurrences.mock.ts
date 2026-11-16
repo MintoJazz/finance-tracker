@@ -1,0 +1,362 @@
+import type {
+    RecurrenceFilters,
+    RecurrenceListItem,
+} from "@/modules/recurrences/models/schemas/recurrence-item.schema";
+
+export const MOCK_RECURRENCES: RecurrenceListItem[] = [
+    {
+        balanceId: 101,
+        name: "Aluguel Apartamento",
+        direction: "DEBIT",
+        frequency: "MONTHLY",
+        interval: 1,
+        dueDay: 5,
+        dueMonth: null,
+        currentAmount: 280000,
+        nextDueDate: "2026-12-05",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 201,
+            name: "Aluguel & Encargos",
+            color: "sky",
+        },
+        icon: "house",
+        color: "sky",
+    },
+    {
+        balanceId: 102,
+        name: "Condomínio Edifício Solar das Flores",
+        direction: "DEBIT",
+        frequency: "MONTHLY",
+        interval: 1,
+        dueDay: 25,
+        dueMonth: null,
+        currentAmount: 45000,
+        nextDueDate: "2026-10-25",
+        isActive: true,
+        isOverdue: true,
+        category: {
+            balanceId: 202,
+            name: "Condomínio Residencial",
+            color: "sky",
+        },
+        icon: "building-2",
+        color: "sky",
+    },
+    {
+        balanceId: 103,
+        name: "Conta de Energia CEEE Equatorial",
+        direction: "DEBIT",
+        frequency: "MONTHLY",
+        interval: 1,
+        dueDay: 10,
+        dueMonth: null,
+        currentAmount: 21500,
+        nextDueDate: "2026-12-10",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 203,
+            name: "Energia Elétrica & Gás",
+            color: "amber",
+        },
+        icon: "zap",
+        color: "amber",
+    },
+    {
+        balanceId: 104,
+        name: "Internet Fibra 600Mb",
+        direction: "DEBIT",
+        frequency: "MONTHLY",
+        interval: 1,
+        dueDay: 12,
+        dueMonth: null,
+        currentAmount: 12990,
+        nextDueDate: "2026-12-12",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 204,
+            name: "Internet Fibra & Telefonia",
+            color: "indigo",
+        },
+        icon: "wifi",
+        color: "indigo",
+    },
+    {
+        balanceId: 105,
+        name: "Plano de Saúde Unimed",
+        direction: "DEBIT",
+        frequency: "MONTHLY",
+        interval: 1,
+        dueDay: 10,
+        dueMonth: null,
+        currentAmount: 68000,
+        nextDueDate: "2026-12-10",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 205,
+            name: "Plano de Saúde",
+            color: "rose",
+        },
+        icon: "heart-pulse",
+        color: "rose",
+    },
+    {
+        balanceId: 106,
+        name: "IPVA & Licenciamento Anual",
+        direction: "DEBIT",
+        frequency: "YEARLY",
+        interval: 1,
+        dueDay: 20,
+        dueMonth: 1,
+        currentAmount: 89300,
+        nextDueDate: "2027-01-20",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 206,
+            name: "IPVA, Seguro & Licenciamento",
+            color: "amber",
+        },
+        icon: "car",
+        color: "amber",
+    },
+    {
+        balanceId: 107,
+        name: "Curso de Inglês Britânico",
+        direction: "DEBIT",
+        frequency: "MONTHLY",
+        interval: 1,
+        dueDay: 15,
+        dueMonth: null,
+        currentAmount: 25000,
+        nextDueDate: null,
+        isActive: false,
+        isOverdue: false,
+        category: {
+            balanceId: 207,
+            name: "Cursos Online & Idiomas",
+            color: "teal",
+        },
+        icon: "graduation-cap",
+        color: "teal",
+    },
+    {
+        balanceId: 108,
+        name: "Academia Smart Fit Club",
+        direction: "DEBIT",
+        frequency: "MONTHLY",
+        interval: 1,
+        dueDay: 15,
+        dueMonth: null,
+        currentAmount: 14990,
+        nextDueDate: "2026-12-15",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 208,
+            name: "Academia & Personal",
+            color: "rose",
+        },
+        icon: "dumbbell",
+        color: "rose",
+    },
+    {
+        balanceId: 109,
+        name: "Água & Saneamento CORSAN",
+        direction: "DEBIT",
+        frequency: "MONTHLY",
+        interval: 1,
+        dueDay: 18,
+        dueMonth: null,
+        currentAmount: 8500,
+        nextDueDate: "2026-11-18",
+        isActive: true,
+        isOverdue: true,
+        category: {
+            balanceId: 209,
+            name: "Água & Saneamento",
+            color: "cyan",
+        },
+        icon: "droplets",
+        color: "cyan",
+    },
+    {
+        balanceId: 110,
+        name: "Feira Orgânica Semanal",
+        direction: "DEBIT",
+        frequency: "WEEKLY",
+        interval: 1,
+        dueDay: 6,
+        dueMonth: null,
+        currentAmount: 14000,
+        nextDueDate: "2026-11-21",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 210,
+            name: "Supermercado & Feira",
+            color: "orange",
+        },
+        icon: "utensils",
+        color: "orange",
+    },
+    {
+        balanceId: 111,
+        name: "Streaming & Apple Services",
+        direction: "DEBIT",
+        frequency: "MONTHLY",
+        interval: 1,
+        dueDay: 22,
+        dueMonth: null,
+        currentAmount: 5590,
+        nextDueDate: "2026-11-22",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 211,
+            name: "Streaming & Assinaturas",
+            color: "indigo",
+        },
+        icon: "tv",
+        color: "indigo",
+    },
+    {
+        balanceId: 112,
+        name: "Seguro Residencial Anual",
+        direction: "DEBIT",
+        frequency: "YEARLY",
+        interval: 1,
+        dueDay: 10,
+        dueMonth: 3,
+        currentAmount: 42000,
+        nextDueDate: "2027-03-10",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 212,
+            name: "Moradia & Contas",
+            color: "emerald",
+        },
+        icon: "shield-check",
+        color: "emerald",
+    },
+    {
+        balanceId: 113,
+        name: "Clube do Livro",
+        direction: "DEBIT",
+        frequency: "WEEKLY",
+        interval: 1,
+        dueDay: 3,
+        dueMonth: null,
+        currentAmount: 4990,
+        nextDueDate: null,
+        isActive: false,
+        isOverdue: false,
+        category: {
+            balanceId: 213,
+            name: "Compras, Livros & Eletrônicos",
+            color: "violet",
+        },
+        icon: "book-open",
+        color: "violet",
+    },
+    {
+        balanceId: 114,
+        name: "Ração & Banho Pet",
+        direction: "DEBIT",
+        frequency: "WEEKLY",
+        interval: 1,
+        dueDay: 1,
+        dueMonth: null,
+        currentAmount: 18500,
+        nextDueDate: "2026-11-16",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 214,
+            name: "Ração & Pet Shop",
+            color: "amber",
+        },
+        icon: "paw-print",
+        color: "amber",
+    },
+    {
+        balanceId: 115,
+        name: "Freelance Mensal - Agência XYZ",
+        direction: "CREDIT",
+        frequency: "MONTHLY",
+        interval: 1,
+        dueDay: 20,
+        dueMonth: null,
+        currentAmount: 180000,
+        nextDueDate: "2026-11-20",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 215,
+            name: "Freelance & Consultoria",
+            color: "emerald",
+        },
+        icon: "wallet",
+        color: "emerald",
+    },
+    {
+        balanceId: 116,
+        name: "Dividendos Empresa Familiar",
+        direction: "CREDIT",
+        frequency: "YEARLY",
+        interval: 1,
+        dueDay: 15,
+        dueMonth: 12,
+        currentAmount: 1500000,
+        nextDueDate: "2026-12-15",
+        isActive: true,
+        isOverdue: false,
+        category: {
+            balanceId: 216,
+            name: "Dividendos & Rendimentos",
+            color: "emerald",
+        },
+        icon: "trending-up",
+        color: "emerald",
+    },
+];
+
+/**
+ * Aplica filtragem em memória sobre a lista de recorrências de acordo com os filtros ativos.
+ */
+export function filterRecurrences(
+    items: RecurrenceListItem[],
+    filters: RecurrenceFilters
+): RecurrenceListItem[] {
+    const term = filters.q?.trim().toLowerCase();
+
+    return items.filter((item) => {
+        if (filters.direction && item.direction !== filters.direction) {
+            return false;
+        }
+        if (filters.active === "ACTIVE" && !item.isActive) {
+            return false;
+        }
+        if (filters.active === "INACTIVE" && item.isActive) {
+            return false;
+        }
+        if (filters.frequency && item.frequency !== filters.frequency) {
+            return false;
+        }
+        if (term) {
+            const matchesName = item.name.toLowerCase().includes(term);
+            const matchesCategory = item.category?.name
+                .toLowerCase()
+                .includes(term);
+            if (!matchesName && !matchesCategory) {
+                return false;
+            }
+        }
+        return true;
+    });
+}

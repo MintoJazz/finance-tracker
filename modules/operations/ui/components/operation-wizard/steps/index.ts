@@ -11,13 +11,13 @@ import {
   createCategoryStepViewsMap,
   createSubcategoryStepViewsMap,
 } from "./intents/category-creation-steps"
-// import { cardInvoiceStepViews } from "./intents/card-invoice-step"
+import { cardInvoiceStepViews } from "./intents/card-invoice-step"
 
 export const STEP_VIEWS_CATALOG = {
   "base.entry": entryStepViews,
   "base.details": detailsStepViews,
   "base.custody": custodyStepViews,
-  // "intent.choose_card_invoice": cardInvoiceStepViews,
+  "intent.choose_card_invoice": cardInvoiceStepViews,
   "base.amount": amountStepViews,
   "base.category": categoryStepViews,
   "base.subcategory": subcategoryStepViews,

@@ -359,13 +359,34 @@ describe("Operation Steps & Intents Declarative Interpreter (Clean Core)", () =>
     }
   })
 
-  it("desabilita CHOOSE_CARD_INVOICE do catálogo e o rejeita em payloads antigos", () => {
+  it("habilita CHOOSE_CARD_INVOICE para custódia CREDIT, posiciona entre custódia e valor, e revoga ao mudar para WALLET", () => {
     const catalog = OPERATION_STEP_CATALOG
-    assert.equal("CHOOSE_CARD_INVOICE" in catalog.intents, false)
-    assert.equal(catalog.intents.CHOOSE_CARD_INVOICE, undefined)
+    assert.equal("CHOOSE_CARD_INVOICE" in catalog.intents, true)
+    assert.ok(catalog.intents.CHOOSE_CARD_INVOICE)
+
+    const steps = resolveSteps(
+      {
+        nature: "PAY",
+        intents: ["CHOOSE_CARD_INVOICE"],
+        data: {
+          base: { custodyType: "CREDIT", custodyBalanceId: 2 },
+        },
+      },
+      catalog
+    )
+    const stepIds = steps.map((s) => s.id)
+    const custodyIdx = stepIds.indexOf("base.custody")
+    const invoiceIdx = stepIds.indexOf("intent.choose_card_invoice")
+    const amountIdx = stepIds.indexOf("base.amount")
+
+    assert.ok(custodyIdx !== -1 && invoiceIdx !== -1 && amountIdx !== -1)
+    assert.ok(
+      custodyIdx < invoiceIdx && invoiceIdx < amountIdx,
+      "intent.choose_card_invoice deve ficar ordenado exatamente entre base.custody e base.amount"
+    )
 
     const schema = createOperationInputSchema(catalog)
-    const result = schema.safeParse({
+    const validResult = schema.safeParse({
       nature: "PAY",
       intents: ["CHOOSE_CARD_INVOICE"],
       base: {
@@ -377,14 +398,39 @@ describe("Operation Steps & Intents Declarative Interpreter (Clean Core)", () =>
         categoryId: 101,
       },
       CHOOSE_CARD_INVOICE: {
-        month: 12,
-        year: 2026,
+        from: "2026-11-04",
+        to: "2026-12-03",
+        dueDate: "2026-12-09",
+        label: "Dezembro 2026",
       },
     })
+    assert.equal(validResult.success, true)
 
-    assert.equal(result.success, false)
-    assert.deepEqual(sanitizeActiveIntents(["CHOOSE_CARD_INVOICE" as any], catalog, {
-      base: { custodyType: "CREDIT", custodyBalanceId: 2 },
-    }), [])
+    const invalidResult = schema.safeParse({
+      nature: "PAY",
+      intents: ["CHOOSE_CARD_INVOICE"],
+      base: {
+        custodyBalanceId: 2,
+        custodyType: "CREDIT",
+        amount: 12000,
+        dueDate: "2026-11-10",
+        description: "Assinatura de software",
+        categoryId: 101,
+      },
+      CHOOSE_CARD_INVOICE: {
+        from: "",
+        to: "",
+        dueDate: "",
+        label: "",
+      },
+    })
+    assert.equal(invalidResult.success, false)
+
+    assert.deepEqual(
+      sanitizeActiveIntents(["CHOOSE_CARD_INVOICE"], catalog, {
+        base: { custodyType: "WALLET", custodyBalanceId: 1 },
+      }),
+      []
+    )
   })
 })

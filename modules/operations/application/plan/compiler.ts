@@ -287,6 +287,18 @@ export function compileOperationPlan<
         : 0
     const custodyType = payload.base?.custodyType ?? "WALLET"
 
+    const chosenInvoiceFrom = activeIntents.includes(
+      "CHOOSE_CARD_INVOICE" as TIntentKey
+    )
+      ? payload.CHOOSE_CARD_INVOICE?.from
+      : undefined
+    const competanceDate =
+      (chosenInvoiceFrom && /^\d{4}-\d{2}-\d{2}$/.test(chosenInvoiceFrom)
+        ? chosenInvoiceFrom
+        : null) ??
+      payload.base?.competanceDate ??
+      null
+
     pointers.mainEntry = addNode({
       id: "base.direct_entry",
       source: "BASE",
@@ -301,7 +313,7 @@ export function compileOperationPlan<
         amountCents,
         description: payload.base?.description?.trim() ?? "",
         dueDate: payload.base?.dueDate ?? "",
-        competanceDate: payload.base?.competanceDate ?? null,
+        competanceDate,
       },
     })
   }

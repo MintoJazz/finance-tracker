@@ -6,6 +6,13 @@ import type {
   NodeActionHandler,
 } from "./node-action-handler.interface"
 
+function parseCivilDate(value: string): Date {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return new Date(`${value}T12:00:00.000Z`)
+  }
+  return new Date(value)
+}
+
 export class CreateDirectEntryHandler
   implements NodeActionHandler<"CREATE_DIRECT_ENTRY">
 {
@@ -78,9 +85,9 @@ export class CreateDirectEntryHandler
     const counterpartDirection = isPay ? "CREDIT" : "DEBIT"
     const counterpartSignedAmount = -custodySignedAmount
 
-    const dueDate = new Date(action.dueDate)
+    const dueDate = parseCivilDate(action.dueDate)
     const competanceDate = action.competanceDate
-      ? new Date(action.competanceDate)
+      ? parseCivilDate(action.competanceDate)
       : dueDate
 
     const entry = await tx.entry.create({

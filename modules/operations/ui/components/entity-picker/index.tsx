@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronRight, Search, X } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, Search, X } from "lucide-react"
 import {
   Widget,
   WidgetCheckbox,
@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils"
 import { CategoryIcon } from "@/modules/movements/ui/components/category-badge/category-icon"
 import { getCategoryTheme } from "@/modules/movements/ui/components/category-badge"
+import { STATUS_BADGE_CLASSES } from "@/modules/cycles/ui/components/cycle-summary/labels"
 import type { EntityPickerProps } from "./types"
 
 /**
@@ -35,10 +36,12 @@ export function EntityPicker<TId extends string | number = number>(
     items,
     searchable = true,
     searchPlaceholder = "Buscar...",
+    navigator,
     emptyMessage = "Nenhum item encontrado",
     loading = false,
     listClassName,
     className,
+    hideIcon
   } = props
 
   const [search, setSearch] = React.useState("")
@@ -94,7 +97,7 @@ export function EntityPicker<TId extends string | number = number>(
               disabled={item.disabled}
               className="px-3 py-2 gap-3 transition-colors data-[state=checked]:bg-primary/10 data-[state=checked]:border-l-2 data-[state=checked]:border-l-primary"
             >
-              <WidgetIcon
+              {!hideIcon && <WidgetIcon
                 icon={<CategoryIcon name={item.icon} className="size-4 shrink-0" />}
                 style={theme.style}
                 className={cn(
@@ -109,7 +112,7 @@ export function EntityPicker<TId extends string | number = number>(
                     : "border-border/40 bg-muted/70 text-foreground",
                   "group-data-[state=checked]/widget-item:border-primary/60 group-data-[state=checked]/widget-item:ring-2 group-data-[state=checked]/widget-item:ring-primary/25"
                 )}
-              />
+              />}
               <WidgetContent className="gap-0">
                 <WidgetTitle className="text-xs sm:text-sm font-semibold group-data-[state=checked]/widget-item:text-primary transition-colors">
                   {item.title}
@@ -144,6 +147,57 @@ export function EntityPicker<TId extends string | number = number>(
 
   return (
     <div className={cn("flex flex-col gap-2.5 w-full min-w-0 overflow-x-hidden", className)}>
+      {navigator && (
+        <div className="flex items-center justify-between gap-2 px-1.5 rounded-lg border border-border/80 bg-card/60 shadow-2xs h-9 w-full">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            disabled={navigator.canPrev === false || navigator.isLoading}
+            onClick={navigator.onPrev}
+            aria-label={navigator.prevLabel ?? "Anterior"}
+            className="size-7 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+
+          <div className="flex min-w-0 flex-1 items-center justify-center gap-2">
+            {navigator.isLoading ? (
+              <div className="h-3.5 w-24 rounded bg-muted/60 animate-pulse" />
+            ) : (
+              <>
+                <span className="truncate text-xs sm:text-sm font-semibold text-foreground tabular-nums">
+                  {navigator.title}
+                </span>
+                {navigator.badge && (
+                  <span
+                    className={cn(
+                      "shrink-0 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium leading-none transition-colors",
+                      STATUS_BADGE_CLASSES[navigator.badge.tone ?? "neutral"] ??
+                        STATUS_BADGE_CLASSES.neutral
+                    )}
+                  >
+                    {navigator.badge.label}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            disabled={navigator.canNext === false || navigator.isLoading}
+            onClick={navigator.onNext}
+            aria-label={navigator.nextLabel ?? "Próximo"}
+            className="size-7 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+      )}
+
       {searchable && (
         <InputGroup className="w-full h-9">
           <InputGroupAddon>

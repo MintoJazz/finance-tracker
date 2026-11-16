@@ -5,22 +5,8 @@ import {
 import type { OperationIntentKey } from "../../models/operation-input.schema"
 import { chooseCardInvoiceStep } from "../steps/intents/choose-card-invoice.step"
 import { STEP_ORDER } from "../steps/order"
+import type { SummaryRow } from "../summary/types"
 import type { IntentDefinition } from "./types"
-
-const PT_BR_MONTHS = [
-  "Janeiro",
-  "Fevereiro",
-  "Março",
-  "Abril",
-  "Maio",
-  "Junho",
-  "Julho",
-  "Agosto",
-  "Setembro",
-  "Outubro",
-  "Novembro",
-  "Dezembro",
-]
 
 export const chooseCardInvoiceIntent = {
   key: "CHOOSE_CARD_INVOICE",
@@ -53,12 +39,42 @@ export const chooseCardInvoiceIntent = {
   },
   summaryCard(ctx) {
     const slice = ctx.payload.CHOOSE_CARD_INVOICE
-    const month = slice?.month ?? 1
-    const year = slice?.year ?? new Date().getFullYear()
-    const monthName = PT_BR_MONTHS[month - 1] ?? `Mês ${month}`
-
     const custodyId = ctx.payload.base?.custodyBalanceId
     const custody = ctx.lookups.custodies.find((c) => c.id === custodyId)
+
+    const rows: SummaryRow[] = [
+      {
+        id: "invoice_period",
+        label: "Fatura Selecionada",
+        value: {
+          kind: "text",
+          text: slice?.label?.trim() || "Não selecionada",
+        },
+        stepId: "intent.choose_card_invoice",
+      },
+      ...(slice?.dueDate
+        ? [
+            {
+              id: "invoice_due_date",
+              label: "Vencimento da Fatura",
+              value: {
+                kind: "date" as const,
+                iso: slice.dueDate,
+              },
+              stepId: "intent.choose_card_invoice",
+            },
+          ]
+        : []),
+      {
+        id: "invoice_card",
+        label: "Cartão",
+        value: {
+          kind: "text",
+          text: custody?.name ?? "Não selecionado",
+        },
+        stepId: "base.custody",
+      },
+    ]
 
     return {
       id: "summary.intent.choose_card_invoice",
@@ -70,26 +86,7 @@ export const chooseCardInvoiceIntent = {
         label: "Manual",
         tone: "neutral",
       },
-      rows: [
-        {
-          id: "invoice_period",
-          label: "Fatura Selecionada",
-          value: {
-            kind: "text",
-            text: `${monthName} / ${year}`,
-          },
-          stepId: "intent.choose_card_invoice",
-        },
-        {
-          id: "invoice_card",
-          label: "Cartão",
-          value: {
-            kind: "text",
-            text: custody?.name ?? "Não selecionado",
-          },
-          stepId: "base.custody",
-        },
-      ],
+      rows,
     }
   },
 } as const satisfies IntentDefinition<OperationIntentKey>
