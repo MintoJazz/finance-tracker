@@ -22,7 +22,7 @@ export function RecurrenceActionsDrawer({
     actions = RECURRENCE_ACTIONS,
     open,
     onOpenChange,
-    trigger,
+    trigger = null,
 }: RecurrenceActionsDrawerProps) {
     return (
         <ActionsDrawer

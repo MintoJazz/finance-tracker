@@ -27,6 +27,7 @@ export const RECURRENCE_STATUS_FILTER_THEMES: Record<
 > = {
     ALL: { label: "Todas" },
     ACTIVE: { label: "Ativas" },
+    OVERDUE: { label: "Em atraso" },
     INACTIVE: { label: "Inativas" },
 };
 

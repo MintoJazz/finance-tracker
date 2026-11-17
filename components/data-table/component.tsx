@@ -32,7 +32,7 @@ import { DataTableViewOptions } from "./view-options"
 import type { DataTableProps } from "./types"
 import { useDataTableColumns } from "./hook"
 
-export function DataTable<TData, TValue, TContext = any>({
+export function DataTable<TData, TValue, TContext = unknown>({
   columns: userColumns,
   data,
   showHeader = true,
@@ -76,13 +76,15 @@ export function DataTable<TData, TValue, TContext = any>({
     }
   }
 
-  // Coluna usada no filtro: a informada ou a primeira com accessorKey
+  // Coluna usada no filtro: a informada ou a primeira com id ou accessorKey
   const activeFilterColumn = React.useMemo(() => {
     if (filterColumn) return filterColumn
     const first = userColumns.find(
-      (col) => "accessorKey" in col && typeof col.accessorKey === "string"
-    ) as { accessorKey: string } | undefined
-    return first?.accessorKey ?? ""
+      (col) =>
+        ("id" in col && typeof col.id === "string") ||
+        ("accessorKey" in col && typeof col.accessorKey === "string")
+    ) as { id?: string; accessorKey?: string } | undefined
+    return first?.id ?? first?.accessorKey ?? ""
   }, [filterColumn, userColumns])
 
   const columns = useDataTableColumns<TData, TValue, TContext>({
@@ -122,7 +124,8 @@ export function DataTable<TData, TValue, TContext = any>({
     onRowSelectionChange?.(table.getFilteredSelectedRowModel().rows)
   }, [rowSelection]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const filterCol = activeFilterColumn ? table.getColumn(activeFilterColumn) : undefined
+  const filterCol =
+    showHeader && activeFilterColumn ? table.getColumn(activeFilterColumn) : undefined
 
   return (
     <div className="w-full space-y-2">

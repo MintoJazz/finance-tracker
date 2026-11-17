@@ -18,9 +18,7 @@ export const CycleFiltersSchema = z.object({
     q: z.string().optional(),
     from: z.string().optional(),
     to: z.string().optional(),
-    year: z.number().int().optional(),
     statuses: z.array(CycleStatusSchema).optional(),
-    includeProjected: z.boolean().default(true),
 });
 
 export type CycleFilters = z.infer<typeof CycleFiltersSchema>;

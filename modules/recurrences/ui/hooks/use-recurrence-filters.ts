@@ -14,7 +14,7 @@ import {
     RECURRENCE_FREQUENCY_LABELS,
     RECURRENCE_STATUS_FILTER_THEMES,
 } from "@/modules/recurrences/ui/themes/recurrence.themes";
-import { ArrowUpDown, CircleDashed, ListChecks, Repeat } from "lucide-react";
+import { ArrowUpDown, CircleDashed, Repeat } from "lucide-react";
 
 export type RecurrenceFilterBadgeKey = "direction" | "active" | "frequency";
 

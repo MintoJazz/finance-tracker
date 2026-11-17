@@ -31,7 +31,6 @@ export function RecurrenceSearchBar({
             placeholder="Buscar por nome..."
             className={className}
         >
-            <div className="h-3.5 w-px bg-border/70" />
             <InputGroupButton
                 type="button"
                 variant="ghost"
@@ -41,7 +40,6 @@ export function RecurrenceSearchBar({
                 aria-label="Filtrar recorrências"
             >
                 <SlidersHorizontal className="size-3.5 text-muted-foreground" />
-                <span>Filtros</span>
                 {activeFilterCount > 0 && (
                     <Badge
                         variant="secondary"

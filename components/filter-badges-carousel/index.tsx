@@ -9,6 +9,7 @@ import {
     type CarouselApi,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { FilterBadgeIcon, FilterBadgesCarouselProps } from "./types";
 
@@ -38,6 +39,7 @@ export function FilterBadgesCarousel<TKey extends string = string>({
     items,
     onClearAll,
     clearAllLabel = "Limpar filtros",
+    variant = "secondary",
     className,
     itemClassName,
 }: FilterBadgesCarouselProps<TKey>) {
@@ -135,19 +137,20 @@ export function FilterBadgesCarousel<TKey extends string = string>({
                         data-vaul-no-drag=""
                         style={{ touchAction: "pan-y" }}
                     >
-                        <div
+                        <Badge
+                            variant={item.variant ?? variant}
                             className={cn(
-                                "inline-flex items-center gap-1.5 h-7 rounded-full border border-border/80 bg-secondary/60 px-2.5 text-xs text-foreground whitespace-nowrap",
+                                "h-7 gap-1.5 px-2.5 text-xs font-normal",
                                 itemClassName
                             )}
                         >
                             {item.icon && (
-                                <span className="inline-flex shrink-0 items-center justify-center text-muted-foreground [&_svg]:size-3.5">
+                                <span className="inline-flex shrink-0 items-center justify-center opacity-80 [&_svg]:size-3.5">
                                     {renderBadgeIcon(item.icon)}
                                 </span>
                             )}
                             {item.prefix && (
-                                <span className="text-muted-foreground">
+                                <span className="opacity-70 font-normal">
                                     {item.prefix}
                                 </span>
                             )}
@@ -162,11 +165,11 @@ export function FilterBadgesCarousel<TKey extends string = string>({
                                     item.removeAriaLabel ??
                                     `Remover filtro ${typeof item.label === "string" ? item.label : item.key}`
                                 }
-                                className="ml-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
+                                className="ml-0.5 -mr-1 inline-flex size-4 shrink-0 items-center justify-center rounded-full opacity-70 transition-opacity hover:opacity-100 hover:bg-foreground/10 cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             >
                                 <X className="size-3" />
                             </button>
-                        </div>
+                        </Badge>
                     </CarouselItem>
                 ))}
 

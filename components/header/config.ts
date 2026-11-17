@@ -61,6 +61,11 @@ export const routes = defineRoutes({
     pattern: "/recurrences",
     label: "Recorrências",
   },
+  recurrenceProfile: {
+    pattern: "/recurrences/[id]",
+    label: () => "",
+    parent: "recurrences",
+  },
   contractProfile: {
     pattern: "/contracts/[id]",
     label: () => "",

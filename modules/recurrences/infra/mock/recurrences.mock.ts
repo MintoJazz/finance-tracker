@@ -339,7 +339,10 @@ export function filterRecurrences(
         if (filters.direction && item.direction !== filters.direction) {
             return false;
         }
-        if (filters.active === "ACTIVE" && !item.isActive) {
+        if (filters.active === "OVERDUE" && (!item.isOverdue || !item.isActive)) {
+            return false;
+        }
+        if (filters.active === "ACTIVE" && (!item.isActive || item.isOverdue)) {
             return false;
         }
         if (filters.active === "INACTIVE" && item.isActive) {

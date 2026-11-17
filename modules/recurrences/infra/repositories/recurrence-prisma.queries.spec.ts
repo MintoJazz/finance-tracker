@@ -87,5 +87,49 @@ describe("RecurrencePrismaQueries - Integração com Banco", () => {
             assert.equal(item.direction, "DEBIT");
         }
     });
+
+    it("filtra corretamente por status em atraso (OVERDUE)", async () => {
+        const context = await prisma.financialContext.findFirst({
+            where: {
+                balances: {
+                    some: {
+                        name: { contains: "Condomínio Edifício Solar das Flores" },
+                    },
+                },
+            },
+            select: { id: true },
+        });
+
+        if (!context) return;
+
+        const overdueItems = await queries.listRecurrencesByContextId(context.id, {
+            active: "OVERDUE",
+        });
+
+        assert.ok(overdueItems.length > 0);
+        for (const item of overdueItems) {
+            assert.equal(item.isOverdue, true);
+            assert.equal(item.status, "OVERDUE");
+        }
+    });
+
+    it("nunca retorna agreements com frequência pontual (ONCE)", async () => {
+        const context = await prisma.financialContext.findFirst({
+            where: {
+                balances: {
+                    some: { agreement: { isNot: null } },
+                },
+            },
+            select: { id: true },
+        });
+
+        if (!context) return;
+
+        const allItems = await queries.listRecurrencesByContextId(context.id);
+        for (const item of allItems) {
+            assert.notEqual(item.frequency as string, "ONCE");
+            assert.ok(["WEEKLY", "MONTHLY", "YEARLY"].includes(item.frequency));
+        }
+    });
 });
 

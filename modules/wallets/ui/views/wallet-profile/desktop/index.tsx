@@ -57,21 +57,6 @@ export default function WalletProfileViewDesktop({
             <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_290px] xl:grid-cols-[minmax(0,1fr)_310px] items-start gap-6 w-full min-w-0">
                 {/* Coluna Esquerda: Extrato de Movimentações */}
                 <main className="min-w-0 w-full flex flex-col gap-3.5">
-                    <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                            <h2 className="text-base font-semibold tracking-tight text-foreground">
-                                Extrato de Movimentações
-                            </h2>
-                            <Badge variant="outline" className="tabular-nums text-xs">
-                                {movementsData?.total ?? 0}
-                            </Badge>
-                        </div>
-                        {activeFilterCount > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                                {activeFilterCount} {activeFilterCount === 1 ? "filtro ativo" : "filtros ativos"}
-                            </span>
-                        )}
-                    </div>
                     <div className="flex items-center gap-2.5 w-full mb-1">
                         <WalletMovementSearch
                             value={filters.q}

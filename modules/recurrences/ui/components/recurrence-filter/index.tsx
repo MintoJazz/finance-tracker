@@ -185,7 +185,12 @@ export function RecurrenceFilterStatus({ className }: { className?: string }) {
     const { values, onChange } = useRecurrenceFilter();
 
     const handleStatusChange = (val: string) => {
-        if (val === "ACTIVE" || val === "INACTIVE" || val === "ALL") {
+        if (
+            val === "ACTIVE" ||
+            val === "OVERDUE" ||
+            val === "INACTIVE" ||
+            val === "ALL"
+        ) {
             onChange({ active: val });
         } else {
             onChange({ active: "ALL" });
@@ -204,7 +209,7 @@ export function RecurrenceFilterStatus({ className }: { className?: string }) {
                     const next = val.at(-1) ?? "ALL";
                     handleStatusChange(next);
                 }}
-                className="w-full grid grid-cols-3"
+                className="w-full grid grid-cols-4"
             >
                 {(
                     Object.entries(RECURRENCE_STATUS_FILTER_THEMES) as [
@@ -215,7 +220,7 @@ export function RecurrenceFilterStatus({ className }: { className?: string }) {
                     <ToggleGroupItem
                         key={key}
                         value={key}
-                        className="text-xs h-8 justify-center rounded-full"
+                        className="text-xs h-8 px-1.5 justify-center rounded-full"
                     >
                         {label}
                     </ToggleGroupItem>

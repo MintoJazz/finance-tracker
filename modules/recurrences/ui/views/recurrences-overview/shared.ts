@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
 import { filterRecurrences } from "@/modules/recurrences/infra/mock/recurrences.mock";
 import type { RecurrenceListItem } from "@/modules/recurrences/models/schemas/recurrence-item.schema";
@@ -11,6 +12,7 @@ import type { RecurrenceActionContext } from "../../components/recurrence-action
  * Hook compartilhado entre as visões Desktop e Mobile para filtragem e ações da listagem.
  */
 export function useRecurrenceOverviewShared(rawData: RecurrenceListItem[]) {
+    const router = useRouter();
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const {
         filters,
@@ -38,11 +40,7 @@ export function useRecurrenceOverviewShared(rawData: RecurrenceListItem[]) {
     const actionsMenuContext = useMemo<RecurrenceActionContext>(
         () => ({
             onView: (recurrence) => {
-                toast.add({
-                    type: "info",
-                    title: recurrence.name,
-                    description: "A tela de detalhes da recorrência será implementada na próxima etapa.",
-                });
+                router.push(`/recurrences/${recurrence.balanceId}`);
             },
             onEdit: (recurrence) => {
                 toast.add({
@@ -52,7 +50,7 @@ export function useRecurrenceOverviewShared(rawData: RecurrenceListItem[]) {
                 });
             },
         }),
-        []
+        [router]
     );
 
     return {

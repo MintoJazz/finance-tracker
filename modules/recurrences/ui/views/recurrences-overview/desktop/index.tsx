@@ -44,8 +44,7 @@ export default function RecurrencesOverviewViewDesktop({
                 </div>
             </header>
 
-            <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex w-full gap-3 justify-between">
                     <RecurrenceSearchBar
                         value={filters.q}
                         onChange={(q) => applyFilters({ q })}
@@ -53,7 +52,6 @@ export default function RecurrencesOverviewViewDesktop({
                         activeFilterCount={activeFilterCount}
                         className="lg:max-w-sm"
                     />
-                </div>
 
                 <FilterBadgesCarousel
                     items={activeFilterBadges}

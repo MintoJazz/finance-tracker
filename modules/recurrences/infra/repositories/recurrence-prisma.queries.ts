@@ -50,13 +50,21 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
             today
         );
 
-        return rawBalances.map((balance) =>
+        let items = rawBalances.map((balance) =>
             RecurrenceMapper.toListItem(
                 balance,
                 overdueBalanceIds.has(balance.id),
                 today
             )
         );
+
+        if (filter?.active === "OVERDUE") {
+            items = items.filter((item) => item.isOverdue);
+        } else if (filter?.active === "ACTIVE") {
+            items = items.filter((item) => item.isActive && !item.isOverdue);
+        }
+
+        return items;
     }
 
     async findRecurrenceById(
@@ -69,7 +77,12 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
                 id: balanceId,
                 contextId,
                 balanceType: { in: ["PAYABLE", "RECEIVABLE"] },
-                agreement: { isNot: null },
+                agreement: {
+                    isNot: null,
+                    is: {
+                        frequency: { not: "ONCE" },
+                    },
+                },
             },
             include: RecurrencePrismaQueries.defaultInclude,
         })) as PrismaRecurrenceRecord | null;
@@ -95,10 +108,17 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
         filter?: RecurrenceFilters,
         today: Date = new Date()
     ): BalanceWhereInput {
+        const frequencyCondition = filter?.frequency ?? { not: "ONCE" as const };
+
         const where: BalanceWhereInput = {
             contextId,
             balanceType: { in: ["PAYABLE", "RECEIVABLE"] },
-            agreement: { isNot: null },
+            agreement: {
+                isNot: null,
+                is: {
+                    frequency: frequencyCondition,
+                },
+            },
         };
 
         if (filter?.direction === "CREDIT") {
@@ -107,13 +127,11 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
             where.balanceType = "PAYABLE";
         }
 
-        const agreementConditions: Prisma.AgreementWhereInput = {};
+        const agreementConditions: Prisma.AgreementWhereInput = {
+            frequency: frequencyCondition,
+        };
 
-        if (filter?.frequency) {
-            agreementConditions.frequency = filter.frequency;
-        }
-
-        if (filter?.active === "ACTIVE") {
+        if (filter?.active === "ACTIVE" || filter?.active === "OVERDUE") {
             where.removedAt = null;
             agreementConditions.startsAt = { lte: today };
             agreementConditions.OR = [{ endsAt: null }, { endsAt: { gte: today } }];
@@ -137,12 +155,10 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
             ];
         }
 
-        if (Object.keys(agreementConditions).length > 0) {
-            where.agreement = {
-                isNot: null,
-                is: agreementConditions,
-            };
-        }
+        where.agreement = {
+            isNot: null,
+            is: agreementConditions,
+        };
 
         if (filter?.q?.trim()) {
             const term = filter.q.trim();

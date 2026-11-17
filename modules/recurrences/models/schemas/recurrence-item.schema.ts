@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const RecurrenceFrequencySchema = z.enum(["WEEKLY", "MONTHLY", "YEARLY"]);
-export const RecurrenceStatusSchema = z.enum(["ACTIVE", "INACTIVE", "ALL"]);
+export const RecurrenceStatusSchema = z.enum(["ALL", "ACTIVE", "OVERDUE", "INACTIVE"]);
 export const RecurrenceItemStatusSchema = z.enum(["ACTIVE", "OVERDUE", "INACTIVE"]);
 export const RecurrenceDerivedStatusSchema = RecurrenceItemStatusSchema;
 export const RecurrenceDirectionSchema = z.enum(["CREDIT", "DEBIT"]);
