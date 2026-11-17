@@ -49,6 +49,13 @@ export interface EntityPickerSingleProps<TId extends string | number = number> {
   listClassName?: string
   className?: string
   hideIcon?: boolean
+  /**
+   * Habilita a opção "Criar 'texto'" quando a busca não corresponde exatamente
+   * a nenhum item. Recebe o texto digitado (já sem espaços nas pontas).
+   */
+  onCreate?: (query: string) => void
+  /** Rótulo customizado da opção de criação (padrão: `Criar "texto"`) */
+  createLabel?: (query: string) => ReactNode
 }
 
 export interface EntityPickerMultipleProps<

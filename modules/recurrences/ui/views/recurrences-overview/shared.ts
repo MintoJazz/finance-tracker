@@ -30,11 +30,7 @@ export function useRecurrenceOverviewShared(rawData: RecurrenceListItem[]) {
     );
 
     const onAddClick = () => {
-        toast.add({
-            type: "info",
-            title: "Em breve",
-            description: "O cadastro de recorrências estará disponível em breve.",
-        });
+        router.push("/recurrences/create");
     };
 
     const actionsMenuContext = useMemo<RecurrenceActionContext>(

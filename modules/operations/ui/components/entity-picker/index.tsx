@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronLeft, ChevronRight, Search, X } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, Plus, Search, X } from "lucide-react"
 import {
   Widget,
   WidgetCheckbox,
@@ -61,6 +61,37 @@ export function EntityPicker<TId extends string | number = number>(
     })
   }, [items, search])
 
+  const onCreate = props.multiple ? undefined : props.onCreate
+  const createLabel = props.multiple ? undefined : props.createLabel
+  const trimmedSearch = search.trim()
+  const canCreate =
+    !!onCreate &&
+    trimmedSearch.length > 0 &&
+    !items.some((item) => {
+      const titleStr =
+        item.titleText ?? (typeof item.title === "string" ? item.title : "")
+      return titleStr.trim().toLowerCase() === trimmedSearch.toLowerCase()
+    })
+
+  const renderCreateOption = () =>
+    canCreate ? (
+      <button
+        type="button"
+        onClick={() => {
+          onCreate?.(trimmedSearch)
+          setSearch("")
+        }}
+        className="flex w-full items-center gap-3 rounded-xl border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-left text-xs sm:text-sm font-medium text-primary transition-colors hover:bg-primary/10 outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+      >
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10">
+          <Plus className="size-4" />
+        </span>
+        <span className="min-w-0 truncate">
+          {createLabel ? createLabel(trimmedSearch) : `Criar "${trimmedSearch}"`}
+        </span>
+      </button>
+    ) : null
+
   const renderListItems = () => {
     const indicator = props.indicator ?? (props.multiple ? "checkbox" : "checkbox")
     if (loading) {
@@ -72,6 +103,7 @@ export function EntityPicker<TId extends string | number = number>(
     }
 
     if (filteredItems.length === 0) {
+      if (canCreate) return renderCreateOption()
       return (
         <div className="flex h-20 w-full items-center justify-center rounded-xl border border-dashed border-border/60 text-xs text-muted-foreground">
           {emptyMessage}
@@ -254,6 +286,8 @@ export function EntityPicker<TId extends string | number = number>(
           {renderListItems()}
         </Widget>
       )}
+
+      {!loading && filteredItems.length > 0 && renderCreateOption()}
     </div>
   )
 }

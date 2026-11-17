@@ -1,3 +1,4 @@
+import type { RecurrenceFormFrequency } from "@/modules/recurrences/models/schemas/recurrence-form.schema";
 import type {
     RecurrenceDirection,
     RecurrenceFrequency,
@@ -11,6 +12,18 @@ export const RECURRENCE_FREQUENCY_LABELS: Record<RecurrenceFrequency, string> = 
     MONTHLY: "Mensal",
     YEARLY: "Anual",
 };
+
+/** Frequências disponíveis no formulário de criação. */
+export const RECURRENCE_FORM_FREQUENCY_LABELS: Record<
+    RecurrenceFormFrequency,
+    string
+> = {
+    ...RECURRENCE_FREQUENCY_LABELS,
+};
+
+export const RECURRENCE_FORM_FREQUENCY_OPTIONS = (
+    Object.keys(RECURRENCE_FORM_FREQUENCY_LABELS) as RecurrenceFormFrequency[]
+).map((value) => ({ value, label: RECURRENCE_FORM_FREQUENCY_LABELS[value] }));
 
 export const RECURRENCE_DIRECTION_FILTER_THEMES: Record<
     RecurrenceDirection | "ALL",

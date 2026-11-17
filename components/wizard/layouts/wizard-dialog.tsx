@@ -39,6 +39,8 @@ export interface WizardDialogLayoutProps {
   showBack?: boolean
   /** Substituição completa do rodapé */
   footer?: React.ReactNode
+  /** Oculta contador e barra de progresso quando há um único passo ativo */
+  hideProgressWhenSingle?: boolean
 }
 
 /**
@@ -57,8 +59,10 @@ export function WizardDialogLayout({
   footerExtra,
   showBack = true,
   footer,
+  hideProgressWhenSingle = false,
 }: WizardDialogLayoutProps) {
   const { step, index, steps } = useWizard()
+  const showSteps = !(hideProgressWhenSingle && steps.length <= 1)
 
   return (
     <div className={cn("flex min-h-0 flex-1 flex-col gap-3", className)}>
@@ -74,16 +78,19 @@ export function WizardDialogLayout({
               </div>
             )}
           </div>
-          <span className="text-[11px] font-medium text-muted-foreground shrink-0 rounded-md bg-muted/60 px-2 py-0.5">
-            Etapa {index + 1} de {steps.length}
-          </span>
+          {showSteps && (
+            <span className="text-[11px] font-medium text-muted-foreground shrink-0 rounded-md bg-muted/60 px-2 py-0.5">
+              Etapa {index + 1} de {steps.length}
+            </span>
+          )}
         </div>
 
-        {showProgress ? (
-          <WizardProgress hideLabel />
-        ) : (
-          showStepper && <WizardStepper variant="compact" />
-        )}
+        {showSteps &&
+          (showProgress ? (
+            <WizardProgress hideLabel />
+          ) : (
+            showStepper && <WizardStepper variant="compact" />
+          ))}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain py-1 pr-0.5">

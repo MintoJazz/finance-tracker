@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { PrismaClientLike } from "@/lib/prisma-client";
 import type {
   CategoryItem,
   CategoryEntity,
@@ -20,11 +21,13 @@ import {
 import { CategoryMapper } from "../mappers/category.mapper";
 
 export class CategoryPrismaRepository implements ICategoryRepository {
+  constructor(private readonly prismaClient: PrismaClientLike = prisma) {}
+
   async findByIdAndContextId(
     id: number,
     contextId: number
   ): Promise<CategoryEntity | null> {
-    const balance = await prisma.balance.findFirst({
+    const balance = await this.prismaClient.balance.findFirst({
       where: {
         id,
         contextId,
@@ -55,7 +58,7 @@ export class CategoryPrismaRepository implements ICategoryRepository {
     contextId: number,
     parentId: number
   ): Promise<{ id: number; parentId: number | null; removedAt: Date | null } | null> {
-    const parent = await prisma.balance.findFirst({
+    const parent = await this.prismaClient.balance.findFirst({
       where: {
         id: parentId,
         contextId,
@@ -75,7 +78,7 @@ export class CategoryPrismaRepository implements ICategoryRepository {
     contextId: number,
     data: CreateCategoryRepositoryDTO
   ): Promise<CategoryItem> {
-    return await prisma.$transaction(async (tx) => {
+    return await this.prismaClient.$transaction(async (tx) => {
       let parentEntity: CategoryEntity | null = null;
 
       if (data.parentId) {
@@ -139,7 +142,7 @@ export class CategoryPrismaRepository implements ICategoryRepository {
     contextId: number,
     data: UpdateCategoryInput
   ): Promise<CategoryItem> {
-    return await prisma.$transaction(async (tx) => {
+    return await this.prismaClient.$transaction(async (tx) => {
       const existing = await tx.balance.findFirst({
         where: {
           id: data.id,
@@ -205,7 +208,7 @@ export class CategoryPrismaRepository implements ICategoryRepository {
     id: number,
     contextId: number
   ): Promise<ArchiveCategoryResult> {
-    return await prisma.$transaction(async (tx) => {
+    return await this.prismaClient.$transaction(async (tx) => {
       const record = await tx.balance.findFirst({
         where: {
           id,
@@ -296,7 +299,7 @@ export class CategoryPrismaRepository implements ICategoryRepository {
     id: number,
     contextId: number
   ): Promise<ArchiveSubcategoryResult> {
-    return await prisma.$transaction(async (tx) => {
+    return await this.prismaClient.$transaction(async (tx) => {
       const record = await tx.balance.findFirst({
         where: {
           id,
@@ -378,7 +381,7 @@ export class CategoryPrismaRepository implements ICategoryRepository {
     id: number,
     contextId: number
   ): Promise<RestoreCategoryResult> {
-    return await prisma.$transaction(async (tx) => {
+    return await this.prismaClient.$transaction(async (tx) => {
       const record = await tx.balance.findFirst({
         where: {
           id,
@@ -448,7 +451,7 @@ export class CategoryPrismaRepository implements ICategoryRepository {
     id: number,
     contextId: number
   ): Promise<RestoreSubcategoryResult> {
-    return await prisma.$transaction(async (tx) => {
+    return await this.prismaClient.$transaction(async (tx) => {
       const record = await tx.balance.findFirst({
         where: {
           id,
