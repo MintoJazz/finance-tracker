@@ -1,9 +1,16 @@
-import { endOfDay, format, getYear, parseISO, startOfDay } from "date-fns";
+import {
+    endOfDay,
+    format,
+    getQuarter,
+    getYear,
+    parseISO,
+    startOfDay,
+} from "date-fns";
 import { BalanceType } from "@/prisma/generated/prisma/client";
 import { SessionPayload } from "@/modules/auth/infra/cryptography/jwt-utils";
 import { ISpaceAccessProvider } from "@/modules/space/application/interfaces/space-access-provider.interface";
 import { failure, success, Result } from "@/types/result.types";
-import { formatDate } from "@/lib/formatters";
+import { formatDate, toCivilDate } from "@/lib/formatters";
 import type { ICycleQueries } from "@/modules/cycles/application/interfaces/cycle-queries.interface";
 import { CycleHorizonCalculator } from "@/modules/cycles/application/services/cycle-horizon.calculator";
 import { CycleWindowEngine } from "@/modules/cycles/application/services/cycle-window.engine";
@@ -15,6 +22,8 @@ import type {
     RecurrenceCyclesResult,
 } from "../../models/schemas/recurrence-cycle-filters.schema";
 import { GetRecurrenceProfileUseCase } from "./get-recurrence-profile.use-case";
+
+const QUARTER_MONTHS = ["jan–mar", "abr–jun", "jul–set", "out–dez"] as const;
 
 export interface GetRecurrenceCyclesInput {
     session: SessionPayload;
@@ -113,18 +122,21 @@ export class GetRecurrenceCyclesUseCase {
             } else {
                 // Caso C: Padrão (CycleHorizonCalculator)
                 const offset = filters.offset ?? 0;
+                const isWeekly = recurrence.frequency === "WEEKLY";
                 const calc = CycleHorizonCalculator.calculate({
                     frequency: recurrence.frequency,
                     today,
                     offset,
-                    mode: "CALENDAR_YEAR",
+                    mode: isWeekly ? "CALENDAR_QUARTER" : "CALENDAR_YEAR",
                 });
                 horizonFrom = startOfDay(calc.from);
                 horizonTo = endOfDay(calc.to);
-                const label =
-                    recurrence.frequency === "YEARLY"
-                        ? `${getYear(horizonFrom)} – ${getYear(horizonTo)}`
-                        : `${getYear(horizonFrom)}`;
+                const quarter = getQuarter(horizonFrom);
+                const label = isWeekly
+                    ? `${quarter}º Tri ${getYear(horizonFrom)} (${QUARTER_MONTHS[quarter - 1]})`
+                    : recurrence.frequency === "YEARLY"
+                      ? `${getYear(horizonFrom)} – ${getYear(horizonTo)}`
+                      : `${getYear(horizonFrom)}`;
 
                 horizon = {
                     label,
@@ -203,12 +215,14 @@ export class GetRecurrenceCyclesUseCase {
             });
 
             // 7. Mapear para CycleItemSchema
+            // Colunas `date` do Postgres chegam como meia-noite UTC; formatar no fuso local deslocaria -1 dia.
+            const civil = (d: Date) => format(toCivilDate(d), "yyyy-MM-dd");
             const cycles: CycleItem[] = aggregatedRows.map((row) => ({
-                from: format(row.from, "yyyy-MM-dd"),
-                to: format(row.to, "yyyy-MM-dd"),
-                dueDate: format(row.dueDate, "yyyy-MM-dd"),
+                from: civil(row.from),
+                to: civil(row.to),
+                dueDate: civil(row.dueDate),
                 closingDate: row.closingDate
-                    ? format(row.closingDate, "yyyy-MM-dd")
+                    ? civil(row.closingDate)
                     : null,
                 label: row.label,
                 status: row.status,
@@ -217,14 +231,14 @@ export class GetRecurrenceCyclesUseCase {
                 remainingAmount: row.remainingAmount,
                 isOverdue: row.isOverdue,
                 settlementDate: row.settlementDate
-                    ? format(row.settlementDate, "yyyy-MM-dd")
+                    ? civil(row.settlementDate)
                     : null,
                 movementsCount: row.movementsCount,
                 balanceId: recurrence.balanceId,
                 balanceName: recurrence.name,
                 balanceType,
                 agreementId: recurrence.balanceId,
-                referenceDate: format(row.from, "yyyy-MM-dd"),
+                referenceDate: civil(row.from),
             }));
 
             return success({

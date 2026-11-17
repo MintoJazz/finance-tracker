@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { SessionPayload } from "@/modules/auth/infra/cryptography/jwt-utils";
+import { format } from "date-fns";
 import { success } from "@/types/result.types";
 import { ISpaceAccessProvider } from "@/modules/space/application/interfaces/space-access-provider.interface";
 import type {
@@ -202,6 +203,52 @@ describe("GetRecurrenceCyclesUseCase", () => {
             assert.equal(result.data.horizon.hasPagination, true);
         }
     });
+
+    const weeklyCases: Array<[string, number, string, string]> = [
+        ["2026-02-10", 0, "1º Tri 2026 (jan–mar)", "2026-01-01"],
+        ["2026-06-15", 0, "2º Tri 2026 (abr–jun)", "2026-04-01"],
+        ["2026-08-15", 0, "3º Tri 2026 (jul–set)", "2026-07-01"],
+        ["2026-11-17", 0, "4º Tri 2026 (out–dez)", "2026-10-01"],
+        ["2026-11-17", 1, "1º Tri 2027 (jan–mar)", "2027-01-01"],
+        ["2026-02-10", -1, "4º Tri 2025 (out–dez)", "2025-10-01"],
+    ];
+
+    for (const [today, offset, label, from] of weeklyCases) {
+        it(`semanal: ${today} offset ${offset} => ${label}`, async () => {
+            let capturedFrom: Date | undefined;
+            const useCase = new GetRecurrenceCyclesUseCase(
+                createMockProfileUseCase({
+                    ...mockProfileContinuous,
+                    frequency: "WEEKLY",
+                }),
+                createMockQueries({
+                    findCycleRulesInWindow: async (params) => {
+                        capturedFrom = params.from;
+                        return [];
+                    },
+                }),
+                createAccessProvider(true)
+            );
+
+            const result = await useCase.execute({
+                session: mockSession,
+                balanceId: 42,
+                filters: { offset },
+                today: new Date(`${today}T12:00:00`),
+            });
+
+            assert.equal(result.success, true);
+            if (result.success) {
+                assert.equal(result.data.horizon.label, label);
+                assert.equal(result.data.horizon.prevOffset, offset - 1);
+                assert.equal(result.data.horizon.nextOffset, offset + 1);
+            }
+            assert.equal(
+                capturedFrom && format(capturedFrom, "yyyy-MM-dd"),
+                from
+            );
+        });
+    }
 
     it("quando nenhuma regra for encontrada, retorna lista vazia sem erro", async () => {
         const queries = createMockQueries({

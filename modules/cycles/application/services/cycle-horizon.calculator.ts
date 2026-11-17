@@ -1,9 +1,12 @@
 import {
     addMonths,
+    addQuarters,
     addYears,
     endOfMonth,
+    endOfQuarter,
     endOfYear,
     startOfMonth,
+    startOfQuarter,
     startOfYear,
 } from "date-fns";
 import { CycleFrequency } from "@/prisma/generated/prisma/client";
@@ -14,7 +17,7 @@ export interface CalculateHorizonParams {
     /** Deslocamento de blocos (0 = atual, -1 = anterior, +1 = próximo) */
     offset?: number;
     /** Modo de janela: 'CALENDAR_YEAR' (Jan..Dez) ou 'ROLLING' (centrado no hoje/fatura atual) */
-    mode?: "CALENDAR_YEAR" | "ROLLING";
+    mode?: "CALENDAR_YEAR" | "CALENDAR_QUARTER" | "ROLLING";
 }
 
 export class CycleHorizonCalculator {
@@ -35,6 +38,15 @@ export class CycleHorizonCalculator {
             return {
                 from: startOfYear(shiftedDate),
                 to: endOfYear(addYears(shiftedDate, 9)),
+            };
+        }
+
+        if (mode === "CALENDAR_QUARTER") {
+            // Trimestres fixos do calendário: jan–mar, abr–jun, jul–set, out–dez
+            const targetQuarterDate = addQuarters(today, offset);
+            return {
+                from: startOfQuarter(targetQuarterDate),
+                to: endOfQuarter(targetQuarterDate),
             };
         }
 

@@ -3,6 +3,7 @@ import { BalanceType, CycleFrequency } from "@/prisma/generated/prisma/client";
 import { SessionPayload } from "@/modules/auth/infra/cryptography/jwt-utils";
 import { ISpaceAccessProvider } from "@/modules/space/application/interfaces/space-access-provider.interface";
 import { failure, Result, success } from "@/types/result.types";
+import { toCivilDate } from "@/lib/formatters";
 import {
     CycleRange,
     CycleStatus,
@@ -218,6 +219,8 @@ export class GetCycleDetailUseCase {
             // ================================================================
             // PASSO 6: Mapeamento Final para o DTO de Saída
             // ================================================================
+            // Colunas `date` do $queryRaw chegam como meia-noite UTC; format() no fuso local deslocaria -1 dia.
+            const civil = (d: Date) => format(toCivilDate(d), "yyyy-MM-dd");
             return success({
                 balance: {
                     id: agreementCtx.balanceId,
@@ -229,12 +232,12 @@ export class GetCycleDetailUseCase {
                 cycle: {
                     range: current.range,
                     label: aggregated.label,
-                    dueDate: format(aggregated.dueDate, "yyyy-MM-dd"),
+                    dueDate: civil(aggregated.dueDate),
                     closingDate: aggregated.closingDate
-                        ? format(aggregated.closingDate, "yyyy-MM-dd")
+                        ? civil(aggregated.closingDate)
                         : null,
                     settlementDate: aggregated.settlementDate
-                        ? format(aggregated.settlementDate, "yyyy-MM-dd")
+                        ? civil(aggregated.settlementDate)
                         : null,
                     status: aggregated.status,
                     isConsolidated: aggregated.isConsolidated,
