@@ -41,6 +41,7 @@ export interface MacroHorizonInfo {
     from?: string;
     to?: string;
     isCustom?: boolean;
+    hasPagination?: boolean;
 }
 
 export interface RecurrenceCyclesResult {

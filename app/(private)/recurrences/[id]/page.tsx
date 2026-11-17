@@ -15,6 +15,8 @@ interface RecurrenceProfilePageProps {
         status?: string;
         includeProjected?: string;
         q?: string;
+        from?: string;
+        to?: string;
     }>;
 }
 
@@ -53,6 +55,9 @@ export default async function RecurrenceProfilePage(
     const includeProjected =
         searchParams?.includeProjected === "false" ? false : true;
 
+    const from = searchParams?.from?.trim() || undefined;
+    const to = searchParams?.to?.trim() || undefined;
+
     const q = searchParams?.q?.trim() || undefined;
 
     // 1. Busca perfil da recorrência (SSR)
@@ -77,6 +82,8 @@ export default async function RecurrenceProfilePage(
         offset,
         status,
         includeProjected,
+        from,
+        to,
         q,
     });
 

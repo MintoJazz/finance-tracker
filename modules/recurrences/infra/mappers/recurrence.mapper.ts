@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import {
     Agreement as PrismaAgreement,
     AgreementAmountEntry as PrismaAgreementAmountEntry,
@@ -103,6 +104,12 @@ export class RecurrenceMapper {
                 balance.appearance?.color ??
                 balance.parent?.appearance?.color ??
                 null,
+            startsAt: agreement.startsAt
+                ? format(agreement.startsAt, "yyyy-MM-dd")
+                : undefined,
+            endsAt: agreement.endsAt
+                ? format(agreement.endsAt, "yyyy-MM-dd")
+                : null,
         };
     }
 }

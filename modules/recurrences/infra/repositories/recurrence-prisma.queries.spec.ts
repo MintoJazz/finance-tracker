@@ -131,5 +131,27 @@ describe("RecurrencePrismaQueries - Integração com Banco", () => {
             assert.ok(["WEEKLY", "MONTHLY", "YEARLY"].includes(item.frequency));
         }
     });
+
+    it("nunca retorna agreements com término fixo / parcelamentos (endsAt !== null)", async () => {
+        const context = await prisma.financialContext.findFirst({
+            where: {
+                balances: {
+                    some: { agreement: { isNot: null } },
+                },
+            },
+            select: { id: true },
+        });
+
+        if (!context) return;
+
+        const allItems = await queries.listRecurrencesByContextId(context.id);
+        for (const item of allItems) {
+            assert.equal(
+                item.endsAt ?? null,
+                null,
+                `A recorrência ${item.name} possui endsAt=${item.endsAt} e não deveria constar na listagem.`
+            );
+        }
+    });
 });
 

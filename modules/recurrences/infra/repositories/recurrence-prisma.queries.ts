@@ -129,22 +129,15 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
 
         const agreementConditions: Prisma.AgreementWhereInput = {
             frequency: frequencyCondition,
+            endsAt: null,
         };
 
         if (filter?.active === "ACTIVE" || filter?.active === "OVERDUE") {
             where.removedAt = null;
             agreementConditions.startsAt = { lte: today };
-            agreementConditions.OR = [{ endsAt: null }, { endsAt: { gte: today } }];
         } else if (filter?.active === "INACTIVE") {
             where.OR = [
                 { removedAt: { not: null } },
-                {
-                    agreement: {
-                        is: {
-                            endsAt: { lt: today },
-                        },
-                    },
-                },
                 {
                     agreement: {
                         is: {

@@ -28,6 +28,8 @@ export const RecurrenceListItemSchema = z.object({
     category: RecurrenceCategorySchema.nullable(),
     icon: z.string().nullable(),
     color: z.string().nullable(),
+    startsAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    endsAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
 });
 
 export const RecurrenceFiltersSchema = z.object({

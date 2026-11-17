@@ -5,7 +5,8 @@ import type {
 
 export interface IRecurrenceQueries {
     /**
-     * Lista todas as recorrências de um contexto financeiro, com filtros opcionais.
+     * Lista todas as recorrências contínuas (perpétuas, onde endsAt === null) de um contexto financeiro,
+     * excluindo parcelamentos/acordos a termo, com filtros opcionais.
      */
     listRecurrencesByContextId(
         contextId: number,

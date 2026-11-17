@@ -52,28 +52,35 @@ export function RecurrenceProfileCard({
 
     const color = recurrence.color ?? category?.color;
     const { palette, style: colorStyle } = getCategoryTheme(color);
-    const hashStyle = getHashColorStyle(name);
+    const hasCategoryTheme = Boolean(palette || colorStyle);
+    const hashStyle = hasCategoryTheme ? null : getHashColorStyle(name);
 
     const bannerBackground =
-        colorStyle?.backgroundColor || hashStyle.backgroundColor;
+        colorStyle?.backgroundColor ?? hashStyle?.backgroundColor;
     const avatarBorderColor =
-        colorStyle?.color || hashStyle.color;
+        colorStyle?.borderColor || colorStyle?.color || hashStyle?.color;
 
     const frequencyLabel =
         RECURRENCE_FREQUENCY_LABELS[frequency as RecurrenceFrequency] ?? frequency;
 
     return (
         <ProfileCard isArchived={!isActive} className={className}>
-            <ProfileCardBanner style={{ backgroundColor: bannerBackground }}>
+            <ProfileCardBanner
+                className={cn(palette?.bg)}
+                style={bannerBackground ? { backgroundColor: bannerBackground } : undefined}
+            >
                 <ProfileCardAvatar
-                    style={{ borderColor: avatarBorderColor }}
+                    className={cn(palette?.border)}
+                    style={avatarBorderColor ? { borderColor: avatarBorderColor } : undefined}
                     isArchived={!isActive}
                 >
                     <div
-                        style={colorStyle}
+                        style={colorStyle ?? (hashStyle ? { color: hashStyle.color } : undefined)}
                         className={cn(
                             "flex size-full items-center justify-center rounded-2xl",
-                            palette ? cn(palette.bg, palette.text) : "text-muted-foreground",
+                            palette
+                                ? cn(palette.bg, palette.text)
+                                : !colorStyle && !hashStyle && "text-muted-foreground",
                             !isActive && "opacity-75"
                         )}
                     >

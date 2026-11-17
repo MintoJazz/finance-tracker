@@ -21,7 +21,7 @@ export function RecurrenceCycleNavigatorMobile({
     activeFilterCount = 0,
     className,
 }: RecurrenceCycleNavigatorMobileProps) {
-    const { canPrev, canNext, label, isCustom } = horizon;
+    const { canPrev, canNext, label, isCustom, hasPagination = true } = horizon;
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     return (
@@ -33,18 +33,20 @@ export function RecurrenceCycleNavigatorMobile({
                 )}
             >
                 <ButtonGroup className="w-full h-full flex items-stretch justify-between">
-                    {/* 1. Botão de Prev */}
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        disabled={!canPrev || isLoading}
-                        onClick={onPrev}
-                        aria-label="Horizonte anterior"
-                        className="h-full w-10 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 rounded-none"
-                    >
-                        <ChevronLeft className="size-4" />
-                    </Button>
+                    {/* 1. Botão de Prev (apenas se houver paginação) */}
+                    {hasPagination && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            disabled={!canPrev || isLoading}
+                            onClick={onPrev}
+                            aria-label="Horizonte anterior"
+                            className="h-full w-10 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 rounded-none"
+                        >
+                            <ChevronLeft className="size-4" />
+                        </Button>
+                    )}
 
                     {/* 2. Botão com o Macro-Horizonte (abre DateRangeDrawer no mobile) */}
                     <Button
@@ -70,16 +72,16 @@ export function RecurrenceCycleNavigatorMobile({
                         <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
+                            size="icon"
                             onClick={onOpenFilters}
                             aria-label="Filtrar ciclos"
-                            className="h-full gap-1.5 px-3 text-xs font-medium cursor-pointer shrink-0 text-muted-foreground hover:text-foreground rounded-none"
+                            className="h-full w-10 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer rounded-none relative"
                         >
-                            <SlidersHorizontal className="size-3.5" />
+                            <SlidersHorizontal className="size-4" />
                             {activeFilterCount > 0 && (
                                 <Badge
                                     variant="secondary"
-                                    className="h-4 min-w-4 px-1 text-[10px] font-bold"
+                                    className="absolute top-1 right-1 h-3.5 min-w-3.5 px-0.5 text-[9px] font-bold flex items-center justify-center"
                                 >
                                     {activeFilterCount}
                                 </Badge>
@@ -87,18 +89,20 @@ export function RecurrenceCycleNavigatorMobile({
                         </Button>
                     )}
 
-                    {/* 4. Botão de Next */}
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        disabled={!canNext || isLoading}
-                        onClick={onNext}
-                        aria-label="Próximo horizonte"
-                        className="h-full w-10 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 rounded-none"
-                    >
-                        <ChevronRight className="size-4" />
-                    </Button>
+                    {/* 4. Botão de Next (apenas se houver paginação) */}
+                    {hasPagination && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            disabled={!canNext || isLoading}
+                            onClick={onNext}
+                            aria-label="Próximo horizonte"
+                            className="h-full w-10 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 rounded-none"
+                        >
+                            <ChevronRight className="size-4" />
+                        </Button>
+                    )}
                 </ButtonGroup>
             </div>
 

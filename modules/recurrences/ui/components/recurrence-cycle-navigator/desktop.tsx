@@ -18,21 +18,23 @@ export function RecurrenceCycleNavigatorDesktop({
     onResetDateRange,
     className,
 }: RecurrenceCycleNavigatorDesktopProps) {
-    const { canPrev, canNext } = horizon;
+    const { canPrev, canNext, hasPagination = true } = horizon;
 
     return (
         <ButtonGroup className={cn("w-full shadow-2xs", className)}>
-            <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                disabled={!canPrev || isLoading}
-                onClick={onPrev}
-                aria-label="Horizonte anterior"
-                className="size-9 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-            >
-                <ChevronLeft className="size-4" />
-            </Button>
+            {hasPagination && (
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    disabled={!canPrev || isLoading}
+                    onClick={onPrev}
+                    aria-label="Horizonte anterior"
+                    className="size-9 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                    <ChevronLeft className="size-4" />
+                </Button>
+            )}
 
             <DateRangePopover
                 horizon={horizon}
@@ -43,17 +45,21 @@ export function RecurrenceCycleNavigatorDesktop({
                 className="h-9"
             />
 
-            <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                disabled={!canNext || isLoading}
-                onClick={onNext}
-                aria-label="Próximo horizonte"
-                className="size-9 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-            >
-                <ChevronRight className="size-4" />
-            </Button>
+            {hasPagination && (
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    disabled={!canNext || isLoading}
+                    onClick={onNext}
+                    aria-label="Próximo horizonte"
+                    className="size-9 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                    <ChevronRight className="size-4" />
+                </Button>
+            )}
         </ButtonGroup>
     );
 }
+
+export default RecurrenceCycleNavigatorDesktop;
