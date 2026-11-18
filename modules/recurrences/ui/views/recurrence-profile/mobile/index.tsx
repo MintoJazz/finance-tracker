@@ -8,7 +8,7 @@ import { RecurrenceCycleNavigatorMobile } from "@/modules/recurrences/ui/compone
 import { RecurrenceCycleList } from "@/modules/recurrences/ui/components/recurrence-cycle-list";
 import { RecurrenceProfileCard } from "@/modules/recurrences/ui/components/recurrence-profile-card";
 import { RecurrenceCycleFilterDrawer } from "@/modules/recurrences/ui/components/recurrence-cycle-filter/drawer";
-import { RecurrenceActionsDrawer } from "@/modules/recurrences/ui/components/recurrence-actions-drawer";
+import { useRecurrenceProfileGlobalActions } from "../hooks/use-recurrence-profile-global-actions";
 import { ArchiveRecurrenceModalViewMobile } from "../../archive-recurrence-modal";
 import type { RecurrenceProfileMobileProps } from "../types";
 
@@ -36,17 +36,22 @@ export default function RecurrenceProfileViewMobile({
     actionContext,
     isFilterDrawerOpen,
     setIsFilterDrawerOpen,
-    isRecurrenceActionsOpen,
-    setIsRecurrenceActionsOpen,
     onEditRecurrence,
     onAdjustAmount,
     onAdjustDeadlines,
     onToggleActiveRecurrence,
     onArchiveRecurrence,
     archiveContext,
-    onOpenRecurrenceActions,
     onSelectCycle,
 }: RecurrenceProfileMobileProps) {
+    useRecurrenceProfileGlobalActions(profile, {
+        onEdit: onEditRecurrence,
+        onAdjustAmount,
+        onAdjustDeadlines,
+        onToggleActive: onToggleActiveRecurrence,
+        onArchive: onArchiveRecurrence,
+    });
+
     if (profileError) {
         return (
             <ErrorView
@@ -71,10 +76,6 @@ export default function RecurrenceProfileViewMobile({
                         recurrence={profile}
                         isVisible={isVisible}
                         onToggleVisibility={() => setIsVisible((v) => !v)}
-                        onAdjustAmount={onAdjustAmount}
-                        onAdjustDeadlines={onAdjustDeadlines}
-                        onToggleActive={onToggleActiveRecurrence}
-                        onOpenActions={onOpenRecurrenceActions}
                         className="rounded-none border-0 shadow-none pb-3"
                     />
                 )}
@@ -134,24 +135,6 @@ export default function RecurrenceProfileViewMobile({
                 onApply={applyFilters}
                 onClear={clearFilters}
             />
-
-            {/* Drawer de Ações da Recorrência */}
-            {profile && (
-                <RecurrenceActionsDrawer
-                    open={isRecurrenceActionsOpen}
-                    onOpenChange={setIsRecurrenceActionsOpen}
-                    recurrence={profile}
-                    context={{
-                        onEdit: () => onEditRecurrence?.(),
-                        onAdjustAmount: () => onAdjustAmount?.(),
-                        onAdjustDeadlines: () => onAdjustDeadlines?.(),
-                        onActivate: () => onToggleActiveRecurrence?.(),
-                        onDeactivate: () => onToggleActiveRecurrence?.(),
-                        onArchive: () => onArchiveRecurrence?.(),
-                    }}
-                    trigger={null}
-                />
-            )}
 
             <ArchiveRecurrenceModalViewMobile {...archiveContext} />
         </div>

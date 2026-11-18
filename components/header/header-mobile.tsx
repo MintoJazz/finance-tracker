@@ -1,9 +1,9 @@
 import Link from "next/link"
-import { ArrowLeft, Plus } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Crumb } from "./types"
 import { Skeleton } from "@/components/ui/skeleton"
-import { operationHref } from "@/modules/operations/ui/href"
+import { SidebarTrigger } from "../ui/sidebar"
 
 export function HeaderMobile({ trail, className }: { trail: Crumb[]; className?: string }) {
   if (trail.length === 0) return null
@@ -12,7 +12,7 @@ export function HeaderMobile({ trail, className }: { trail: Crumb[]; className?:
   const parentCrumb = trail.at(-2) ?? null
 
   return (
-    <div className={`flex w-full min-w-0 items-center justify-between gap-3 ${className}`}>
+    <div className={`flex w-full min-w-0 items-center justify-between gap-3 ${className ?? ""}`}>
       {parentCrumb ? (
         <Button
           variant="ghost"
@@ -27,8 +27,9 @@ export function HeaderMobile({ trail, className }: { trail: Crumb[]; className?:
       ) : (
         <div className="size-8 shrink-0" />
       )}
-      
-      <div className="flex-1 text-center min-w-0 flex justify-center">
+
+      {/* Título centralizado em relação ao header inteiro, independente do botão de voltar */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 flex max-w-[calc(100%-11rem)] -translate-x-1/2 -translate-y-1/2 justify-center text-center">
         {currentCrumb.label ? (
           <span className="text-base font-semibold tracking-tight text-foreground truncate">
             {currentCrumb.label}
@@ -37,17 +38,8 @@ export function HeaderMobile({ trail, className }: { trail: Crumb[]; className?:
           <Skeleton className="h-5 w-32" />
         )}
       </div>
-      
-      <Button
-        variant="outline"
-        size="icon"
-        className="size-8 shrink-0 rounded-lg"
-        render={<Link href={operationHref()} />}
-        nativeButton={false}
-        aria-label="Nova operação"
-      >
-        <Plus className="size-4" />
-      </Button>
+
+      <SidebarTrigger className="2-ml-1" />
     </div>
   )
 }

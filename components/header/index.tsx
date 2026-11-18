@@ -8,7 +8,7 @@ import { buildTrail } from "./utils"
 import { useHeaderContext } from "./context"
 import { HeaderBreadcrumb } from "./header-breadcrumb"
 import { HeaderMobile } from "./header-mobile"
-import { HeaderDesktopActions } from "./header-desktop-actions"
+import { GlobalActionsDesktop } from "@/components/global-actions"
 
 export function AppHeader() {
   const pathname = usePathname()
@@ -17,8 +17,8 @@ export function AppHeader() {
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b border-border/40">
-      <div className="flex min-w-0 w-full items-center gap-2 px-4">
-        <SidebarTrigger className="-ml-1" />
+      <div className="relative flex min-w-0 w-full items-center gap-2 px-4">
+        <SidebarTrigger className="hidden sm:block -ml-1" />
         {trail.length > 0 && (
           <>
             <Separator orientation="vertical" className="hidden md:block mr-2 data-[orientation=vertical]:h-4" />
@@ -27,7 +27,7 @@ export function AppHeader() {
           </>
         )}
         <div className="hidden md:flex items-center gap-2 ml-auto shrink-0">
-          <HeaderDesktopActions />
+          <GlobalActionsDesktop />
         </div>
       </div>
     </header>
@@ -37,3 +37,4 @@ export function AppHeader() {
 export { HeaderProvider, useBreadcrumbLabel } from "./context"
 export { routes, type RouteKey } from "./config"
 export { buildHref, routeHref } from "./utils"
+export { useCurrentTitle } from "./use-current-title"

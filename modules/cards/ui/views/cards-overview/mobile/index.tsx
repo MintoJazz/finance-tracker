@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useMemo } from "react";
+import { useGlobalActions } from "@/components/global-actions";
 import {
     InputGroup,
     InputGroupAddon,
@@ -26,33 +25,27 @@ export default function CardsOverviewViewMobile({
 }: MobileCardOverviewProps) {
     const { searchProps } = filterContext;
 
-    return (
-        <div className="flex w-full flex-col gap-4 py-4 pb-12">
-            <header className="flex items-center justify-between gap-2 px-4">
-                <div className="flex items-center gap-2">
-                    <h1 className="text-lg font-semibold tracking-tight">Cartões</h1>
-                    <Badge variant="outline" className="tabular-nums">
-                        {total}
-                    </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="icon-sm"
-                        nativeButton={false}
-                        render={<Link href="/cards/archived" />}
-                        className="gap-1.5 px-2.5"
-                    >
-                        <Archive className="size-4" />
-                        <span className="sr-only sm:not-sr-only">Arquivados</span>
-                    </Button>
-                    <Button size="sm" onClick={onAddClick} className="gap-1.5">
-                        <Plus className="size-4" />
-                        Novo
-                    </Button>
-                </div>
-            </header>
+    const globalActions = useMemo(
+        () => [
+            {
+                id: "cards-new",
+                label: "Novo cartão",
+                icon: Plus,
+                onClick: onAddClick,
+            },
+            {
+                id: "cards-archived",
+                label: "Cartões arquivados",
+                icon: Archive,
+                href: "/cards/archived",
+            },
+        ],
+        [onAddClick]
+    );
+    useGlobalActions(globalActions);
 
+    return (
+        <div className="flex w-full flex-col gap-3 py-4 pb-12">
             <div className="flex flex-col gap-2.5 px-4">
                 <InputGroup className="w-full">
                     <InputGroupAddon>
@@ -63,11 +56,12 @@ export default function CardsOverviewViewMobile({
                         placeholder="Buscar por nome"
                     />
                 </InputGroup>
-                <div className="flex items-center justify-end">
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                        {items.length} de {total}
-                    </span>
-                </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 px-4">
+                <span className="text-xs text-muted-foreground tabular-nums">
+                    {items.length} de {total}
+                </span>
             </div>
 
             <CardList

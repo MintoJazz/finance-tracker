@@ -181,6 +181,7 @@ export function ActionsDrawer<
                           actionContent
                         ) : (
                           <DrawerClose
+                            nativeButton={!action.href}
                             render={
                               action.href ? (
                                 <Link href={action.href} className="block w-full">

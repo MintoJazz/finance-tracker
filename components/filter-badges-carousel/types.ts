@@ -18,6 +18,11 @@ export interface FilterBadgeOption<TKey extends string = string> {
     removeAriaLabel?: string;
 }
 
+export interface FilterBadgesCount {
+    shown: number;
+    total: number;
+}
+
 export interface FilterBadgesCarouselProps<TKey extends string = string> {
     items: FilterBadgeOption<TKey>[];
     onClearAll?: () => void;
@@ -25,5 +30,7 @@ export interface FilterBadgesCarouselProps<TKey extends string = string> {
     variant?: VariantProps<typeof badgeVariants>["variant"];
     className?: string;
     itemClassName?: string;
+    /** Contagem "x de total" exibida como último item; mantém o carrossel visível sem filtros. */
+    count?: FilterBadgesCount;
 }
 

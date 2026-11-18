@@ -1,8 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
+import { useGlobalActions } from "@/components/global-actions";
 import { Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { FilterBadgesCarousel } from "@/components/filter-badges-carousel";
 import { RecurrenceFilter } from "../../../components/recurrence-filter";
 import { RecurrenceFilterModal } from "../../../components/recurrence-filter/modal";
@@ -27,39 +27,35 @@ export default function RecurrencesOverviewViewDesktop({
     isFilterOpen,
     setIsFilterOpen,
 }: RecurrenceOverviewProps) {
+    const globalActions = useMemo(
+        () => [
+            {
+                id: "recurrences-new",
+                label: "Nova recorrência",
+                icon: Plus,
+                onClick: onAddClick,
+            },
+        ],
+        [onAddClick]
+    );
+    useGlobalActions(globalActions);
+
     return (
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 md:p-8">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 p-4 md:p-8">
             <header className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        Recorrências
-                    </h1>
-                    <Badge variant="outline" className="tabular-nums">
-                        {data.total}
-                    </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button size="sm" onClick={onAddClick}>
-                        <Plus data-icon="inline-start" />
-                        Nova recorrência
-                    </Button>
-                </div>
+                <RecurrenceSearchBar
+                    value={filters.q}
+                    onChange={(q) => applyFilters({ q })}
+                    onOpenFilters={() => setIsFilterOpen(true)}
+                    activeFilterCount={activeFilterCount}
+                />
             </header>
 
-            <div className="flex w-full gap-3 justify-between">
-                    <RecurrenceSearchBar
-                        value={filters.q}
-                        onChange={(q) => applyFilters({ q })}
-                        onOpenFilters={() => setIsFilterOpen(true)}
-                        activeFilterCount={activeFilterCount}
-                        className="lg:max-w-sm"
-                    />
-
-                <FilterBadgesCarousel
-                    items={activeFilterBadges}
-                    onClearAll={clearFilters}
-                />
-            </div>
+            <FilterBadgesCarousel
+                items={activeFilterBadges}
+                onClearAll={clearFilters}
+                count={{ shown: data.data.length, total: data.total }}
+            />
 
             <RecurrenceTable
                 {...paginationContext}
@@ -68,12 +64,6 @@ export default function RecurrencesOverviewViewDesktop({
                 hasFilters={hasAnyFilter}
                 onClearFilters={clearAllFilters}
             />
-
-            {data.total > 0 && (
-                <p className="text-xs text-muted-foreground">
-                    Mostrando {data.data.length} de {data.total} recorrências
-                </p>
-            )}
 
             <RecurrenceFilterModal
                 open={isFilterOpen}

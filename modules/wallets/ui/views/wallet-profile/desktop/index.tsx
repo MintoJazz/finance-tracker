@@ -9,7 +9,7 @@ import { ProfileCard, ProfileCardBanner, ProfileCardAvatar, ProfileCardContent }
 import { getHashColorStyle } from "@/lib/avatar-utils";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
-import { WalletQuickActions } from "@/modules/wallets/ui/components/wallet-profile/wallet-quick-actions";
+import { useWalletProfileGlobalActions } from "../hooks/use-wallet-profile-global-actions";
 import { ProfileSkeleton } from "@/modules/wallets/ui/components/wallet-profile/skeletons/profile-skeleton";
 import { ArchiveWalletModalViewDesktop } from "../../archive-wallet-modal";
 import { RestoreWalletModalViewDesktop } from "../../restore-wallet-modal";
@@ -38,6 +38,7 @@ export default function WalletProfileViewDesktop({
     paginationContext,
 }: WalletProfileDesktopProps) {
     const [isVisible, setIsVisible] = useState(true);
+    useWalletProfileGlobalActions(profile, walletActionsContext);
 
     if (profileError) {
         return (
@@ -163,12 +164,6 @@ export default function WalletProfileViewDesktop({
                                         {isVisible ? formatMoney(profile.currentBalance) : "R$ ••••••"}
                                     </div>
                                 </div>
-
-                                {/* Botões de Ação Rápida */}
-                                <WalletQuickActions
-                                    wallet={profile}
-                                    walletActionsContext={walletActionsContext}
-                                />
                             </ProfileCardContent>
 
                             <div className="border-t border-border/40 mx-4 sm:mx-4.5" />

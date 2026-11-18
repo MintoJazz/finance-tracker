@@ -42,6 +42,7 @@ export function FilterBadgesCarousel<TKey extends string = string>({
     variant = "secondary",
     className,
     itemClassName,
+    count,
 }: FilterBadgesCarouselProps<TKey>) {
     const [api, setApi] = React.useState<CarouselApi>();
     const isDraggingRef = React.useRef(false);
@@ -96,11 +97,13 @@ export function FilterBadgesCarousel<TKey extends string = string>({
         pointerStartRef.current = null;
     };
 
-    if (items.length === 0) {
+    const showCount = !!count && count.total > 0;
+
+    if (items.length === 0 && !showCount) {
         return null;
     }
 
-    return (
+    const carousel = (
         <Carousel
             setApi={setApi}
             opts={{
@@ -113,7 +116,11 @@ export function FilterBadgesCarousel<TKey extends string = string>({
             data-base-ui-swipe-ignore=""
             data-swipe-ignore=""
             data-vaul-no-drag=""
-            className={cn("w-full min-w-0 select-none", className)}
+            className={cn(
+                "min-w-0 select-none",
+                showCount ? "flex-1" : "w-full",
+                !showCount && className
+            )}
             aria-label="Filtros ativos"
         >
             <CarouselContent
@@ -197,8 +204,27 @@ export function FilterBadgesCarousel<TKey extends string = string>({
                         </Button>
                     </CarouselItem>
                 )}
+
             </CarouselContent>
         </Carousel>
+    );
+
+    if (!showCount) return carousel;
+
+    // Contagem fixa no fim do container; só os badges rolam.
+    return (
+        <div
+            data-slot="filter-badges-carousel-root"
+            className={cn("flex w-full min-w-0 items-center gap-2", className)}
+        >
+            {items.length > 0 ? carousel : <div className="flex-1" />}
+            <span
+                data-slot="filter-badges-carousel-count"
+                className="shrink-0 whitespace-nowrap text-xs tabular-nums text-muted-foreground"
+            >
+                {count.shown} de {count.total}
+            </span>
+        </div>
     );
 }
 

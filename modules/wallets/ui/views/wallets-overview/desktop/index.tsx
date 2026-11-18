@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useMemo } from "react";
+import { useGlobalActions } from "@/components/global-actions";
 import { Archive, Plus, Search } from "lucide-react";
 import {
     InputGroup,
@@ -23,33 +22,29 @@ export default function WalletsOverviewViewDesktop({
 }: WalletOverviewProps) {
     const { searchProps } = filterContext;
 
+    const globalActions = useMemo(
+        () => [
+            {
+                id: "wallets-new",
+                label: "Nova carteira",
+                icon: Plus,
+                onClick: onAddClick,
+            },
+            {
+                id: "wallets-archived",
+                label: "Carteiras arquivadas",
+                icon: Archive,
+                href: "/wallets/archived",
+            },
+        ],
+        [onAddClick]
+    );
+    useGlobalActions(globalActions);
+
     return (
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 md:p-8">
             <header className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                    <h1 className="text-xl font-semibold tracking-tight">Carteiras</h1>
-                    <Badge variant="outline" className="tabular-nums">
-                        {data.total}
-                    </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="icon-sm"
-                        nativeButton={false}
-                        render={<Link href="/wallets/archived" />}
-                    >
-                        <Archive className="size-4" />
-                    </Button>
-                    <Button size="sm" onClick={onAddClick}>
-                        <Plus data-icon="inline-start" />
-                        Nova carteira
-                    </Button>
-                </div>
-            </header>
-
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <InputGroup className="lg:max-w-xs">
+                <InputGroup className="">
                     <InputGroupAddon>
                         <Search />
                     </InputGroupAddon>
@@ -58,7 +53,7 @@ export default function WalletsOverviewViewDesktop({
                         placeholder="Buscar por nome"
                     />
                 </InputGroup>
-            </div>
+            </header>
 
             <WalletTable
                 {...paginationContext}

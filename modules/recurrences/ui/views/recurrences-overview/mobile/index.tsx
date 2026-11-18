@@ -1,8 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
+import { useGlobalActions } from "@/components/global-actions";
 import { Loader2, Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { FilterBadgesCarousel } from "@/components/filter-badges-carousel";
 import { RecurrenceFilter } from "../../../components/recurrence-filter";
 import { RecurrenceFilterDrawer } from "../../../components/recurrence-filter/drawer";
@@ -30,26 +30,22 @@ export default function RecurrencesOverviewViewMobile({
     isFilterOpen,
     setIsFilterOpen,
 }: MobileRecurrenceOverviewProps) {
-    return (
-        <div className="flex w-full flex-col gap-4 py-4 pb-12">
-            <header className="flex items-center justify-between gap-2 px-4">
-                <div className="flex items-center gap-2">
-                    <h1 className="text-lg font-semibold tracking-tight">
-                        Recorrências
-                    </h1>
-                    <Badge variant="outline" className="tabular-nums">
-                        {total}
-                    </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button size="sm" onClick={onAddClick} className="gap-1.5">
-                        <Plus className="size-4" />
-                        Nova
-                    </Button>
-                </div>
-            </header>
+    const globalActions = useMemo(
+        () => [
+            {
+                id: "recurrences-new",
+                label: "Nova recorrência",
+                icon: Plus,
+                onClick: onAddClick,
+            },
+        ],
+        [onAddClick]
+    );
+    useGlobalActions(globalActions);
 
-            <div className="flex flex-col gap-2.5 px-4">
+    return (
+        <div className="flex w-full flex-col gap-3 py-4 pb-12">
+            <div className="flex flex-col gap-3 px-4">
                 <RecurrenceSearchBar
                     value={filters.q}
                     onChange={(q) => applyFilters({ q })}
@@ -60,13 +56,8 @@ export default function RecurrencesOverviewViewMobile({
                 <FilterBadgesCarousel
                     items={activeFilterBadges}
                     onClearAll={clearFilters}
+                    count={{ shown: items.length, total }}
                 />
-
-                <div className="flex items-center justify-end">
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                        {items.length} de {total}
-                    </span>
-                </div>
             </div>
 
             <RecurrenceList

@@ -9,6 +9,7 @@ import { RecurrenceCycleNavigatorDesktop } from "@/modules/recurrences/ui/compon
 import { RecurrenceCycleSidebarFilter } from "@/modules/recurrences/ui/components/recurrence-cycle-filter";
 import { RecurrenceCycleTable } from "@/modules/recurrences/ui/components/recurrence-cycle-table";
 import { ArchiveRecurrenceModalViewDesktop } from "../../archive-recurrence-modal";
+import { useRecurrenceProfileGlobalActions } from "../hooks/use-recurrence-profile-global-actions";
 import type { RecurrenceProfileDesktopProps } from "../types";
 
 export function RecurrenceProfileDesktopView({
@@ -38,6 +39,14 @@ export function RecurrenceProfileDesktopView({
     onArchiveRecurrence,
     archiveContext,
 }: RecurrenceProfileDesktopProps) {
+    useRecurrenceProfileGlobalActions(profile, {
+        onEdit: onEditRecurrence,
+        onAdjustAmount,
+        onAdjustDeadlines,
+        onToggleActive: onToggleActiveRecurrence,
+        onArchive: onArchiveRecurrence,
+    });
+
     if (profileError) {
         return (
             <ErrorView
@@ -107,17 +116,6 @@ export function RecurrenceProfileDesktopView({
                                 recurrence={profile}
                                 isVisible={isVisible}
                                 onToggleVisibility={() => setIsVisible((v) => !v)}
-                                onAdjustAmount={onAdjustAmount}
-                                onAdjustDeadlines={onAdjustDeadlines}
-                                onToggleActive={onToggleActiveRecurrence}
-                                actionsMenuContext={{
-                                    onEdit: () => onEditRecurrence?.(),
-                                    onAdjustAmount: () => onAdjustAmount?.(),
-                                    onAdjustDeadlines: () => onAdjustDeadlines?.(),
-                                    onActivate: () => onToggleActiveRecurrence?.(),
-                                    onDeactivate: () => onToggleActiveRecurrence?.(),
-                                    onArchive: () => onArchiveRecurrence?.(),
-                                }}
                                 className="border-0 shadow-none rounded-none"
                             />
 

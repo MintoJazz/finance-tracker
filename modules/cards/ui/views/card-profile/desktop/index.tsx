@@ -15,7 +15,7 @@ import { getHashColorStyle } from "@/lib/avatar-utils";
 import { formatMoney } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { CardLimitProgress } from "@/modules/cards/ui/components/card-profile/card-limit-progress";
-import { CardQuickActions } from "@/modules/cards/ui/components/card-profile/card-quick-actions";
+import { useCardProfileGlobalActions } from "../hooks/use-card-profile-global-actions";
 import { CardProfileSkeleton } from "@/modules/cards/ui/components/card-profile/skeletons/profile-skeleton";
 import { ArchiveCardModalViewDesktop } from "../../archive-card-modal";
 import { RestoreCardModalViewDesktop } from "../../restore-card-modal";
@@ -33,6 +33,7 @@ export default function CardProfileViewDesktop({
     statementProps,
 }: CardProfileDesktopProps) {
     const [isVisible, setIsVisible] = useState(true);
+    useCardProfileGlobalActions(profile, cardActionsContext);
 
     if (profileError) {
         return (
@@ -140,10 +141,6 @@ export default function CardProfileViewDesktop({
                                 </div>
 
                                 {/* Botões de Ação Rápida do Cartão */}
-                                <CardQuickActions
-                                    card={profile}
-                                    cardActionsContext={cardActionsContext}
-                                />
                             </ProfileCardContent>
 
                             <div className="border-t border-border/40 mx-4 sm:mx-4.5" />
