@@ -10,6 +10,7 @@ import { RecurrenceProfileCard } from "@/modules/recurrences/ui/components/recur
 import { RecurrenceCycleFilterDrawer } from "@/modules/recurrences/ui/components/recurrence-cycle-filter/drawer";
 import { useRecurrenceProfileGlobalActions } from "../hooks/use-recurrence-profile-global-actions";
 import { ArchiveRecurrenceModalViewMobile } from "../../archive-recurrence-modal";
+import { RestoreRecurrenceModalViewMobile } from "../../restore-recurrence-modal";
 import type { RecurrenceProfileMobileProps } from "../types";
 
 export default function RecurrenceProfileViewMobile({
@@ -42,6 +43,8 @@ export default function RecurrenceProfileViewMobile({
     onToggleActiveRecurrence,
     onArchiveRecurrence,
     archiveContext,
+    onRestoreRecurrence,
+    restoreContext,
     onSelectCycle,
 }: RecurrenceProfileMobileProps) {
     useRecurrenceProfileGlobalActions(profile, {
@@ -50,6 +53,7 @@ export default function RecurrenceProfileViewMobile({
         onAdjustDeadlines,
         onToggleActive: onToggleActiveRecurrence,
         onArchive: onArchiveRecurrence,
+        onRestore: onRestoreRecurrence,
     });
 
     if (profileError) {
@@ -137,6 +141,7 @@ export default function RecurrenceProfileViewMobile({
             />
 
             <ArchiveRecurrenceModalViewMobile {...archiveContext} />
+            <RestoreRecurrenceModalViewMobile {...restoreContext} />
         </div>
     );
 }

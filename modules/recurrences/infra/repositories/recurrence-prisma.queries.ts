@@ -78,7 +78,6 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
             where: {
                 id: balanceId,
                 contextId,
-                removedAt: null,
                 balanceType: { in: ["PAYABLE", "RECEIVABLE"] },
                 agreement: {
                     isNot: null,
@@ -115,8 +114,8 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
 
         const where: BalanceWhereInput = {
             contextId,
-            // Recorrências arquivadas não aparecem na listagem
-            removedAt: null,
+            // Arquivadas só aparecem quando `archivedOnly`; caso contrário ficam de fora
+            removedAt: filter?.archivedOnly ? { not: null } : null,
             balanceType: { in: ["PAYABLE", "RECEIVABLE"] },
             agreement: {
                 isNot: null,

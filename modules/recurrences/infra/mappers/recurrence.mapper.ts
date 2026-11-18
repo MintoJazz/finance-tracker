@@ -92,6 +92,7 @@ export class RecurrenceMapper {
             nextDueDate,
             isActive,
             isOverdue,
+            isArchived: balance.removedAt !== null,
             status: getRecurrenceStatus({ isActive, isOverdue }),
             category: balance.parent
                 ? {

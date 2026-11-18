@@ -1,4 +1,4 @@
-import { Archive, CalendarClock, Edit, Eye, Power, PowerOff, SlidersHorizontal } from "lucide-react";
+import { Archive, ArchiveRestore, CalendarClock, Edit, Eye, Power, PowerOff, SlidersHorizontal } from "lucide-react";
 import type { RowAction } from "@/types/actions.types";
 import type { RecurrenceListItem } from "@/modules/recurrences/models/schemas/recurrence-item.schema";
 
@@ -15,6 +15,8 @@ export interface RecurrenceActionContext {
     onDeactivate?: (recurrence: RecurrenceListItem) => void;
     /** Abre a confirmação de arquivamento. */
     onArchive?: (recurrence: RecurrenceListItem) => void;
+    /** Abre a confirmação de desarquivamento. */
+    onRestore?: (recurrence: RecurrenceListItem) => void;
 }
 
 export const RECURRENCE_ACTIONS: RowAction<
@@ -33,14 +35,14 @@ export const RECURRENCE_ACTIONS: RowAction<
             label: "Editar",
             icon: Edit,
             onClick: (row, context) => context?.onEdit?.(row.original),
-            hidden: (_row, context) => !context?.onEdit,
+            hidden: (row, context) => !context?.onEdit || row.original.isArchived,
         },
         {
             id: "adjust-amount",
             label: "Ajustar valor",
             icon: SlidersHorizontal,
             onClick: (row, context) => context?.onAdjustAmount?.(row.original),
-            hidden: (_row, context) => !context?.onAdjustAmount,
+            hidden: (row, context) => !context?.onAdjustAmount || row.original.isArchived,
             disabled: (row) => !row.original.isActive,
         },
         {
@@ -48,7 +50,7 @@ export const RECURRENCE_ACTIONS: RowAction<
             label: "Ajustar prazos",
             icon: CalendarClock,
             onClick: (row, context) => context?.onAdjustDeadlines?.(row.original),
-            hidden: (_row, context) => !context?.onAdjustDeadlines,
+            hidden: (row, context) => !context?.onAdjustDeadlines || row.original.isArchived,
             disabled: (row) => !row.original.isActive,
         },
         {
@@ -56,14 +58,16 @@ export const RECURRENCE_ACTIONS: RowAction<
             label: "Desativar",
             icon: PowerOff,
             onClick: (row, context) => context?.onDeactivate?.(row.original),
-            hidden: (row, context) => !context?.onDeactivate || !row.original.isActive,
+            hidden: (row, context) =>
+                !context?.onDeactivate || row.original.isArchived || !row.original.isActive,
         },
         {
             id: "activate",
             label: "Ativar",
             icon: Power,
             onClick: (row, context) => context?.onActivate?.(row.original),
-            hidden: (row, context) => !context?.onActivate || row.original.isActive,
+            hidden: (row, context) =>
+                !context?.onActivate || row.original.isArchived || row.original.isActive,
         },
         {
             id: "archive",
@@ -71,6 +75,13 @@ export const RECURRENCE_ACTIONS: RowAction<
             icon: Archive,
             variant: "destructive",
             onClick: (row, context) => context?.onArchive?.(row.original),
-            hidden: (_row, context) => !context?.onArchive,
+            hidden: (row, context) => !context?.onArchive || row.original.isArchived,
+        },
+        {
+            id: "restore",
+            label: "Desarquivar",
+            icon: ArchiveRestore,
+            onClick: (row, context) => context?.onRestore?.(row.original),
+            hidden: (row, context) => !context?.onRestore || !row.original.isArchived,
         },
     ];

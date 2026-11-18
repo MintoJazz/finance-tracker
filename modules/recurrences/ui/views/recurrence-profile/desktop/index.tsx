@@ -9,6 +9,7 @@ import { RecurrenceCycleNavigatorDesktop } from "@/modules/recurrences/ui/compon
 import { RecurrenceCycleSidebarFilter } from "@/modules/recurrences/ui/components/recurrence-cycle-filter";
 import { RecurrenceCycleTable } from "@/modules/recurrences/ui/components/recurrence-cycle-table";
 import { ArchiveRecurrenceModalViewDesktop } from "../../archive-recurrence-modal";
+import { RestoreRecurrenceModalViewDesktop } from "../../restore-recurrence-modal";
 import { useRecurrenceProfileGlobalActions } from "../hooks/use-recurrence-profile-global-actions";
 import type { RecurrenceProfileDesktopProps } from "../types";
 
@@ -38,6 +39,8 @@ export function RecurrenceProfileDesktopView({
     onToggleActiveRecurrence,
     onArchiveRecurrence,
     archiveContext,
+    onRestoreRecurrence,
+    restoreContext,
 }: RecurrenceProfileDesktopProps) {
     useRecurrenceProfileGlobalActions(profile, {
         onEdit: onEditRecurrence,
@@ -45,6 +48,7 @@ export function RecurrenceProfileDesktopView({
         onAdjustDeadlines,
         onToggleActive: onToggleActiveRecurrence,
         onArchive: onArchiveRecurrence,
+        onRestore: onRestoreRecurrence,
     });
 
     if (profileError) {
@@ -134,6 +138,7 @@ export function RecurrenceProfileDesktopView({
             </div>
 
             <ArchiveRecurrenceModalViewDesktop {...archiveContext} />
+            <RestoreRecurrenceModalViewDesktop {...restoreContext} />
         </div>
     );
 }

@@ -16,6 +16,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-12-05",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 201,
             name: "Aluguel & Encargos",
@@ -36,6 +37,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-10-25",
         isActive: true,
         isOverdue: true,
+        isArchived: false,
         category: {
             balanceId: 202,
             name: "Condomínio Residencial",
@@ -56,6 +58,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-12-10",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 203,
             name: "Energia Elétrica & Gás",
@@ -76,6 +79,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-12-12",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 204,
             name: "Internet Fibra & Telefonia",
@@ -96,6 +100,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-12-10",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 205,
             name: "Plano de Saúde",
@@ -116,6 +121,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2027-01-20",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 206,
             name: "IPVA, Seguro & Licenciamento",
@@ -136,6 +142,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-12-15",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 208,
             name: "Academia & Personal",
@@ -156,6 +163,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-11-18",
         isActive: true,
         isOverdue: true,
+        isArchived: false,
         category: {
             balanceId: 209,
             name: "Água & Saneamento",
@@ -176,6 +184,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-11-21",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 210,
             name: "Supermercado & Feira",
@@ -196,6 +205,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-11-22",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 211,
             name: "Streaming & Assinaturas",
@@ -216,6 +226,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2027-03-10",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 212,
             name: "Moradia & Contas",
@@ -236,6 +247,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: null,
         isActive: false,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 213,
             name: "Compras, Livros & Eletrônicos",
@@ -256,6 +268,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-11-16",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 214,
             name: "Ração & Pet Shop",
@@ -276,6 +289,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-11-20",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 215,
             name: "Freelance & Consultoria",
@@ -296,6 +310,7 @@ export const MOCK_RECURRENCES: RecurrenceListItem[] = [
         nextDueDate: "2026-12-15",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         category: {
             balanceId: 216,
             name: "Dividendos & Rendimentos",

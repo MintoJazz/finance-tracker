@@ -40,6 +40,7 @@ export interface IRecurrenceRepository {
         data: { name: string; subcategoryId: number }
     ): Promise<{ id: number; name: string }>;
     archive(id: number, contextId: number): Promise<{ id: number; name: string }>;
+    restore(id: number, contextId: number): Promise<{ id: number; name: string }>;
     setActive(
         id: number,
         contextId: number,

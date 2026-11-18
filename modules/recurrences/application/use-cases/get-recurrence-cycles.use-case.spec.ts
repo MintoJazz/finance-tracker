@@ -34,6 +34,7 @@ describe("GetRecurrenceCyclesUseCase", () => {
         endsAt: null,
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         status: "ACTIVE",
         category: null,
         icon: "wifi",

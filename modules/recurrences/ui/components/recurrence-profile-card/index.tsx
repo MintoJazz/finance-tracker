@@ -37,6 +37,7 @@ export function RecurrenceProfileCard({
     const {
         name,
         isActive,
+        isArchived,
         category,
         frequency,
         currentAmount,
@@ -57,7 +58,7 @@ export function RecurrenceProfileCard({
         RECURRENCE_FREQUENCY_LABELS[frequency as RecurrenceFrequency] ?? frequency;
 
     return (
-        <ProfileCard isArchived={!isActive} className={className}>
+        <ProfileCard isArchived={isArchived || !isActive} className={className}>
             <ProfileCardBanner
                 className={cn(palette?.bg)}
                 style={bannerBackground ? { backgroundColor: bannerBackground } : undefined}
@@ -65,7 +66,7 @@ export function RecurrenceProfileCard({
                 <ProfileCardAvatar
                     className={cn(palette?.border)}
                     style={avatarBorderColor ? { borderColor: avatarBorderColor } : undefined}
-                    isArchived={!isActive}
+                    isArchived={isArchived || !isActive}
                 >
                     <div
                         style={colorStyle ?? (hashStyle ? { color: hashStyle.color } : undefined)}

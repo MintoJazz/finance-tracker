@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useModalHref } from "@/modules/agreements/ui/hooks/use-modal-href";
 import { toast } from "@/components/ui/toast";
 import { useArchiveRestore } from "@/hooks/use-archive-restore";
+import { restoreRecurrenceAction } from "@/modules/recurrences/ui/actions/restore-recurrence.action";
 import { archiveRecurrenceAction } from "@/modules/recurrences/ui/actions/archive-recurrence.action";
 import { useRecurrenceStatusActions } from "@/modules/recurrences/ui/hooks/use-recurrence-status-actions";
 import { useBreadcrumbLabel } from "@/components/header";
@@ -108,7 +109,7 @@ export function useRecurrenceProfileDesktop({
         void setActive(balanceId, profile.name, !profile.isActive);
     };
 
-    const { archiveContext, onArchive } = useArchiveRestore<{
+    const { archiveContext, onArchive, restoreContext, onRestore } = useArchiveRestore<{
         id: number;
         name: string;
     }>({
@@ -124,7 +125,20 @@ export function useRecurrenceProfileDesktop({
             }
             router.replace("/recurrences");
         },
+        onRestoreConfirm: async (recurrence) => {
+            const result = await restoreRecurrenceAction({ id: recurrence.id });
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            router.refresh();
+            await reloadProfile();
+        },
     });
+
+    const onRestoreRecurrence = () => {
+        if (!profile) return;
+        onRestore({ id: profile.balanceId, name: profile.name });
+    };
 
     const onArchiveRecurrence = () => {
         if (!profile) return;
@@ -165,6 +179,8 @@ export function useRecurrenceProfileDesktop({
         onToggleActiveRecurrence,
         onArchiveRecurrence,
         archiveContext,
+        onRestoreRecurrence,
+        restoreContext,
         onOpenRecurrenceActions,
         isRecurrenceActionsOpen,
         setIsRecurrenceActionsOpen,

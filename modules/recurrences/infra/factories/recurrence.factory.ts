@@ -14,6 +14,7 @@ import { ICategoryQueries } from "@/modules/categories/application/interfaces/ca
 import { GetRecurrenceFormOptionsUseCase } from "../../application/use-cases/get-recurrence-form-options.use-case";
 import { CreateRecurrenceUseCase } from "../../application/use-cases/create-recurrence.use-case";
 import { UpdateRecurrenceUseCase } from "../../application/use-cases/update-recurrence.use-case";
+import { RestoreRecurrenceUseCase } from "../../application/use-cases/restore-recurrence.use-case";
 import { ArchiveRecurrenceUseCase } from "../../application/use-cases/archive-recurrence.use-case";
 import { SetRecurrenceActiveUseCase } from "../../application/use-cases/set-recurrence-active.use-case";
 import { IRecurrenceRepository } from "../../application/interfaces/recurrence-repository.interface";
@@ -78,6 +79,12 @@ export class RecurrenceFactory {
 
     public static readonly makeArchiveRecurrenceUseCase = () =>
         new ArchiveRecurrenceUseCase(
+            this.recurrenceRepository,
+            this.spaceAccessProvider
+        );
+
+    public static readonly makeRestoreRecurrenceUseCase = () =>
+        new RestoreRecurrenceUseCase(
             this.recurrenceRepository,
             this.spaceAccessProvider
         );

@@ -29,6 +29,8 @@ export const RecurrenceListItemSchema = z.object({
     nextDueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
     isActive: z.boolean(),
     isOverdue: z.boolean(),
+    /** Arquivada (Balance.removedAt != null). */
+    isArchived: z.boolean().default(false),
     status: RecurrenceItemStatusSchema.optional(),
     category: RecurrenceCategorySchema.nullable(),
     icon: z.string().nullable(),
@@ -42,6 +44,8 @@ export const RecurrenceFiltersSchema = z.object({
     direction: RecurrenceDirectionSchema.optional(),
     active: RecurrenceStatusSchema.default("ALL"),
     frequency: RecurrenceFrequencySchema.optional(),
+    /** Lista somente as arquivadas (em vez de somente as não arquivadas). */
+    archivedOnly: z.boolean().optional(),
 });
 
 export type RecurrenceFrequency = z.infer<typeof RecurrenceFrequencySchema>;

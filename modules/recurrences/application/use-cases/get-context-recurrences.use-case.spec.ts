@@ -25,6 +25,7 @@ describe("GetContextRecurrencesUseCase", () => {
         nextDueDate: "2026-12-05",
         isActive: true,
         isOverdue: false,
+        isArchived: false,
         status: "ACTIVE",
         category: null,
         icon: null,

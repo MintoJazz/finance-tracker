@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useGlobalActions } from "@/components/global-actions";
-import { Loader2, Plus } from "lucide-react";
+import { Archive, Loader2, Plus } from "lucide-react";
 import { FilterBadgesCarousel } from "@/components/filter-badges-carousel";
 import { RecurrenceFilter } from "../../../components/recurrence-filter";
 import { RecurrenceFilterDrawer } from "../../../components/recurrence-filter/drawer";
@@ -37,6 +37,12 @@ export default function RecurrencesOverviewViewMobile({
                 label: "Nova recorrência",
                 icon: Plus,
                 onClick: onAddClick,
+            },
+            {
+                id: "recurrences-archived",
+                label: "Recorrências arquivadas",
+                icon: Archive,
+                href: "/recurrences/archived",
             },
         ],
         [onAddClick]

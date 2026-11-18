@@ -92,6 +92,24 @@ export class RecurrencePrismaRepository implements IRecurrenceRepository {
         });
     }
 
+    async restore(
+        id: number,
+        contextId: number
+    ): Promise<{ id: number; name: string }> {
+        const found = await this.requireRecurrence(id, contextId);
+        return this.prismaClient.balance.update({
+            where: {
+                id_contextId_balanceType: {
+                    id,
+                    contextId,
+                    balanceType: found.balanceType,
+                },
+            },
+            data: { removedAt: null },
+            select: { id: true, name: true },
+        });
+    }
+
     async setActive(
         id: number,
         contextId: number,

@@ -15,13 +15,14 @@ export interface RecurrenceProfileActionHandlers {
     onAdjustDeadlines?: () => void;
     onToggleActive?: () => void;
     onArchive?: () => void;
+    onRestore?: () => void;
 }
 
 export function useRecurrenceProfileGlobalActions(
     profile: RecurrenceProfile | null,
     handlers: RecurrenceProfileActionHandlers
 ) {
-    const { onEdit, onAdjustAmount, onAdjustDeadlines, onToggleActive, onArchive } = handlers;
+    const { onEdit, onAdjustAmount, onAdjustDeadlines, onToggleActive, onArchive, onRestore } = handlers;
 
     const context = useMemo<RecurrenceActionContext>(
         () => ({
@@ -31,8 +32,9 @@ export function useRecurrenceProfileGlobalActions(
             onActivate: () => onToggleActive?.(),
             onDeactivate: () => onToggleActive?.(),
             onArchive: () => onArchive?.(),
+            onRestore: () => onRestore?.(),
         }),
-        [onEdit, onAdjustAmount, onAdjustDeadlines, onToggleActive, onArchive]
+        [onEdit, onAdjustAmount, onAdjustDeadlines, onToggleActive, onArchive, onRestore]
     );
 
     useRowGlobalActions<RecurrenceListItem, RecurrenceActionContext>({

@@ -7,6 +7,7 @@ import type {
     RecurrenceCyclesResult,
 } from "@/modules/recurrences/models/schemas/recurrence-cycle-filters.schema";
 import type { ArchiveRecurrenceModalProps } from "../archive-recurrence-modal/types";
+import type { RestoreRecurrenceModalProps } from "../restore-recurrence-modal/types";
 import type { RecurrenceProfile } from "@/modules/recurrences/models/schemas/recurrence-profile.schema";
 import type { RecurrenceCycleActionContext } from "@/modules/recurrences/ui/components/recurrence-cycle-table/actions";
 import type { RecurrenceCycleFilterBadgeKey } from "@/modules/recurrences/ui/hooks/use-recurrence-cycle-filters";
@@ -47,6 +48,8 @@ export interface RecurrenceProfileDesktopProps {
     onToggleActiveRecurrence?: () => void;
     onArchiveRecurrence?: () => void;
     archiveContext: ArchiveRecurrenceModalProps;
+    onRestoreRecurrence?: () => void;
+    restoreContext: RestoreRecurrenceModalProps;
     onOpenRecurrenceActions?: () => void;
     isRecurrenceActionsOpen: boolean;
     setIsRecurrenceActionsOpen: (open: boolean) => void;
@@ -86,6 +89,8 @@ export interface RecurrenceProfileMobileProps {
     onToggleActiveRecurrence?: () => void;
     onArchiveRecurrence?: () => void;
     archiveContext: ArchiveRecurrenceModalProps;
+    onRestoreRecurrence?: () => void;
+    restoreContext: RestoreRecurrenceModalProps;
     onOpenRecurrenceActions?: () => void;
     onSelectCycle?: (cycle: CycleItem) => void;
 }

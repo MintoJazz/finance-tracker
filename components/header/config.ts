@@ -66,6 +66,11 @@ export const routes = defineRoutes({
     label: "Nova recorrência",
     parent: "recurrences",
   },
+  recurrenceArchived: {
+    pattern: "/recurrences/archived",
+    label: "Recorrências Arquivadas",
+    parent: "recurrences",
+  },
   recurrenceProfile: {
     pattern: "/recurrences/[id]",
     label: () => "",
