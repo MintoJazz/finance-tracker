@@ -21,6 +21,7 @@ export * from "./review.step";
 export * from "./main.step";
 export * from "./classification.step";
 export * from "./new-entity.steps";
+export * from "./edit.steps";
 
 /** Mobile: um assunto por tela; criar categoria/subcategoria adiciona 3 passos cada (nome, cor, ícone). */
 export function buildRecurrenceMobileSteps(

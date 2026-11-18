@@ -96,7 +96,7 @@ export const RecurrenceDeadlinesBaseSchema = RecurrenceFormBaseSchema.pick({
 type DeadlinesData = z.infer<typeof RecurrenceDeadlinesBaseSchema>;
 
 /** Regras de prazos por frequência (compartilhadas entre form completo e passo do wizard). */
-function refineDeadlines(data: DeadlinesData, ctx: z.RefinementCtx) {
+export function refineDeadlines(data: DeadlinesData, ctx: z.RefinementCtx) {
     const issue = (path: keyof DeadlinesData, message: string) =>
         ctx.addIssue({ code: "custom", path: [path], message });
 
@@ -139,7 +139,7 @@ export const RecurrenceClassificationBaseSchema = RecurrenceFormBaseSchema.pick(
 
 type ClassificationData = z.infer<typeof RecurrenceClassificationBaseSchema>;
 
-function refineClassification(data: ClassificationData, ctx: z.RefinementCtx) {
+export function refineClassification(data: ClassificationData, ctx: z.RefinementCtx) {
     const issue = (path: keyof ClassificationData, message: string) =>
         ctx.addIssue({ code: "custom", path: [path], message });
 

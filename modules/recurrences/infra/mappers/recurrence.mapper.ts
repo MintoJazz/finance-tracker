@@ -18,6 +18,7 @@ export type PrismaRecurrenceRecord = PrismaBalance & {
     appearance: PrismaBalanceAppearance | null;
     parent: (PrismaBalance & {
         appearance: PrismaBalanceAppearance | null;
+        parent?: PrismaBalance | null;
     }) | null;
     agreement: (PrismaAgreement & {
         rules: PrismaCycleRule[];
@@ -48,6 +49,7 @@ export class RecurrenceMapper {
         );
         const isActive = RecurrenceScheduleCalculator.resolveIsActive({
             removedAt: balance.removedAt,
+            isActive: agreement.isActive,
             startsAt: agreement.startsAt,
             endsAt: agreement.endsAt,
             today,
@@ -84,6 +86,8 @@ export class RecurrenceMapper {
             interval: agreement.interval,
             dueDay: activeRule.dueDay,
             dueMonth: activeRule.dueMonth ?? null,
+            closingDay: activeRule.closingDay ?? null,
+            closingMonth: activeRule.closingMonth ?? null,
             currentAmount,
             nextDueDate,
             isActive,
@@ -94,6 +98,8 @@ export class RecurrenceMapper {
                       balanceId: balance.parent.id,
                       name: balance.parent.name,
                       color: balance.parent.appearance?.color ?? null,
+                      parentId: balance.parent.parent?.id ?? null,
+                      parentName: balance.parent.parent?.name ?? null,
                   }
                 : null,
             icon:

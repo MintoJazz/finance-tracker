@@ -42,6 +42,17 @@ export function useCycleDetailData({
     );
     const hasMountedRef = useRef(false);
 
+    // Detalhe novo vindo do servidor (ex.: após ajustar prazos): aplica sem chamar a action.
+    const [syncedInitial, setSyncedInitial] = useState(initialData);
+    if (initialData !== syncedInitial) {
+        setSyncedInitial(initialData);
+        if (isMatchingInitial && initialData) {
+            setCycleDetail(initialData);
+            setDetailError(null);
+            setIsLoadingDetail(false);
+        }
+    }
+
     const fetchDetail = useCallback(async () => {
         setIsLoadingDetail(true);
         setDetailError(null);

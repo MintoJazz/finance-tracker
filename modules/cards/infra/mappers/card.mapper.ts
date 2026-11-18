@@ -6,6 +6,10 @@ import {
 } from "@/prisma/generated/prisma/client";
 import { CardSummary } from "@/modules/cards/models/card.schema";
 import { CardProfile } from "@/modules/cards/models/card-profile.schema";
+import {
+    resolveEffectiveRule,
+    sumEffectiveAmount,
+} from "@/modules/agreements/application/services/agreement-ledger";
 
 export type BalanceWithCreditDetails = PrismaBalance & {
     agreement?: (PrismaAgreement & {
@@ -26,18 +30,12 @@ export class CardMapper {
     ) {
         const isArchived = balance.removedAt !== null;
 
-        // Limite efetivo acumulado (soma dos deltas do Agreement)
-        const limit = Math.max(
-            0,
-            balance.agreement?.amountEntries?.reduce(
-                (sum, entry) => sum + entry.amount,
-                0
-            ) ?? 0
-        );
+        // Limite efetivo hoje: soma dos deltas do Agreement já em vigência
+        const limit = sumEffectiveAmount(balance.agreement?.amountEntries ?? []);
         const availableLimit = Math.max(0, limit - usedLimit);
 
-        // Regra de ciclo vigente mais recente
-        const currentRule = balance.agreement?.rules?.[0];
+        // Regra de ciclo vigente hoje (regras futuras ainda não valem)
+        const currentRule = resolveEffectiveRule(balance.agreement?.rules ?? []);
         const closingDay = currentRule?.closingDay ?? currentRule?.dueDay ?? 1;
         const dueDay = currentRule?.dueDay ?? 10;
 

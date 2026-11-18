@@ -40,9 +40,9 @@ model Balance {
 model Agreement {
   balanceId Int @id
 
-  includeInProjection Boolean        @default(true)
-  frequency           CycleFrequency @default(MONTHLY)
-  interval            Int            @default(1)
+  isActive  Boolean        @default(true)
+  frequency CycleFrequency @default(MONTHLY)
+  interval  Int            @default(1)
 
   startsAt  DateTime  @db.Date
   endsAt    DateTime? @db.Date

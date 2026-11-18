@@ -8,6 +8,7 @@ import { RecurrenceFilter } from "../../../components/recurrence-filter";
 import { RecurrenceFilterDrawer } from "../../../components/recurrence-filter/drawer";
 import { RecurrenceSearchBar } from "../../../components/recurrence-filter/search-bar";
 import RecurrenceList from "../../../components/recurrence-list";
+import { ArchiveRecurrenceModalViewMobile } from "../../archive-recurrence-modal";
 import type { MobileRecurrenceOverviewProps } from "../types";
 
 export default function RecurrencesOverviewViewMobile({
@@ -17,6 +18,7 @@ export default function RecurrencesOverviewViewMobile({
     isLoadingMore,
     sentinelRef,
     actionsMenuContext,
+    archiveContext,
     onAddClick,
     filters,
     activeFilterCount,
@@ -105,6 +107,8 @@ export default function RecurrencesOverviewViewMobile({
                 <RecurrenceFilter.Status />
                 <RecurrenceFilter.Frequency />
             </RecurrenceFilterDrawer>
+
+            <ArchiveRecurrenceModalViewMobile {...archiveContext} />
         </div>
     );
 }

@@ -265,7 +265,7 @@ export class ClaimSeedFactory {
           balanceId,
           startsAt: date,
           endsAt: date,
-          includeInProjection: true,
+          isActive: true,
           frequency: CycleFrequency.ONCE,
           interval: 1,
           rules: {

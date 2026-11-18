@@ -13,6 +13,11 @@ import { CategoryPrismaQueries } from "@/modules/categories/infra/repositories/c
 import { ICategoryQueries } from "@/modules/categories/application/interfaces/category-queries.interface";
 import { GetRecurrenceFormOptionsUseCase } from "../../application/use-cases/get-recurrence-form-options.use-case";
 import { CreateRecurrenceUseCase } from "../../application/use-cases/create-recurrence.use-case";
+import { UpdateRecurrenceUseCase } from "../../application/use-cases/update-recurrence.use-case";
+import { ArchiveRecurrenceUseCase } from "../../application/use-cases/archive-recurrence.use-case";
+import { SetRecurrenceActiveUseCase } from "../../application/use-cases/set-recurrence-active.use-case";
+import { IRecurrenceRepository } from "../../application/interfaces/recurrence-repository.interface";
+import { RecurrencePrismaRepository } from "../repositories/recurrence-prisma.repository";
 import { IRecurrenceUnitOfWork } from "../../application/interfaces/recurrence-uow.interface";
 import { RecurrencePrismaQueries } from "../repositories/recurrence-prisma.queries";
 import { RecurrencePrismaUnitOfWork } from "../uow/recurrence-prisma.uow";
@@ -24,6 +29,8 @@ export class RecurrenceFactory {
         new CyclePrismaQueries(prisma);
     private static readonly categoryQueries: ICategoryQueries =
         new CategoryPrismaQueries();
+    private static readonly recurrenceRepository: IRecurrenceRepository =
+        new RecurrencePrismaRepository();
     private static readonly recurrenceUow: IRecurrenceUnitOfWork =
         new RecurrencePrismaUnitOfWork();
     private static readonly memberRepository: IContextMemberRepository =
@@ -57,9 +64,27 @@ export class RecurrenceFactory {
             this.spaceAccessProvider
         );
 
+    public static readonly makeUpdateRecurrenceUseCase = () =>
+        new UpdateRecurrenceUseCase(
+            this.recurrenceUow,
+            this.spaceAccessProvider
+        );
+
     public static readonly makeGetRecurrenceFormOptionsUseCase = () =>
         new GetRecurrenceFormOptionsUseCase(
             this.categoryQueries,
+            this.spaceAccessProvider
+        );
+
+    public static readonly makeArchiveRecurrenceUseCase = () =>
+        new ArchiveRecurrenceUseCase(
+            this.recurrenceRepository,
+            this.spaceAccessProvider
+        );
+
+    public static readonly makeSetRecurrenceActiveUseCase = () =>
+        new SetRecurrenceActiveUseCase(
+            this.recurrenceRepository,
             this.spaceAccessProvider
         );
 }

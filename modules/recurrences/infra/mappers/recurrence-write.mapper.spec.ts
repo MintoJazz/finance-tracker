@@ -37,7 +37,7 @@ describe("recurrence-write.mapper", () => {
         const a = buildAgreementCreate(base);
         assert.equal(a.frequency, "MONTHLY");
         assert.equal(a.interval, 1);
-        assert.equal(a.includeInProjection, true);
+        assert.equal(a.isActive, true);
         assert.equal(a.endsAt, null);
         assert.equal(a.startsAt.toISOString(), "2026-11-17T00:00:00.000Z");
         assert.equal(a.rules.create.effectiveFrom.getTime(), a.startsAt.getTime());

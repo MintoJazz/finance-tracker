@@ -23,7 +23,7 @@ export function buildAgreementCreate(data: CreateRecurrenceRepositoryDTO) {
     const hasClosing = data.hasCustomClosingDate;
 
     return {
-        includeInProjection: true,
+        isActive: true,
         frequency: data.frequency,
         interval: 1,
         startsAt,

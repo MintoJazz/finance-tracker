@@ -248,7 +248,7 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
       amount: 25000,
       startsAt: "2025-02-01",
       endsAt: "2026-07-31",
-      includeInProjection: false,
+      isActive: false,
       rules: [
         { effectiveFrom: "2025-02-01", frequency: CycleFrequency.MONTHLY, closingDay: null, dueDay: 15 },
       ],

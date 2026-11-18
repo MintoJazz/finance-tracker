@@ -1,6 +1,7 @@
 import type { FilterBadgeOption } from "@/components/filter-badges-carousel";
 import type { RecurrenceListItem } from "@/modules/recurrences/models/schemas/recurrence-item.schema";
 import type { Page } from "@/types/pagination.types";
+import type { ArchiveRecurrenceModalProps } from "../archive-recurrence-modal/types";
 import type { RecurrenceActionContext } from "../../components/recurrence-actions-drawer";
 import type { RecurrenceFilterValues } from "../../components/recurrence-filter";
 import type { RecurrenceFilterBadgeKey } from "../../hooks/use-recurrence-filters";
@@ -12,6 +13,7 @@ export interface RecurrencePaginationContext {
 
 export interface RecurrenceOverviewSharedProps {
     actionsMenuContext: RecurrenceActionContext;
+    archiveContext: ArchiveRecurrenceModalProps;
     onAddClick: () => void;
     filters: RecurrenceFilterValues;
     activeFilterCount: number;

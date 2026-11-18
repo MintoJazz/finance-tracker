@@ -54,16 +54,25 @@ export function useRecurrenceProfileData(
         await fetchProfile();
     }, [fetchProfile]);
 
-    useEffect(() => {
-        if (!hasMountedRef.current) {
-            hasMountedRef.current = true;
-            if (!initialProfile) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
-                void fetchProfile();
-            }
-            return;
+    // O servidor entrega um perfil novo (ex.: após revalidatePath e voltar de um modal de ajuste):
+    // acompanha as props em vez de manter só a primeira cópia no estado.
+    const [syncedInitial, setSyncedInitial] = useState(initialProfile);
+    if (initialProfile !== syncedInitial) {
+        setSyncedInitial(initialProfile);
+        if (initialProfile) {
+            setProfile(initialProfile);
+            setProfileError(null);
+            setIsLoadingProfile(false);
         }
-        void fetchProfile();
+    }
+
+    useEffect(() => {
+        if (hasMountedRef.current) return;
+        hasMountedRef.current = true;
+        if (!initialProfile) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            void fetchProfile();
+        }
     }, [fetchProfile, initialProfile]);
 
     return {

@@ -62,6 +62,19 @@ export function useRecurrenceCyclesData({
     );
     const hasMountedRef = useRef(false);
 
+    // Ciclos novos vindos do servidor (ex.: após um ajuste de prazos/valor): só aplica se
+    // forem do horizonte/filtros atuais, sem chamar a action (a URL pode ser a de um modal).
+    const [syncedInitial, setSyncedInitial] = useState(initialData);
+    if (initialData !== syncedInitial) {
+        setSyncedInitial(initialData);
+        if (isMatchingInitial && initialData) {
+            setHorizon(initialData.horizon);
+            setCycles(initialData.cycles);
+            setCyclesError(null);
+            setIsLoadingCycles(false);
+        }
+    }
+
     const fetchCycles = useCallback(async () => {
         setIsLoadingCycles(true);
         setCyclesError(null);

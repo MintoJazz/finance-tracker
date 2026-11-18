@@ -11,7 +11,7 @@ import {
 } from "@/components/wizard";
 import { cn } from "@/lib/utils";
 import type { RecurrenceFormValues } from "@/modules/recurrences/models/schemas/recurrence-form.schema";
-import { buildRecurrenceDesktopSteps } from "./steps";
+import { buildRecurrenceDesktopSteps, buildRecurrenceEditDesktopSteps } from "./steps";
 import type { RecurrenceWizardProps } from "./types";
 
 function RecurrenceDialogFooter({
@@ -48,9 +48,16 @@ export function RecurrenceDialogWizard({
   onSubmit,
   onClose,
   submitText = "Criar recorrência",
+  variant = "create",
   className,
 }: RecurrenceWizardProps) {
-  const steps = React.useMemo(() => buildRecurrenceDesktopSteps(options), [options]);
+  const steps = React.useMemo(
+    () =>
+      variant === "edit"
+        ? buildRecurrenceEditDesktopSteps(options)
+        : buildRecurrenceDesktopSteps(options),
+    [options, variant]
+  );
 
   return (
     <Wizard<RecurrenceFormValues>

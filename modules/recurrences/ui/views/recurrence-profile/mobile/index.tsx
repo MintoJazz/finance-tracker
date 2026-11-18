@@ -9,6 +9,7 @@ import { RecurrenceCycleList } from "@/modules/recurrences/ui/components/recurre
 import { RecurrenceProfileCard } from "@/modules/recurrences/ui/components/recurrence-profile-card";
 import { RecurrenceCycleFilterDrawer } from "@/modules/recurrences/ui/components/recurrence-cycle-filter/drawer";
 import { RecurrenceActionsDrawer } from "@/modules/recurrences/ui/components/recurrence-actions-drawer";
+import { ArchiveRecurrenceModalViewMobile } from "../../archive-recurrence-modal";
 import type { RecurrenceProfileMobileProps } from "../types";
 
 export default function RecurrenceProfileViewMobile({
@@ -38,7 +39,11 @@ export default function RecurrenceProfileViewMobile({
     isRecurrenceActionsOpen,
     setIsRecurrenceActionsOpen,
     onEditRecurrence,
+    onAdjustAmount,
+    onAdjustDeadlines,
     onToggleActiveRecurrence,
+    onArchiveRecurrence,
+    archiveContext,
     onOpenRecurrenceActions,
     onSelectCycle,
 }: RecurrenceProfileMobileProps) {
@@ -66,7 +71,8 @@ export default function RecurrenceProfileViewMobile({
                         recurrence={profile}
                         isVisible={isVisible}
                         onToggleVisibility={() => setIsVisible((v) => !v)}
-                        onEdit={onEditRecurrence}
+                        onAdjustAmount={onAdjustAmount}
+                        onAdjustDeadlines={onAdjustDeadlines}
                         onToggleActive={onToggleActiveRecurrence}
                         onOpenActions={onOpenRecurrenceActions}
                         className="rounded-none border-0 shadow-none pb-3"
@@ -137,10 +143,17 @@ export default function RecurrenceProfileViewMobile({
                     recurrence={profile}
                     context={{
                         onEdit: () => onEditRecurrence?.(),
+                        onAdjustAmount: () => onAdjustAmount?.(),
+                        onAdjustDeadlines: () => onAdjustDeadlines?.(),
+                        onActivate: () => onToggleActiveRecurrence?.(),
+                        onDeactivate: () => onToggleActiveRecurrence?.(),
+                        onArchive: () => onArchiveRecurrence?.(),
                     }}
                     trigger={null}
                 />
             )}
+
+            <ArchiveRecurrenceModalViewMobile {...archiveContext} />
         </div>
     );
 }

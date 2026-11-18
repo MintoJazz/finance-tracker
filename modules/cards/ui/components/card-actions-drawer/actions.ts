@@ -1,7 +1,7 @@
 import { actionsToCatalog } from "@/components/actions/catalog";
 import { RowAction, ActionCatalog } from "@/types/actions.types";
 import { CardSummary } from "@/modules/cards/models/card.schema";
-import { CreditCard, Edit, Archive, Eye, Receipt, SlidersHorizontal } from "lucide-react";
+import { CalendarClock, CreditCard, Edit, Archive, Eye, Receipt, SlidersHorizontal } from "lucide-react";
 
 export interface CardActionContext {
     onView?: (card: CardSummary) => void;
@@ -9,6 +9,10 @@ export interface CardActionContext {
     onArchive: (card: CardSummary) => void;
     onExpense?: (card: CardSummary) => void;
     onPayInvoice?: (card: CardSummary) => void;
+    /** Registra um novo AgreementAmountEntry (limite). */
+    onAdjustLimit?: (card: CardSummary) => void;
+    /** Registra um novo CycleRule (fechamento/vencimento da fatura). */
+    onAdjustDeadlines?: (card: CardSummary) => void;
 }
 
 export const CARD_VIEW_ACTION_ID = "view";
@@ -60,7 +64,16 @@ const CARD_PROFILE_SPECIFIC_ACTIONS: ActionCatalog<
         label: "Limite",
         icon: SlidersHorizontal,
         disabled: (row) => row.original.isArchived,
-        onClick: (row, context) => context?.onEdit(row.original),
+        onClick: (row, context) => context?.onAdjustLimit?.(row.original),
+        hidden: (_row, context) => !context?.onAdjustLimit,
+    },
+    adjustDeadlines: {
+        id: "adjust-deadlines",
+        label: "Prazos",
+        icon: CalendarClock,
+        disabled: (row) => row.original.isArchived,
+        onClick: (row, context) => context?.onAdjustDeadlines?.(row.original),
+        hidden: (_row, context) => !context?.onAdjustDeadlines,
     },
 };
 

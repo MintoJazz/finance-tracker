@@ -7,7 +7,7 @@ export interface AgreementContextRecord {
     balanceId: number;
     balanceName: string;
     balanceType: BalanceType;
-    includeInProjection: boolean;
+    isActive: boolean;
     frequency: CycleFrequency;
     interval: number;
     startsAt: Date;

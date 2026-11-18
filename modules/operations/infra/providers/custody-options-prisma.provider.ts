@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { sumEffectiveAmount } from "@/modules/agreements/application/services/agreement-ledger"
 import type { ICustodyOptionsProvider } from "../../application/interfaces/operation-options-provider.interface"
 import type { CustodyOption } from "../../models/operation-options.schema"
 import type { CustodyBalanceType } from "../../models/operation-seed.schema"
@@ -64,11 +65,7 @@ export class CustodyOptionsPrismaProvider implements ICustodyOptionsProvider {
 
       let balanceCents: number
       if (type === "CREDIT") {
-        const limit =
-          balance.agreement?.amountEntries?.reduce(
-            (sum, entry) => sum + entry.amount,
-            0
-          ) ?? 0
+        const limit = sumEffectiveAmount(balance.agreement?.amountEntries ?? [])
         const usedLimit = Math.max(0, -netSum)
         balanceCents = Math.max(0, limit - usedLimit)
       } else {

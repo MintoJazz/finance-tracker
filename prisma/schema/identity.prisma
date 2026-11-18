@@ -9,7 +9,7 @@ model Party {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  managedBy Party?  @relation("PartyManagedBy", fields: [managedByPartyId], references: [id])
+  managedBy  Party?  @relation("PartyManagedBy", fields: [managedByPartyId], references: [id])
   dependents Party[] @relation("PartyManagedBy")
 
   auth Auth?

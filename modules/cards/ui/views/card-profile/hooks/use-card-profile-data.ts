@@ -52,15 +52,25 @@ export function useCardProfileData(
         await fetchProfile();
     }, [fetchProfile]);
 
-    useEffect(() => {
-        if (!hasMountedRef.current) {
-            hasMountedRef.current = true;
-            if (!initialProfile) {
-                void fetchProfile();
-            }
-            return;
+    // Perfil novo vindo do servidor (ex.: após revalidatePath e voltar de um modal de ajuste):
+    // acompanha as props em vez de manter só a primeira cópia no estado.
+    const [syncedInitial, setSyncedInitial] = useState(initialProfile);
+    if (initialProfile !== syncedInitial) {
+        setSyncedInitial(initialProfile);
+        if (initialProfile) {
+            setProfile(initialProfile);
+            setProfileError(null);
+            setIsLoadingProfile(false);
         }
-        void fetchProfile();
+    }
+
+    useEffect(() => {
+        if (hasMountedRef.current) return;
+        hasMountedRef.current = true;
+        if (!initialProfile) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            void fetchProfile();
+        }
     }, [fetchProfile, initialProfile]);
 
     // Recarrega silenciosamente quando retorna do modal de rota interceptada (/edit -> /cards/[id])

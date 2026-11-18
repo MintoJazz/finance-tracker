@@ -18,6 +18,8 @@ import type {
 export interface CycleRuleData {
     dueDay: number;
     dueMonth: number | null;
+    closingDay?: number | null;
+    closingMonth?: number | null;
     effectiveFrom: Date;
 }
 
@@ -38,6 +40,8 @@ export interface CalculateNextDueDateParams {
 
 export interface ResolveIsActiveParams {
     removedAt: Date | null;
+    /** Flag de ativação manual (Agreement.isActive). Padrão: true. */
+    isActive?: boolean;
     startsAt: Date;
     endsAt: Date | null;
     today?: Date;
@@ -48,7 +52,7 @@ export class RecurrenceScheduleCalculator {
      * Resolve o status de ativação da recorrência baseado nas datas contratuais.
      */
     static resolveIsActive(params: ResolveIsActiveParams): boolean {
-        if (params.removedAt !== null) {
+        if (params.removedAt !== null || params.isActive === false) {
             return false;
         }
 

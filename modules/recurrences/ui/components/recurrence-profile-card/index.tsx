@@ -1,8 +1,16 @@
 "use client";
 
 import React from "react";
-import { Edit3, Eye, EyeOff, MoreHorizontal, Power } from "lucide-react";
+import {
+    CalendarClock,
+    Eye,
+    EyeOff,
+    MoreHorizontal,
+    Power,
+    SlidersHorizontal,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ActionsMenu } from "@/components/actions/menu";
 import {
     ProfileCard,
     ProfileCardAvatar,
@@ -14,6 +22,10 @@ import { formatMoney } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { getCategoryTheme } from "@/modules/movements/ui/components/category-badge";
 import { CategoryIcon } from "@/modules/movements/ui/components/category-badge/category-icon";
+import {
+    RECURRENCE_ACTIONS,
+    type RecurrenceActionContext,
+} from "../recurrence-actions-drawer/actions";
 import { RecurrenceStatusBadge } from "../recurrence-status-badge";
 import {
     formatRecurrenceDue,
@@ -26,9 +38,13 @@ export interface RecurrenceProfileCardProps {
     recurrence: RecurrenceProfile;
     isVisible: boolean;
     onToggleVisibility: () => void;
-    onEdit?: () => void;
+    onAdjustAmount?: () => void;
+    onAdjustDeadlines?: () => void;
     onToggleActive?: () => void;
+    /** Mobile: abre o drawer de ações. */
     onOpenActions?: () => void;
+    /** Desktop: quando informado, "Opções" abre um dropdown em vez do drawer. */
+    actionsMenuContext?: RecurrenceActionContext;
     className?: string;
 }
 
@@ -36,9 +52,11 @@ export function RecurrenceProfileCard({
     recurrence,
     isVisible,
     onToggleVisibility,
-    onEdit,
+    onAdjustAmount,
+    onAdjustDeadlines,
     onToggleActive,
     onOpenActions,
+    actionsMenuContext,
     className,
 }: RecurrenceProfileCardProps) {
     const {
@@ -62,6 +80,19 @@ export function RecurrenceProfileCard({
 
     const frequencyLabel =
         RECURRENCE_FREQUENCY_LABELS[frequency as RecurrenceFrequency] ?? frequency;
+
+    const optionsButton = (
+        <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onOpenActions}
+            className="flex flex-col items-center justify-center h-auto py-2 px-1 text-xs gap-1 border-border/80 hover:bg-accent/60 cursor-pointer"
+        >
+            <MoreHorizontal className="size-4 text-muted-foreground" />
+            <span>Opções</span>
+        </Button>
+    );
 
     return (
         <ProfileCard isArchived={!isActive} className={className}>
@@ -150,16 +181,29 @@ export function RecurrenceProfileCard({
                 </div>
 
                 {/* Ações Rápidas */}
-                <div className="grid grid-cols-3 gap-2 pt-1">
+                <div className="grid grid-cols-4 gap-2 pt-1">
                     <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={onEdit}
+                        onClick={onAdjustAmount}
+                        disabled={!isActive}
                         className="flex flex-col items-center justify-center h-auto py-2 px-1 text-xs gap-1 border-border/80 hover:bg-accent/60 cursor-pointer"
                     >
-                        <Edit3 className="size-4 text-muted-foreground" />
-                        <span>Editar</span>
+                        <SlidersHorizontal className="size-4 text-muted-foreground" />
+                        <span>Valor</span>
+                    </Button>
+
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={onAdjustDeadlines}
+                        disabled={!isActive}
+                        className="flex flex-col items-center justify-center h-auto py-2 px-1 text-xs gap-1 border-border/80 hover:bg-accent/60 cursor-pointer"
+                    >
+                        <CalendarClock className="size-4 text-muted-foreground" />
+                        <span>Prazos</span>
                     </Button>
 
                     <Button
@@ -170,19 +214,19 @@ export function RecurrenceProfileCard({
                         className="flex flex-col items-center justify-center h-auto py-2 px-1 text-xs gap-1 border-border/80 hover:bg-accent/60 cursor-pointer"
                     >
                         <Power className="size-4 text-muted-foreground" />
-                        <span>{isActive ? "Pausar" : "Ativar"}</span>
+                        <span>{isActive ? "Desativar" : "Ativar"}</span>
                     </Button>
 
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={onOpenActions}
-                        className="flex flex-col items-center justify-center h-auto py-2 px-1 text-xs gap-1 border-border/80 hover:bg-accent/60 cursor-pointer"
-                    >
-                        <MoreHorizontal className="size-4 text-muted-foreground" />
-                        <span>Opções</span>
-                    </Button>
+                    {actionsMenuContext ? (
+                        <ActionsMenu
+                            row={recurrence}
+                            actions={RECURRENCE_ACTIONS}
+                            context={actionsMenuContext}
+                            trigger={optionsButton}
+                        />
+                    ) : (
+                        optionsButton
+                    )}
                 </div>
             </ProfileCardContent>
         </ProfileCard>

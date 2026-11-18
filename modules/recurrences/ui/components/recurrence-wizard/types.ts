@@ -12,5 +12,7 @@ export interface RecurrenceWizardProps {
   onClose?: () => void;
   /** Texto do botão de submissão na etapa final */
   submitText?: string;
+  /** `edit`: só nome e categoria padrão (padrão: `create`) */
+  variant?: "create" | "edit";
   className?: string;
 }

@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useModalHref } from "@/modules/agreements/ui/hooks/use-modal-href";
 import { toast } from "@/components/ui/toast";
+import { useArchiveRestore } from "@/hooks/use-archive-restore";
+import { archiveRecurrenceAction } from "@/modules/recurrences/ui/actions/archive-recurrence.action";
+import { useRecurrenceStatusActions } from "@/modules/recurrences/ui/hooks/use-recurrence-status-actions";
 import { useBreadcrumbLabel } from "@/components/header";
 import type {
     RecurrenceProfileDesktopProps,
@@ -18,6 +23,7 @@ export function useRecurrenceProfileDesktop({
     initialCyclesData,
 }: RecurrenceProfileInput): RecurrenceProfileDesktopProps {
     const [isVisible, setIsVisible] = useState(true);
+    const [isRecurrenceActionsOpen, setIsRecurrenceActionsOpen] = useState(false);
 
     // 1. Perfil da Recorrência (SSR + cliente)
     const {
@@ -80,28 +86,53 @@ export function useRecurrenceProfileDesktop({
         []
     );
 
-    const onEditRecurrence = () => {
-        toast.add({
-            type: "info",
-            title: `Editar ${profile?.name ?? "Recorrência"}`,
-            description: "O fluxo de edição de recorrência estará disponível em breve.",
-        });
+    const router = useRouter();
+    const modalHref = useModalHref();
+
+    const onAdjustAmount = () => {
+        router.push(modalHref(`/recurrences/${balanceId}/adjust-amount`));
     };
 
+    const onAdjustDeadlines = () => {
+        router.push(modalHref(`/recurrences/${balanceId}/adjust-deadlines`));
+    };
+
+    const onEditRecurrence = () => {
+        router.push(modalHref(`/recurrences/${balanceId}/edit`));
+    };
+
+    const { setActive } = useRecurrenceStatusActions(reloadProfile);
+
     const onToggleActiveRecurrence = () => {
-        toast.add({
-            type: "info",
-            title: profile?.isActive ? "Pausar Recorrência" : "Ativar Recorrência",
-            description: "Alteração de status em breve.",
-        });
+        if (!profile) return;
+        void setActive(balanceId, profile.name, !profile.isActive);
+    };
+
+    const { archiveContext, onArchive } = useArchiveRestore<{
+        id: number;
+        name: string;
+    }>({
+        entityName: "Recorrência",
+        find: (item) =>
+            profile && profile.balanceId === item.id
+                ? { id: profile.balanceId, name: profile.name }
+                : undefined,
+        onArchiveConfirm: async (recurrence) => {
+            const result = await archiveRecurrenceAction({ id: recurrence.id });
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            router.replace("/recurrences");
+        },
+    });
+
+    const onArchiveRecurrence = () => {
+        if (!profile) return;
+        onArchive({ id: profile.balanceId, name: profile.name });
     };
 
     const onOpenRecurrenceActions = () => {
-        toast.add({
-            type: "info",
-            title: "Ações da Recorrência",
-            description: "Opções avançadas estarão disponíveis em breve.",
-        });
+        setIsRecurrenceActionsOpen(true);
     };
 
     return {
@@ -129,7 +160,13 @@ export function useRecurrenceProfileDesktop({
         setIsVisible,
         actionContext,
         onEditRecurrence,
+        onAdjustAmount,
+        onAdjustDeadlines,
         onToggleActiveRecurrence,
+        onArchiveRecurrence,
+        archiveContext,
         onOpenRecurrenceActions,
+        isRecurrenceActionsOpen,
+        setIsRecurrenceActionsOpen,
     };
 }

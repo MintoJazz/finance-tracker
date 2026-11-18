@@ -8,11 +8,13 @@ import { RecurrenceFilter } from "../../../components/recurrence-filter";
 import { RecurrenceFilterModal } from "../../../components/recurrence-filter/modal";
 import { RecurrenceSearchBar } from "../../../components/recurrence-filter/search-bar";
 import RecurrenceTable from "../../../components/recurrence-table";
+import { ArchiveRecurrenceModalViewDesktop } from "../../archive-recurrence-modal";
 import type { RecurrenceOverviewProps } from "../types";
 
 export default function RecurrencesOverviewViewDesktop({
     data,
     actionsMenuContext,
+    archiveContext,
     onAddClick,
     paginationContext,
     filters,
@@ -84,6 +86,8 @@ export default function RecurrencesOverviewViewDesktop({
                 <RecurrenceFilter.Status />
                 <RecurrenceFilter.Frequency />
             </RecurrenceFilterModal>
+
+            <ArchiveRecurrenceModalViewDesktop {...archiveContext} />
         </div>
     );
 }

@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useModalHref } from "@/modules/agreements/ui/hooks/use-modal-href";
 import { CardProfileDesktopProps, CardProfileInput } from "../types";
 import { useCardProfileData } from "../hooks/use-card-profile-data";
 import { useCycleStatementDesktop } from "@/modules/cycles/ui/views/cycle-statement/desktop/hook";
@@ -21,6 +22,7 @@ export function useCardProfileDesktop({
 }: CardProfileInput): CardProfileDesktopProps {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const modalHref = useModalHref();
 
     // 1. Busca isolada do perfil do cartão (hidratado via SSR)
     const {
@@ -89,10 +91,12 @@ export function useCardProfileDesktop({
     const cardActionsContext = useMemo<CardActionContext>(
         () => ({
             onEdit: (c) => router.push(`/cards/${c.id}/edit`),
+            onAdjustLimit: (c) => router.push(modalHref(`/cards/${c.id}/adjust-limit`)),
+            onAdjustDeadlines: (c) => router.push(modalHref(`/cards/${c.id}/adjust-deadlines`)),
             onArchive,
             onRestore,
         }),
-        [router, onArchive, onRestore]
+        [router, modalHref, onArchive, onRestore]
     );
 
     return {

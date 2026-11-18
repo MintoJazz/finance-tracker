@@ -10,6 +10,10 @@ import {
     StringFilter,
 } from "@/prisma/generated/prisma/models";
 import { PageRequest, Page } from "@/types/pagination.types";
+import {
+    resolveEffectiveRule,
+    sumEffectiveAmount,
+} from "@/modules/agreements/application/services/agreement-ledger";
 import { CardMapper } from "../mappers/card.mapper";
 import { CardSummary } from "@/modules/cards/models/card.schema";
 import { CardProfile } from "@/modules/cards/models/card-profile.schema";
@@ -18,9 +22,9 @@ export class CardPrismaQueries implements ICardQueries {
     private static readonly includeAgreement = {
         agreement: {
             include: {
+                // Todas as regras: a vigente hoje é resolvida por data (pode haver regras futuras)
                 rules: {
                     orderBy: { effectiveFrom: "desc" },
-                    take: 1,
                 },
                 amountEntries: {
                     orderBy: { effectiveAt: "asc" },
@@ -117,11 +121,8 @@ export class CardPrismaQueries implements ICardQueries {
 
         if (!card) return null;
 
-        const currentRule = card.agreement?.rules?.[0];
-        const limit = Math.max(
-            0,
-            card.agreement?.amountEntries?.reduce((sum, entry) => sum + entry.amount, 0) ?? 0
-        );
+        const currentRule = resolveEffectiveRule(card.agreement?.rules ?? []);
+        const limit = sumEffectiveAmount(card.agreement?.amountEntries ?? []);
 
         return {
             id: card.id,

@@ -17,6 +17,8 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
         parent: {
             include: {
                 appearance: true,
+                // Categoria raiz (pai da subcategoria)
+                parent: true,
             },
         },
         agreement: {
@@ -76,6 +78,7 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
             where: {
                 id: balanceId,
                 contextId,
+                removedAt: null,
                 balanceType: { in: ["PAYABLE", "RECEIVABLE"] },
                 agreement: {
                     isNot: null,
@@ -112,6 +115,8 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
 
         const where: BalanceWhereInput = {
             contextId,
+            // Recorrências arquivadas não aparecem na listagem
+            removedAt: null,
             balanceType: { in: ["PAYABLE", "RECEIVABLE"] },
             agreement: {
                 isNot: null,
@@ -133,11 +138,11 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
         };
 
         if (filter?.active === "ACTIVE" || filter?.active === "OVERDUE") {
-            where.removedAt = null;
+            agreementConditions.isActive = true;
             agreementConditions.startsAt = { lte: today };
         } else if (filter?.active === "INACTIVE") {
             where.OR = [
-                { removedAt: { not: null } },
+                { agreement: { is: { isActive: false } } },
                 {
                     agreement: {
                         is: {

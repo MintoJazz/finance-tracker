@@ -70,7 +70,7 @@ export interface CommitmentAgreementSeedInput {
   }>;
   startsAt: string | Date;
   endsAt?: string | Date | null;
-  includeInProjection?: boolean;
+  isActive?: boolean;
   isArchived?: boolean;
   rules: CycleRuleSeedInput[];
 }
@@ -336,7 +336,7 @@ export class FinancialContextFactory {
           create: {
             startsAt: startDate,
             endsAt: endDate,
-            includeInProjection: params.includeInProjection ?? true,
+            isActive: params.isActive ?? true,
             frequency: params.rules[0]?.frequency ?? CycleFrequency.MONTHLY,
             interval: params.rules[0]?.interval ?? 1,
             rules: {
@@ -513,7 +513,7 @@ export class FinancialContextFactory {
           create: {
             startsAt: startDate,
             endsAt: endDate,
-            includeInProjection: true,
+            isActive: true,
             frequency: params.extraRules?.[0]?.frequency ?? CycleFrequency.MONTHLY,
             interval: params.extraRules?.[0]?.interval ?? 1,
             rules: {

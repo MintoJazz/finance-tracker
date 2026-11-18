@@ -6,6 +6,7 @@ import type {
     RecurrenceCycleFilters,
     RecurrenceCyclesResult,
 } from "@/modules/recurrences/models/schemas/recurrence-cycle-filters.schema";
+import type { ArchiveRecurrenceModalProps } from "../archive-recurrence-modal/types";
 import type { RecurrenceProfile } from "@/modules/recurrences/models/schemas/recurrence-profile.schema";
 import type { RecurrenceCycleActionContext } from "@/modules/recurrences/ui/components/recurrence-cycle-table/actions";
 import type { RecurrenceCycleFilterBadgeKey } from "@/modules/recurrences/ui/hooks/use-recurrence-cycle-filters";
@@ -41,8 +42,14 @@ export interface RecurrenceProfileDesktopProps {
     setIsVisible: (val: boolean | ((v: boolean) => boolean)) => void;
     actionContext: RecurrenceCycleActionContext;
     onEditRecurrence?: () => void;
+    onAdjustAmount?: () => void;
+    onAdjustDeadlines?: () => void;
     onToggleActiveRecurrence?: () => void;
+    onArchiveRecurrence?: () => void;
+    archiveContext: ArchiveRecurrenceModalProps;
     onOpenRecurrenceActions?: () => void;
+    isRecurrenceActionsOpen: boolean;
+    setIsRecurrenceActionsOpen: (open: boolean) => void;
 }
 
 export interface RecurrenceProfileMobileProps {
@@ -74,7 +81,11 @@ export interface RecurrenceProfileMobileProps {
     isRecurrenceActionsOpen: boolean;
     setIsRecurrenceActionsOpen: (open: boolean) => void;
     onEditRecurrence?: () => void;
+    onAdjustAmount?: () => void;
+    onAdjustDeadlines?: () => void;
     onToggleActiveRecurrence?: () => void;
+    onArchiveRecurrence?: () => void;
+    archiveContext: ArchiveRecurrenceModalProps;
     onOpenRecurrenceActions?: () => void;
     onSelectCycle?: (cycle: CycleItem) => void;
 }

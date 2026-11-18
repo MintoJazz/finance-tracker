@@ -4,6 +4,10 @@ import {
   ICardRepository,
   UpdateCardRepositoryDTO,
 } from "../../application/interfaces/card-repository.interface"
+import {
+  resolveEffectiveRule,
+  sumEffectiveAmount,
+} from "@/modules/agreements/application/services/agreement-ledger"
 import { CardEntity } from "../../models/card.schema"
 
 function toCivilDateUtc(d = new Date()): Date {
@@ -24,7 +28,7 @@ export class CardPrismaRepository implements ICardRepository {
         balanceType: "CREDIT",
         agreement: {
           create: {
-            includeInProjection: true,
+            isActive: true,
         frequency: "MONTHLY",
         interval: 1,
         startsAt: todayUtc,
@@ -124,10 +128,8 @@ export class CardPrismaRepository implements ICardRepository {
         throw new Error(`Agreement não encontrado para o cartão id=${id}`)
       }
 
-      const currentLimit = Math.max(
-        0,
-        agreement.amountEntries.reduce((sum, entry) => sum + entry.amount, 0)
-      )
+      // Limite vigente hoje: ajustes agendados (vigência futura) ainda não contam
+      const currentLimit = sumEffectiveAmount(agreement.amountEntries)
 
       const delta = data.limit - currentLimit
       if (delta !== 0) {
@@ -143,7 +145,7 @@ export class CardPrismaRepository implements ICardRepository {
 
       // 3. Regras de Ciclo (CycleRule)
       const today = toCivilDateUtc()
-      const currentRule = agreement.rules[0]
+      const currentRule = resolveEffectiveRule(agreement.rules)
       const rulesChanged =
         currentRule?.closingDay !== data.closingDay ||
         currentRule?.dueDay !== data.dueDay

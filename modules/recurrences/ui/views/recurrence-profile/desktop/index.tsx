@@ -8,6 +8,7 @@ import { RecurrenceProfileCard } from "@/modules/recurrences/ui/components/recur
 import { RecurrenceCycleNavigatorDesktop } from "@/modules/recurrences/ui/components/recurrence-cycle-navigator";
 import { RecurrenceCycleSidebarFilter } from "@/modules/recurrences/ui/components/recurrence-cycle-filter";
 import { RecurrenceCycleTable } from "@/modules/recurrences/ui/components/recurrence-cycle-table";
+import { ArchiveRecurrenceModalViewDesktop } from "../../archive-recurrence-modal";
 import type { RecurrenceProfileDesktopProps } from "../types";
 
 export function RecurrenceProfileDesktopView({
@@ -30,9 +31,12 @@ export function RecurrenceProfileDesktopView({
     isVisible,
     setIsVisible,
     actionContext,
+    onAdjustAmount,
+    onAdjustDeadlines,
     onEditRecurrence,
     onToggleActiveRecurrence,
-    onOpenRecurrenceActions,
+    onArchiveRecurrence,
+    archiveContext,
 }: RecurrenceProfileDesktopProps) {
     if (profileError) {
         return (
@@ -103,9 +107,17 @@ export function RecurrenceProfileDesktopView({
                                 recurrence={profile}
                                 isVisible={isVisible}
                                 onToggleVisibility={() => setIsVisible((v) => !v)}
-                                onEdit={onEditRecurrence}
+                                onAdjustAmount={onAdjustAmount}
+                                onAdjustDeadlines={onAdjustDeadlines}
                                 onToggleActive={onToggleActiveRecurrence}
-                                onOpenActions={onOpenRecurrenceActions}
+                                actionsMenuContext={{
+                                    onEdit: () => onEditRecurrence?.(),
+                                    onAdjustAmount: () => onAdjustAmount?.(),
+                                    onAdjustDeadlines: () => onAdjustDeadlines?.(),
+                                    onActivate: () => onToggleActiveRecurrence?.(),
+                                    onDeactivate: () => onToggleActiveRecurrence?.(),
+                                    onArchive: () => onArchiveRecurrence?.(),
+                                }}
                                 className="border-0 shadow-none rounded-none"
                             />
 
@@ -122,6 +134,8 @@ export function RecurrenceProfileDesktopView({
                     )}
                 </aside>
             </div>
+
+            <ArchiveRecurrenceModalViewDesktop {...archiveContext} />
         </div>
     );
 }

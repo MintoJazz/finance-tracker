@@ -71,14 +71,14 @@ function setup(options?: {
         },
     } as unknown as ICategoryRepository;
 
-    const recurrenceRepo: IRecurrenceRepository = {
-        create: async (data) => {
+    const recurrenceRepo = {
+        create: async (data: CreateRecurrenceRepositoryDTO) => {
             calls.push("create-recurrence");
             if (options?.failOnRecurrence) throw new Error("db down");
             recurrences.push(data);
             return { id: 900, name: data.name };
         },
-    };
+    } as unknown as IRecurrenceRepository;
 
     // UoW falsa: só registra se o trabalho foi concluído (commit) ou lançou (rollback)
     const uow: IRecurrenceUnitOfWork = {

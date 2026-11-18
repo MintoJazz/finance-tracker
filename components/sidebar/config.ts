@@ -52,9 +52,9 @@ export const sidebarConfig = {
         icon: CalendarClock,
         isActive: true,
         items: [
-          { title: "Compromissos", url: "#" },
           { title: "Recorrências", url: "/recurrences" },
-          { title: "Categorias", url: "/categories" }
+          { title: "Categorias", url: "/categories" },
+          // { title: "Compromissos", url: "#" }
         ],
       },
     ] satisfies NavCollapsibleItem[],

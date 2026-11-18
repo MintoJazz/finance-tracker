@@ -23,7 +23,7 @@ export class CyclePrismaQueries implements ICycleQueries {
             },
             select: {
                 balanceId: true,
-                includeInProjection: true,
+                isActive: true,
                 frequency: true,
                 interval: true,
                 startsAt: true,
@@ -45,7 +45,7 @@ export class CyclePrismaQueries implements ICycleQueries {
             balanceId: agreement.balanceId,
             balanceName: agreement.balance.name,
             balanceType: agreement.balance.balanceType,
-            includeInProjection: agreement.includeInProjection,
+            isActive: agreement.isActive,
             frequency: agreement.frequency,
             interval: agreement.interval,
             startsAt: agreement.startsAt,

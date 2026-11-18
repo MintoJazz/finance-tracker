@@ -4,7 +4,7 @@ import * as React from "react";
 import { Wizard, WizardDrawerLayout } from "@/components/wizard";
 import { cn } from "@/lib/utils";
 import type { RecurrenceFormValues } from "@/modules/recurrences/models/schemas/recurrence-form.schema";
-import { buildRecurrenceMobileSteps } from "./steps";
+import { buildRecurrenceEditMobileSteps, buildRecurrenceMobileSteps } from "./steps";
 import type { RecurrenceWizardProps } from "./types";
 
 /** Wizard mobile (Drawer): um assunto por tela. */
@@ -14,15 +14,17 @@ export function RecurrenceWizard({
   onSubmit,
   onClose,
   submitText,
+  variant = "create",
   className,
 }: RecurrenceWizardProps) {
   const steps = React.useMemo(() => {
+    if (variant === "edit") return buildRecurrenceEditMobileSteps(options, submitText);
     const built = buildRecurrenceMobileSteps(options);
     if (!submitText) return built;
     return built.map((step) =>
       step.id === "review" ? { ...step, submitText } : step
     );
-  }, [options, submitText]);
+  }, [options, submitText, variant]);
 
   return (
     <div className={cn("w-full flex flex-col min-h-0 flex-1", className)}>

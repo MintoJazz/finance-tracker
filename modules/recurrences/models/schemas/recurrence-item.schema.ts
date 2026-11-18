@@ -10,6 +10,9 @@ export const RecurrenceCategorySchema = z.object({
     balanceId: z.number().int().positive(),
     name: z.string().min(1),
     color: z.string().nullable(),
+    /** Categoria raiz (pai da subcategoria); `balanceId`/`name` acima são da subcategoria. */
+    parentId: z.number().int().positive().nullable().optional(),
+    parentName: z.string().nullable().optional(),
 });
 
 export const RecurrenceListItemSchema = z.object({
@@ -20,6 +23,8 @@ export const RecurrenceListItemSchema = z.object({
     interval: z.number().int().positive(),
     dueDay: z.number().int().min(0).max(31),
     dueMonth: z.number().int().min(1).max(12).nullable(),
+    closingDay: z.number().int().min(0).max(31).nullable().optional(),
+    closingMonth: z.number().int().min(1).max(12).nullable().optional(),
     currentAmount: z.number().int().nonnegative(),
     nextDueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
     isActive: z.boolean(),

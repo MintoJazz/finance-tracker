@@ -1,10 +1,20 @@
-import { Edit, Eye } from "lucide-react";
+import { Archive, CalendarClock, Edit, Eye, Power, PowerOff, SlidersHorizontal } from "lucide-react";
 import type { RowAction } from "@/types/actions.types";
 import type { RecurrenceListItem } from "@/modules/recurrences/models/schemas/recurrence-item.schema";
 
 export interface RecurrenceActionContext {
     onView?: (recurrence: RecurrenceListItem) => void;
     onEdit?: (recurrence: RecurrenceListItem) => void;
+    /** Registra um novo AgreementAmountEntry (valor esperado). */
+    onAdjustAmount?: (recurrence: RecurrenceListItem) => void;
+    /** Registra um novo CycleRule (vencimento/fechamento). */
+    onAdjustDeadlines?: (recurrence: RecurrenceListItem) => void;
+    /** Ativa uma recorrência desativada (Agreement.isActive = true). */
+    onActivate?: (recurrence: RecurrenceListItem) => void;
+    /** Desativa uma recorrência (Agreement.isActive = false). */
+    onDeactivate?: (recurrence: RecurrenceListItem) => void;
+    /** Abre a confirmação de arquivamento. */
+    onArchive?: (recurrence: RecurrenceListItem) => void;
 }
 
 export const RECURRENCE_ACTIONS: RowAction<
@@ -25,5 +35,42 @@ export const RECURRENCE_ACTIONS: RowAction<
             onClick: (row, context) => context?.onEdit?.(row.original),
             hidden: (_row, context) => !context?.onEdit,
         },
+        {
+            id: "adjust-amount",
+            label: "Ajustar valor",
+            icon: SlidersHorizontal,
+            onClick: (row, context) => context?.onAdjustAmount?.(row.original),
+            hidden: (_row, context) => !context?.onAdjustAmount,
+            disabled: (row) => !row.original.isActive,
+        },
+        {
+            id: "adjust-deadlines",
+            label: "Ajustar prazos",
+            icon: CalendarClock,
+            onClick: (row, context) => context?.onAdjustDeadlines?.(row.original),
+            hidden: (_row, context) => !context?.onAdjustDeadlines,
+            disabled: (row) => !row.original.isActive,
+        },
+        {
+            id: "deactivate",
+            label: "Desativar",
+            icon: PowerOff,
+            onClick: (row, context) => context?.onDeactivate?.(row.original),
+            hidden: (row, context) => !context?.onDeactivate || !row.original.isActive,
+        },
+        {
+            id: "activate",
+            label: "Ativar",
+            icon: Power,
+            onClick: (row, context) => context?.onActivate?.(row.original),
+            hidden: (row, context) => !context?.onActivate || row.original.isActive,
+        },
+        {
+            id: "archive",
+            label: "Arquivar",
+            icon: Archive,
+            variant: "destructive",
+            onClick: (row, context) => context?.onArchive?.(row.original),
+            hidden: (_row, context) => !context?.onArchive,
+        },
     ];
-
