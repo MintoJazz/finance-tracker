@@ -2,6 +2,9 @@ import { z } from "zod";
 
 const DateStringSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
+/** INVOICE = parcelado na fatura do cartão; MONTHLY = pago mês a mês, fora de cartão. Derivado, nunca persistido. */
+export const InstallmentTypeSchema = z.enum(["INVOICE", "MONTHLY"]);
+
 export const InstallmentStatusSchema = z.enum(["ALL", "ACTIVE", "OVERDUE", "PAID"]);
 export const InstallmentItemStatusSchema = z.enum(["ACTIVE", "OVERDUE", "PAID"]);
 
@@ -19,6 +22,7 @@ export const InstallmentCardSchema = z.object({
 export const InstallmentListItemSchema = z.object({
     id: z.number().int().positive(),
     description: z.string().min(1),
+    type: InstallmentTypeSchema,
     /** Valor total da compra, em centavos. */
     totalAmount: z.number().int().nonnegative(),
     /** Valor de cada parcela, em centavos. */
@@ -39,15 +43,24 @@ export const InstallmentListItemSchema = z.object({
 export const InstallmentFiltersSchema = z.object({
     q: z.string().optional(),
     status: InstallmentStatusSchema.default("ALL"),
+    type: InstallmentTypeSchema.optional(),
     cardId: z.number().int().positive().optional(),
 });
 
+export type InstallmentType = z.infer<typeof InstallmentTypeSchema>;
 export type InstallmentStatus = z.infer<typeof InstallmentStatusSchema>;
 export type InstallmentItemStatus = z.infer<typeof InstallmentItemStatusSchema>;
 export type InstallmentCategory = z.infer<typeof InstallmentCategorySchema>;
 export type InstallmentCard = z.infer<typeof InstallmentCardSchema>;
 export type InstallmentListItem = z.infer<typeof InstallmentListItemSchema>;
 export type InstallmentFilters = z.infer<typeof InstallmentFiltersSchema>;
+
+/** Em fatura quando as parcelas caem num cartão de crédito; caso contrário, mês a mês. */
+export function resolveInstallmentType(
+    cardBalanceId: number | null | undefined
+): InstallmentType {
+    return cardBalanceId != null ? "INVOICE" : "MONTHLY";
+}
 
 export function isInstallmentPaid(
     item: Pick<InstallmentListItem, "paidInstallments" | "totalInstallments">

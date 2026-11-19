@@ -18,6 +18,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 301,
         description: "iPhone 16 Pro 256GB",
+        type: "INVOICE",
         totalAmount: 960000,
         installmentAmount: 80000,
         totalInstallments: 12,
@@ -34,6 +35,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 302,
         description: "Geladeira Brastemp Inverse",
+        type: "INVOICE",
         totalAmount: 540000,
         installmentAmount: 45000,
         totalInstallments: 12,
@@ -50,6 +52,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 303,
         description: "Notebook Dell XPS 15",
+        type: "INVOICE",
         totalAmount: 1260000,
         installmentAmount: 105000,
         totalInstallments: 12,
@@ -66,6 +69,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 304,
         description: "Passagens Aéreas Lisboa",
+        type: "INVOICE",
         totalAmount: 720000,
         installmentAmount: 60000,
         totalInstallments: 12,
@@ -82,6 +86,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 305,
         description: "Sofá Retrátil 3 Lugares",
+        type: "INVOICE",
         totalAmount: 360000,
         installmentAmount: 36000,
         totalInstallments: 10,
@@ -98,6 +103,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 306,
         description: "Curso de Especialização UX",
+        type: "MONTHLY",
         totalAmount: 480000,
         installmentAmount: 40000,
         totalInstallments: 12,
@@ -114,6 +120,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 307,
         description: "Tratamento Odontológico",
+        type: "INVOICE",
         totalAmount: 300000,
         installmentAmount: 25000,
         totalInstallments: 12,
@@ -130,6 +137,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 308,
         description: "Smart TV Samsung 65\"",
+        type: "INVOICE",
         totalAmount: 420000,
         installmentAmount: 35000,
         totalInstallments: 12,
@@ -146,6 +154,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 309,
         description: "Pneus e Alinhamento",
+        type: "INVOICE",
         totalAmount: 240000,
         installmentAmount: 40000,
         totalInstallments: 6,
@@ -162,6 +171,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 310,
         description: "Guarda-roupa Planejado",
+        type: "MONTHLY",
         totalAmount: 890000,
         installmentAmount: 89000,
         totalInstallments: 10,
@@ -178,6 +188,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 311,
         description: "Bicicleta Elétrica",
+        type: "INVOICE",
         totalAmount: 660000,
         installmentAmount: 55000,
         totalInstallments: 12,
@@ -194,6 +205,7 @@ export const MOCK_INSTALLMENTS: InstallmentListItem[] = [
     {
         id: 312,
         description: "Mensalidade Pós-Graduação",
+        type: "INVOICE",
         totalAmount: 1800000,
         installmentAmount: 75000,
         totalInstallments: 24,

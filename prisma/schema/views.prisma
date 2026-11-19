@@ -22,3 +22,19 @@ view EntryCategoryView {
   @@unique([entryId, contextId])
   @@map("vw_entry_category")
 }
+
+view InstallmentSummaryView {
+  balanceId         Int       @unique
+  contextId         Int
+  totalInstallments Int
+  paidInstallments  Int
+  installmentAmount Int
+  totalAmount       Int
+  firstDueDate      DateTime
+  nextDueDate       DateTime?
+  endsAt            DateTime
+  cardBalanceId     Int?
+  categoryBalanceId Int?
+
+  @@map("vw_installment_summary")
+}
