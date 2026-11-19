@@ -12,6 +12,7 @@ enum BalanceType {
   CATEGORY
   PAYABLE
   RECEIVABLE
+  INSTALLMENT
 }
 
 model Balance {
@@ -33,6 +34,9 @@ model Balance {
   agreement  Agreement?
   appearance BalanceAppearance?
   movements  Movement[]
+
+  /// Parcelas (Entry) agrupadas por este Balance quando `balanceType = INSTALLMENT`.
+  installmentEntries Entry[] @relation("EntryInstallment")
 
   @@unique([id, contextId, balanceType])
 }

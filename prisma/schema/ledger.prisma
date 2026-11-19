@@ -28,10 +28,19 @@ model Entry {
   competanceDate  DateTime?
   createdAt       DateTime  @default(now())
 
+  /// Balance (`INSTALLMENT`) que agrupa as parcelas de uma mesma compra. Nulo nos demais lançamentos.
+  installmentId     Int?
+  /// Posição da parcela na compra (1..N). Preenchido junto com `installmentId`.
+  installmentNumber Int?
+
   reverses            Entry?               @relation("EntryReversal", fields: [reversesEntryId], references: [id])
   reversedBy          Entry?               @relation("EntryReversal")
+  installment         Balance?             @relation("EntryInstallment", fields: [installmentId], references: [id], onDelete: Restrict)
   movements           Movement[]
   entryCycleRuleViews EntryCycleRuleView[] // <-- ADICIONAR ESTA LINHA
+
+  @@unique([installmentId, installmentNumber])
+  @@index([installmentId])
 }
 
 model Movement {

@@ -34,11 +34,16 @@ describe("MovementCounterpartRegistry", () => {
             assert.deepEqual(Object.keys(BALANCE_TYPE_TO_COUNTERPART_KIND).sort(), [
                 "CATEGORY",
                 "CREDIT",
+                "INSTALLMENT",
                 "PAYABLE",
                 "RECEIVABLE",
                 "RESERVE",
                 "WALLET",
             ]);
+        });
+
+        it("deve mapear INSTALLMENT (Balance de agrupamento, sem movimentos) para NONE", () => {
+            assert.equal(MovementCounterpartRegistry.resolveKind("INSTALLMENT"), "NONE");
         });
     });
 
