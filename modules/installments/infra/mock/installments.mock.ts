@@ -234,6 +234,9 @@ export function filterInstallments(
         if (filters.status !== "ALL" && getInstallmentStatus(item) !== filters.status) {
             return false;
         }
+        if (filters.type && item.type !== filters.type) {
+            return false;
+        }
         if (filters.cardId && item.card?.id !== filters.cardId) {
             return false;
         }

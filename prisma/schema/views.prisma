@@ -33,6 +33,7 @@ view InstallmentSummaryView {
   firstDueDate      DateTime
   nextDueDate       DateTime?
   endsAt            DateTime
+  isOverdue         Boolean
   cardBalanceId     Int?
   categoryBalanceId Int?
 
