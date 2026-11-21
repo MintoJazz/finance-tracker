@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
 import { filterInstallments } from "@/modules/installments/infra/mock/installments.mock";
 import type { InstallmentListItem } from "@/modules/installments/models/schemas/installment-item.schema";
@@ -20,6 +21,7 @@ function notifyComingSoon(title: string) {
  * Hook compartilhado entre as visões Desktop e Mobile para filtragem e ações da listagem.
  */
 export function useInstallmentOverviewShared(rawData: InstallmentListItem[]) {
+    const router = useRouter();
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const {
         filters,
@@ -36,7 +38,7 @@ export function useInstallmentOverviewShared(rawData: InstallmentListItem[]) {
         [rawData, filters]
     );
 
-    const onAddClick = () => notifyComingSoon("Novo parcelamento");
+    const onAddClick = () => router.push("/installments/create");
 
     const actionsMenuContext = useMemo<InstallmentActionContext>(
         () => ({
