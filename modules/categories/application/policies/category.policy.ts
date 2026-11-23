@@ -35,6 +35,61 @@ export class CategoryStateConflictError extends CategoryDomainError {
 }
 
 export class CategoryPolicy {
+  /** Categoria raiz existente: precisa existir, ser raiz e estar ativa. */
+  static validateExistingCategory(category: CategoryEntity | null): CategoryEntity {
+    if (!category) {
+      throw new CategoryDomainError("Categoria não encontrada.", "CATEGORY_NOT_FOUND");
+    }
+    if (category.parentId !== null) {
+      throw new CategoryDomainError(
+        "A categoria informada é uma subcategoria.",
+        "CATEGORY_IS_SUBCATEGORY"
+      );
+    }
+    if (category.removedAt !== null || category.isArchived) {
+      throw new CategoryDomainError(
+        "A categoria selecionada está arquivada.",
+        "CATEGORY_ARCHIVED"
+      );
+    }
+    return category;
+  }
+
+  /**
+   * Subcategoria existente: precisa existir, ter pai, estar ativa e,
+   * quando a categoria foi informada, pertencer a ela.
+   */
+  static validateExistingSubcategory(
+    subcategory: CategoryEntity | null,
+    expectedCategoryId?: number | null
+  ): CategoryEntity {
+    if (!subcategory) {
+      throw new CategoryDomainError(
+        "Subcategoria não encontrada.",
+        "SUBCATEGORY_NOT_FOUND"
+      );
+    }
+    if (subcategory.parentId === null) {
+      throw new CategoryDomainError(
+        "A subcategoria informada é uma categoria raiz.",
+        "SUBCATEGORY_IS_ROOT"
+      );
+    }
+    if (subcategory.removedAt !== null || subcategory.isArchived) {
+      throw new CategoryDomainError(
+        "A subcategoria selecionada está arquivada.",
+        "SUBCATEGORY_ARCHIVED"
+      );
+    }
+    if (expectedCategoryId != null && subcategory.parentId !== expectedCategoryId) {
+      throw new CategoryDomainError(
+        "A subcategoria não pertence à categoria selecionada.",
+        "SUBCATEGORY_PARENT_MISMATCH"
+      );
+    }
+    return subcategory;
+  }
+
   /**
    * Valida se uma categoria raiz pode ser arquivada.
    * Regra 1: Arquiva a categoria e, em cascata, todas as subcategorias ainda ativas.

@@ -1,9 +1,17 @@
 import z from "zod";
 import {
-    CategoryFormSchema,
-    DEFAULT_CATEGORY_COLOR,
-    DEFAULT_CATEGORY_ICON,
-} from "@/modules/categories/models/category.schema";
+    CategoryClassificationBaseSchema,
+    CategoryClassificationSchema,
+    CategoryDraftSchema,
+    CategoryStepSchema,
+    NewCategoryStepSchema,
+    NewSubcategoryStepSchema,
+    SubcategoryStepSchema,
+    createCategoryDraft,
+    looseCategoryDrafts,
+    refineClassification,
+    type CategoryDraft,
+} from "@/modules/categories/models/category-classification.schema";
 
 export const RecurrenceFormDirectionSchema = z.enum(["DEBIT", "CREDIT"], {
     message: "Selecione a natureza da recorrência",
@@ -24,27 +32,13 @@ const StartDateSchema = z
     .string({ message: "Informe a data de início" })
     .regex(ISO_DATE, "Informe uma data de início válida");
 
-/** Categoria/subcategoria a ser criada junto com a recorrência. */
-export const RecurrenceCategoryDraftSchema = CategoryFormSchema.pick({
-    name: true,
-    color: true,
-    icon: true,
-});
-
-export type RecurrenceCategoryDraft = z.infer<
-    typeof RecurrenceCategoryDraftSchema
->;
-
-export function createCategoryDraft(
-    name: string,
-    color?: string | null
-): RecurrenceCategoryDraft {
-    return {
-        name,
-        color: color ?? DEFAULT_CATEGORY_COLOR,
-        icon: DEFAULT_CATEGORY_ICON,
-    };
-}
+/**
+ * A classificação (categoria/subcategoria) vive em `modules/categories`; aqui só os nomes
+ * antigos são reexportados para a UI de recorrências não mudar.
+ */
+export const RecurrenceCategoryDraftSchema = CategoryDraftSchema;
+export type RecurrenceCategoryDraft = CategoryDraft;
+export { createCategoryDraft, refineClassification };
 
 export const RecurrenceFormBaseSchema = z.object({
     direction: RecurrenceFormDirectionSchema,
@@ -75,10 +69,7 @@ export const RecurrenceFormBaseSchema = z.object({
 
     // Classificação — o dado de fato é a subcategoria; a categoria só filtra
     // a lista ou serve de pai quando a subcategoria é nova.
-    categoryId: z.number().int().positive().nullable().optional(),
-    newCategory: RecurrenceCategoryDraftSchema.nullable().optional(),
-    subcategoryId: z.number().int().positive().nullable().optional(),
-    newSubcategory: RecurrenceCategoryDraftSchema.nullable().optional(),
+    ...CategoryClassificationBaseSchema.shape,
 });
 
 export type RecurrenceFormValues = z.infer<typeof RecurrenceFormBaseSchema>;
@@ -130,38 +121,9 @@ export function refineDeadlines(data: DeadlinesData, ctx: z.RefinementCtx) {
 }
 
 /** Campos de classificação (categoria/subcategoria). */
-export const RecurrenceClassificationBaseSchema = RecurrenceFormBaseSchema.pick({
-    categoryId: true,
-    newCategory: true,
-    subcategoryId: true,
-    newSubcategory: true,
-});
+export const RecurrenceClassificationBaseSchema = CategoryClassificationBaseSchema;
 
-type ClassificationData = z.infer<typeof RecurrenceClassificationBaseSchema>;
-
-export function refineClassification(data: ClassificationData, ctx: z.RefinementCtx) {
-    const issue = (path: keyof ClassificationData, message: string) =>
-        ctx.addIssue({ code: "custom", path: [path], message });
-
-    const hasSub = data.subcategoryId != null;
-    const hasNewSub = data.newSubcategory != null;
-
-    if (hasSub === hasNewSub) {
-        issue("subcategoryId", "Selecione ou crie uma subcategoria");
-        return;
-    }
-
-    if (data.newCategory != null && !hasNewSub) {
-        issue("subcategoryId", "Crie uma subcategoria para a nova categoria");
-    }
-
-    if (hasNewSub && (data.categoryId != null) === (data.newCategory != null)) {
-        issue("categoryId", "Selecione ou crie a categoria da nova subcategoria");
-    }
-}
-
-export const RecurrenceClassificationSchema =
-    RecurrenceClassificationBaseSchema.superRefine(refineClassification);
+export const RecurrenceClassificationSchema = CategoryClassificationSchema;
 
 export const RecurrenceDeadlinesSchema =
     RecurrenceDeadlinesBaseSchema.superRefine(refineDeadlines);
@@ -173,53 +135,18 @@ export const RecurrenceFormSchema = RecurrenceFormBaseSchema.superRefine(
     }
 );
 
-/**
- * Rascunho sem exigir nome: usado nos passos que só escolhem a classificação.
- * O nome é validado no passo de criação correspondente (e na action).
- */
-const LooseCategoryDraftSchema = RecurrenceCategoryDraftSchema.extend({
-    name: z.string(),
-});
-
-const looseDrafts = {
-    newCategory: LooseCategoryDraftSchema.nullable().optional(),
-    newSubcategory: LooseCategoryDraftSchema.nullable().optional(),
-};
-
 /** Passo principal do desktop: tudo, exceto o nome dos rascunhos. */
 export const RecurrenceMainStepSchema = RecurrenceFormBaseSchema.extend(
-    looseDrafts
+    looseCategoryDrafts
 ).superRefine((data, ctx) => {
     refineDeadlines(data, ctx);
     refineClassification(data, ctx);
 });
 
-/** Passo de categoria (mobile): escolher uma existente ou criar. */
-export const RecurrenceCategoryStepSchema = RecurrenceClassificationBaseSchema.extend(
-    looseDrafts
-).superRefine((data, ctx) => {
-    if ((data.categoryId != null) === (data.newCategory != null)) {
-        ctx.addIssue({
-            code: "custom",
-            path: ["categoryId"],
-            message: "Selecione ou crie uma categoria",
-        });
-    }
-});
-
-/** Passo de subcategoria (mobile). */
-export const RecurrenceSubcategoryStepSchema =
-    RecurrenceClassificationBaseSchema.extend(looseDrafts).superRefine(
-        refineClassification
-    );
-
-export const RecurrenceNewCategoryStepSchema = z.object({
-    newCategory: RecurrenceCategoryDraftSchema,
-});
-
-export const RecurrenceNewSubcategoryStepSchema = z.object({
-    newSubcategory: RecurrenceCategoryDraftSchema,
-});
+export const RecurrenceCategoryStepSchema = CategoryStepSchema;
+export const RecurrenceSubcategoryStepSchema = SubcategoryStepSchema;
+export const RecurrenceNewCategoryStepSchema = NewCategoryStepSchema;
+export const RecurrenceNewSubcategoryStepSchema = NewSubcategoryStepSchema;
 
 export const CreateRecurrenceSchema = RecurrenceFormSchema;
 export type CreateRecurrenceFormValues = RecurrenceFormValues;

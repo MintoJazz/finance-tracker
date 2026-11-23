@@ -1,11 +1,10 @@
 import type { SessionPayload } from "@/modules/auth/infra/cryptography/jwt-utils";
 import type { ISpaceAccessProvider } from "@/modules/space/application/interfaces/space-access-provider.interface";
 import { CategoryDomainError } from "@/modules/categories/application/policies/category.policy";
+import { resolveSubcategoryId } from "@/modules/categories/application/services/category-classification.resolver";
 import type { CreateRecurrenceFormValues } from "@/modules/recurrences/models/schemas/recurrence-form.schema";
 import { failure, success, type Result } from "@/types/result.types";
 import type { IRecurrenceUnitOfWork } from "../interfaces/recurrence-uow.interface";
-import { RecurrenceDomainError } from "../policies/recurrence.policy";
-import { resolveRecurrenceSubcategoryId } from "../services/recurrence-classification.resolver";
 
 export interface CreateRecurrenceUseCaseDTO {
     session: SessionPayload;
@@ -50,7 +49,7 @@ export class CreateRecurrenceUseCase {
             // Categoria, subcategoria e recorrência na mesma transação
             const created = await this.unitOfWork.run(async ({ categoryRepo, recurrenceRepo }) => {
                 // 1. Categoria e subcategoria (novas ou existentes)
-                const subcategoryId = await resolveRecurrenceSubcategoryId(
+                const subcategoryId = await resolveSubcategoryId(
                     categoryRepo,
                     contextId,
                     data
@@ -75,7 +74,7 @@ export class CreateRecurrenceUseCase {
 
             return success(created);
         } catch (err) {
-            if (err instanceof RecurrenceDomainError || err instanceof CategoryDomainError) {
+            if (err instanceof CategoryDomainError) {
                 return failure(err.message);
             }
             console.error("[CreateRecurrenceUseCase] Falha crítica:", err);

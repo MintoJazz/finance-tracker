@@ -1,11 +1,11 @@
 import type { SessionPayload } from "@/modules/auth/infra/cryptography/jwt-utils";
 import type { ISpaceAccessProvider } from "@/modules/space/application/interfaces/space-access-provider.interface";
 import { CategoryDomainError } from "@/modules/categories/application/policies/category.policy";
+import { resolveSubcategoryId } from "@/modules/categories/application/services/category-classification.resolver";
 import type { EditRecurrenceInput } from "@/modules/recurrences/models/schemas/recurrence-edit.schema";
 import { failure, success, type Result } from "@/types/result.types";
 import type { IRecurrenceUnitOfWork } from "../interfaces/recurrence-uow.interface";
 import { RecurrenceDomainError } from "../policies/recurrence.policy";
-import { resolveRecurrenceSubcategoryId } from "../services/recurrence-classification.resolver";
 
 export interface UpdateRecurrenceUseCaseDTO {
     session: SessionPayload;
@@ -54,7 +54,7 @@ export class UpdateRecurrenceUseCase {
                     );
                 }
 
-                const subcategoryId = await resolveRecurrenceSubcategoryId(
+                const subcategoryId = await resolveSubcategoryId(
                     categoryRepo,
                     contextId,
                     data

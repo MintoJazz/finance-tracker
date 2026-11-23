@@ -1,10 +1,10 @@
 import z from "zod";
 import {
-    RecurrenceCategoryDraftSchema,
     RecurrenceClassificationBaseSchema,
     RecurrenceFormBaseSchema,
     refineClassification,
 } from "./recurrence-form.schema";
+import { looseCategoryDrafts } from "@/modules/categories/models/category-classification.schema";
 
 /** Edição: renomear e trocar a categoria padrão (subcategoria) da recorrência. */
 export const EditRecurrenceFormBaseSchema = RecurrenceFormBaseSchema.pick({
@@ -23,9 +23,6 @@ export const EditRecurrenceInputSchema = EditRecurrenceFormBaseSchema.extend({
 export type EditRecurrenceInput = z.infer<typeof EditRecurrenceInputSchema>;
 
 /** Passo único do wizard de edição: rascunhos sem exigir nome (validado no passo de criação). */
-const LooseDraftSchema = RecurrenceCategoryDraftSchema.extend({ name: z.string() });
-
-export const RecurrenceEditStepSchema = EditRecurrenceFormBaseSchema.extend({
-    newCategory: LooseDraftSchema.nullable().optional(),
-    newSubcategory: LooseDraftSchema.nullable().optional(),
-}).superRefine(refineClassification);
+export const RecurrenceEditStepSchema = EditRecurrenceFormBaseSchema.extend(
+    looseCategoryDrafts
+).superRefine(refineClassification);
