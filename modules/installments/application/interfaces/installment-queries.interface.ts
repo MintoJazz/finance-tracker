@@ -1,4 +1,5 @@
 import type {
+    InstallmentCard,
     InstallmentFilters,
     InstallmentListItem,
 } from "../../models/schemas/installment-item.schema";
@@ -15,4 +16,7 @@ export interface IInstallmentQueries {
         balanceId: number,
         contextId: number
     ): Promise<InstallmentListItem | null>;
+
+    /** Cartões de crédito ativos do contexto, para o seletor do formulário. */
+    listCardOptions(contextId: number): Promise<InstallmentCard[]>;
 }

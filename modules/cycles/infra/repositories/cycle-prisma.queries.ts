@@ -223,28 +223,41 @@ export class CyclePrismaQueries implements ICycleQueries {
                     w.rule_id,
                     COUNT(m.id)::int AS movements_count,
 
-                    -- Reconhecido: provisões, compras, ajustes ou abertura que aumenta o saldo do ciclo
+                    -- Classificação por perna: (m.amount * polaridade) > 0 AUMENTA o saldo do ciclo e < 0 o REDUZ.
+                    -- Perna que aumenta é reconhecida (a dívida chegou), qualquer que seja o tipo do Entry;
+                    -- perna que reduz é classificada pelo tipo (paga ou transferida).
+
+                    -- Reconhecido: provisões, compras e ajustes, mais qualquer perna de liquidação,
+                    -- transferência ou abertura que aumente o saldo (ex.: dívida transferida para o cartão)
                     GREATEST(0, COALESCE(SUM(m.amount * ${polarity}) FILTER (
                         WHERE e.type IN ('ACCRUAL'::"EntryType", 'ADJUSTMENT'::"EntryType", 'DIRECT'::"EntryType")
-                           OR (e.type = 'CLAIM_OPENING'::"EntryType" AND (m.amount * ${polarity}) > 0)
+                           OR (
+                                e.type IN (
+                                    'CLAIM_OPENING'::"EntryType", 'TRANSFER'::"EntryType",
+                                    'SETTLEMENT'::"EntryType", 'CLAIM_PAYMENT'::"EntryType", 'CLAIM_RECEIPT'::"EntryType"
+                                )
+                                AND (m.amount * ${polarity}) > 0
+                           )
                     ), 0))::int AS recognized_amount,
 
-                    -- Pago: liquidações invertendo o sinal redutor para positivo
+                    -- Pago: pernas redutoras de liquidação, com o sinal invertido para positivo
                     GREATEST(0, COALESCE(SUM(-(m.amount * ${polarity})) FILTER (
                         WHERE e.type IN ('SETTLEMENT'::"EntryType", 'CLAIM_PAYMENT'::"EntryType", 'CLAIM_RECEIPT'::"EntryType")
+                          AND (m.amount * ${polarity}) < 0
                     ), 0))::int AS paid_amount,
 
-                    -- Transferido: cessões/renegociações que baixam o ciclo
+                    -- Transferido: pernas redutoras de cessão/renegociação que baixam o ciclo
                     GREATEST(0, COALESCE(SUM(-(m.amount * ${polarity})) FILTER (
-                        WHERE e.type = 'TRANSFER'::"EntryType"
-                           OR (e.type = 'CLAIM_OPENING'::"EntryType" AND (m.amount * ${polarity}) < 0)
+                        WHERE e.type IN ('TRANSFER'::"EntryType", 'CLAIM_OPENING'::"EntryType")
+                          AND (m.amount * ${polarity}) < 0
                     ), 0))::int AS transferred_amount,
 
-                    -- Saldo líquido em aberto dos movimentos reais
+                    -- Saldo líquido em aberto dos movimentos reais (soma com sinal, independe do tipo)
                     GREATEST(0, COALESCE(SUM(m.amount * ${polarity}), 0))::int AS net_open_amount,
 
                     MAX(COALESCE(e."competanceDate", e."dueDate")::date) FILTER (
                         WHERE e.type IN ('SETTLEMENT'::"EntryType", 'CLAIM_PAYMENT'::"EntryType", 'CLAIM_RECEIPT'::"EntryType")
+                          AND (m.amount * ${polarity}) < 0
                     ) AS latest_settlement_date,
 
                     COALESCE(BOOL_OR((m.amount * ${polarity}) < 0) FILTER (

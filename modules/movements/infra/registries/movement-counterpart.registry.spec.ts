@@ -42,8 +42,8 @@ describe("MovementCounterpartRegistry", () => {
             ]);
         });
 
-        it("deve mapear INSTALLMENT (Balance de agrupamento, sem movimentos) para NONE", () => {
-            assert.equal(MovementCounterpartRegistry.resolveKind("INSTALLMENT"), "NONE");
+        it("deve mapear INSTALLMENT (parcelamento como obrigação) para CONTRACT", () => {
+            assert.equal(MovementCounterpartRegistry.resolveKind("INSTALLMENT"), "CONTRACT");
         });
     });
 

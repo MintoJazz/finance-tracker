@@ -18,8 +18,8 @@ export const BALANCE_TYPE_TO_COUNTERPART_KIND: Record<
     CREDIT: "CARD",
     PAYABLE: "CONTRACT",
     RECEIVABLE: "CONTRACT",
-    // Balance de agrupamento de parcelas: nunca recebe Movement, então não é contraparte de nada.
-    INSTALLMENT: "NONE",
+    // Parcelamento é uma obrigação (Agreement + CycleRule) que recebe Movements como um PAYABLE.
+    INSTALLMENT: "CONTRACT",
 };
 
 export interface MovementLegForCounterpart {

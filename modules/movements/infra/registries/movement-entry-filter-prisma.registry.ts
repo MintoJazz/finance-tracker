@@ -96,6 +96,20 @@ export class MovementEntryFilterPrismaRegistry {
                     },
                 },
             }),
+            // Dívida que chega ao cartão vinda de uma obrigação (ex.: parcela de parcelamento em fatura).
+            TRANSFER: (balanceId) => ({
+                entry: {
+                    type: "TRANSFER",
+                    movements: {
+                        some: {
+                            balanceId: { not: balanceId },
+                            balance: {
+                                balanceType: { in: ["PAYABLE", "RECEIVABLE", "INSTALLMENT"] },
+                            },
+                        },
+                    },
+                },
+            }),
             ADJUSTMENT: () => ({
                 entry: { type: "ADJUSTMENT" },
             }),

@@ -17,6 +17,7 @@ describe("GetContextInstallmentsUseCase", () => {
         const queries: IInstallmentQueries = {
             listInstallmentsByContextId: async () => [],
             findInstallmentById: async () => null,
+            listCardOptions: async () => [],
         };
 
         const result = await new GetContextInstallmentsUseCase(
@@ -36,6 +37,7 @@ describe("GetContextInstallmentsUseCase", () => {
         const queries: IInstallmentQueries = {
             listInstallmentsByContextId: async () => [],
             findInstallmentById: async () => null,
+            listCardOptions: async () => [],
         };
 
         const result = await new GetContextInstallmentsUseCase(
@@ -59,6 +61,7 @@ describe("GetContextInstallmentsUseCase", () => {
                 return [MOCK_INSTALLMENTS[0]];
             },
             findInstallmentById: async () => null,
+            listCardOptions: async () => [],
         };
 
         const result = await new GetContextInstallmentsUseCase(

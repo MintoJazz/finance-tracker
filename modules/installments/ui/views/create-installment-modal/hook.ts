@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
 import type { InstallmentFormValues } from "@/modules/installments/models/schemas/installment-form.schema";
+import { createInstallmentAction } from "@/modules/installments/ui/actions/create-installment.action";
 import { getInstallmentFormDefaults } from "@/modules/installments/ui/utils/installment-form.utils";
 import type {
     CreateInstallmentModalInput,
@@ -42,16 +43,36 @@ export function useCreateInstallmentModal(
         [navigateBack]
     );
 
-    // TODO(backend): trocar por `createInstallmentAction(data)` (Result + revalidatePath).
-    // Por ora só valida a UI: nada é persistido.
+    // O Wizard controla o estado de envio (botão "Processando...") enquanto esta promise roda
     const onSubmit = async (data: InstallmentFormValues) => {
-        console.info("[useCreateInstallmentModal] Payload (prévia, não persistido):", data);
-        toast.add({
-            type: "info",
-            title: "Prévia do formulário",
-            description: `"${data.name}" não foi salvo: o backend de parcelamentos ainda não está conectado.`,
-        });
-        onClose();
+        try {
+            const result = await createInstallmentAction(data);
+
+            if (!result.success) {
+                toast.add({
+                    type: "error",
+                    title: "Erro ao criar parcelamento",
+                    description: result.error ?? "Não foi possível criar o parcelamento.",
+                    priority: "high",
+                });
+                return;
+            }
+
+            toast.add({
+                type: "success",
+                title: "Parcelamento criado",
+                description: `O parcelamento "${data.name}" foi criado com sucesso.`,
+            });
+            onClose();
+        } catch (error) {
+            console.error("[useCreateInstallmentModal] Falha ao criar parcelamento:", error);
+            toast.add({
+                type: "error",
+                title: "Erro inesperado",
+                description: "Ocorreu um erro interno. Tente novamente mais tarde.",
+                priority: "high",
+            });
+        }
     };
 
     return {

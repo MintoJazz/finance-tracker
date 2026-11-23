@@ -1028,6 +1028,76 @@ export async function seedAnaScenario(factory: SystemSeedFactory) {
     competanceDate: "2026-09-28T00:00:00Z",
   });
 
+  // =========================================================================
+  // 7. PARCELAMENTOS (obrigação com Agreement finito; sem FK no Entry)
+  //    Parcela = ACCRUAL (INSTALLMENT -v / CATEGORY +v). Em fatura, a dívida da parcela passa ao cartão
+  //    por um TRANSFER (INSTALLMENT +v / CREDIT -v); no mês a mês a quitação é um SETTLEMENT de carteira.
+  // =========================================================================
+  const parcelaDate = (firstIso: string, k: number) => {
+    const d = new Date(firstIso);
+    d.setUTCMonth(d.getUTCMonth() + k);
+    return d.toISOString();
+  };
+
+  // Em fatura: 4x de R$ 250,00 no cartão Ultravioleta (regra vigente: fecha dia 3, vence dia 10)
+  const notebookParcelas = [25000, 25000, 25000, 25000];
+  const parcelamentoNotebook = await space.addCommitmentAgreement({
+    name: "Notebook Dell XPS (4x na fatura)",
+    balanceType: BalanceType.INSTALLMENT,
+    categoryId: subCategories.comprasHobbies.id,
+    startsAt: "2026-12-10",
+    endsAt: "2027-03-10",
+    rules: [{ effectiveFrom: "2026-12-10", dueDay: 10 }],
+    amountEntries: [{ amount: 25000, effectiveAt: "2026-12-10", reason: "Valor da parcela" }],
+  });
+  for (const [k, amount] of notebookParcelas.entries()) {
+    const date = parcelaDate("2026-12-10T12:00:00Z", k);
+    const description = `Notebook Dell XPS (${k + 1}/${notebookParcelas.length})`;
+    await space.addAccrual({
+      commitmentBalanceId: parcelamentoNotebook.id,
+      categoryBalanceId: subCategories.comprasHobbies.id,
+      description,
+      amount,
+      dueDate: date,
+    });
+    await space.addTransfer({
+      fromBalanceId: cartaoUltravioleta.id,
+      toBalanceId: parcelamentoNotebook.id,
+      description,
+      amount,
+      date,
+    });
+  }
+
+  // Mês a mês: curso em 3x de R$ 400,00 pagos pela carteira (a 1ª parcela já foi paga)
+  const cursoParcelas = [40000, 40000, 40000];
+  const parcelamentoCurso = await space.addCommitmentAgreement({
+    name: "Curso de Inglês (3x mês a mês)",
+    balanceType: BalanceType.INSTALLMENT,
+    categoryId: subCategories.cursosIdiomas.id,
+    startsAt: "2026-11-20",
+    endsAt: "2027-01-20",
+    rules: [{ effectiveFrom: "2026-11-20", dueDay: 20 }],
+    amountEntries: [{ amount: 40000, effectiveAt: "2026-11-20", reason: "Valor da parcela" }],
+  });
+  for (const [k, amount] of cursoParcelas.entries()) {
+    await space.addAccrual({
+      commitmentBalanceId: parcelamentoCurso.id,
+      categoryBalanceId: subCategories.cursosIdiomas.id,
+      description: `Curso de Inglês (${k + 1}/${cursoParcelas.length})`,
+      amount,
+      dueDate: parcelaDate("2026-11-20T12:00:00Z", k),
+    });
+  }
+  await space.addSettlement({
+    walletBalanceId: nubank.id,
+    commitmentBalanceId: parcelamentoCurso.id,
+    description: "Pagamento Curso de Inglês (1/3)",
+    amount: 40000,
+    dueDate: "2026-11-20T12:00:00Z",
+    competanceDate: "2026-11-20T12:00:00Z",
+  });
+
   return {
     party,
     space,

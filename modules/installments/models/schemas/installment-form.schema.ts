@@ -1,9 +1,9 @@
 import z from "zod";
 import {
-    RecurrenceCategoryDraftSchema,
-    RecurrenceClassificationBaseSchema,
+    CategoryClassificationBaseSchema,
+    looseCategoryDrafts,
     refineClassification,
-} from "@/modules/recurrences/models/schemas/recurrence-form.schema";
+} from "@/modules/categories/models/category-classification.schema";
 import { InstallmentTypeSchema } from "./installment-item.schema";
 
 export const MIN_INSTALLMENTS = 2;
@@ -39,7 +39,7 @@ export const InstallmentFormBaseSchema = z.object({
     /** Obrigatório apenas quando `type` é `INVOICE`. */
     cardId: z.number().int().positive().nullable().optional(),
 
-    ...RecurrenceClassificationBaseSchema.shape,
+    ...CategoryClassificationBaseSchema.shape,
 });
 
 export type InstallmentFormValues = z.infer<typeof InstallmentFormBaseSchema>;
@@ -65,19 +65,9 @@ export const InstallmentFormSchema = InstallmentFormBaseSchema.superRefine(
 
 /* ---------------------------- Passos do wizard ---------------------------- */
 
-/** Rascunho sem exigir nome: o nome é validado no passo de criação correspondente. */
-const LooseCategoryDraftSchema = RecurrenceCategoryDraftSchema.extend({
-    name: z.string(),
-});
-
-const looseDrafts = {
-    newCategory: LooseCategoryDraftSchema.nullable().optional(),
-    newSubcategory: LooseCategoryDraftSchema.nullable().optional(),
-};
-
 /** Desktop: tudo numa tela, exceto o nome dos rascunhos. */
 export const InstallmentMainStepSchema = InstallmentFormBaseSchema.extend(
-    looseDrafts
+    looseCategoryDrafts
 ).superRefine((data, ctx) => {
     refineInstallmentPayment(data, ctx);
     refineClassification(data, ctx);

@@ -3,6 +3,7 @@ import {
     fromDateString,
     toDateString,
 } from "@/modules/agreements/ui/utils/date-string";
+import { splitInstallmentAmounts } from "@/modules/installments/application/services/installment-schedule.calculator";
 import type { InstallmentFormValues } from "@/modules/installments/models/schemas/installment-form.schema";
 
 export { fromDateString, toDateString };
@@ -25,13 +26,36 @@ export function getInstallmentFormDefaults(
     };
 }
 
-/** Valor aproximado de cada parcela, em centavos (a última absorve a diferença). */
+/** Enquanto o usuário digita, total e parcelas podem estar vazios ou fracionados: não divide nesses casos. */
+function isValidSplit(
+    totalAmount: number | undefined,
+    totalInstallments: number | undefined
+): totalAmount is number {
+    return (
+        Number.isInteger(totalAmount) &&
+        (totalAmount as number) > 0 &&
+        Number.isInteger(totalInstallments) &&
+        (totalInstallments as number) >= 1
+    );
+}
+
+/** Valor das parcelas 1..N-1, em centavos (a última absorve o resto da divisão). */
 export function computeInstallmentAmount(
     totalAmount: number | undefined,
     totalInstallments: number | undefined
 ): number {
-    if (!totalAmount || !totalInstallments || totalInstallments < 1) return 0;
-    return Math.ceil(totalAmount / totalInstallments);
+    if (!isValidSplit(totalAmount, totalInstallments)) return 0;
+    return splitInstallmentAmounts(totalAmount, totalInstallments as number)[0];
+}
+
+/** Valor da última parcela, em centavos: a base mais o resto da divisão. */
+export function computeLastInstallmentAmount(
+    totalAmount: number | undefined,
+    totalInstallments: number | undefined
+): number {
+    if (!isValidSplit(totalAmount, totalInstallments)) return 0;
+    const amounts = splitInstallmentAmounts(totalAmount, totalInstallments as number);
+    return amounts[amounts.length - 1];
 }
 
 /** Data (YYYY-MM-DD) da última parcela, contando mês a mês a partir da primeira. */

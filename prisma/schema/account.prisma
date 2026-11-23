@@ -35,9 +35,6 @@ model Balance {
   appearance BalanceAppearance?
   movements  Movement[]
 
-  /// Parcelas (Entry) agrupadas por este Balance quando `balanceType = INSTALLMENT`.
-  installmentEntries Entry[] @relation("EntryInstallment")
-
   @@unique([id, contextId, balanceType])
 }
 

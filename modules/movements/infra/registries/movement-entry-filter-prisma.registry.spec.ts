@@ -126,6 +126,33 @@ describe("MovementEntryFilterPrismaRegistry", () => {
         });
     });
 
+    describe("CARD Scope - TRANSFER", () => {
+        it("deve gerar condição para TRANSFER com contraparte de obrigação ou parcelamento", () => {
+            const cond = MovementEntryFilterPrismaRegistry.toWhereCondition(
+                BALANCE_ID,
+                "CARD",
+                "TRANSFER"
+            );
+            assert.deepEqual(cond, {
+                entry: {
+                    type: "TRANSFER",
+                    movements: {
+                        some: {
+                            balanceId: { not: BALANCE_ID },
+                            balance: {
+                                balanceType: { in: ["PAYABLE", "RECEIVABLE", "INSTALLMENT"] },
+                            },
+                        },
+                    },
+                },
+            });
+        });
+
+        it("deve expor TRANSFER entre os tipos permitidos do cartão", () => {
+            assert.ok(MovementEntryFilterPrismaRegistry.getAllowedTypes("CARD").includes("TRANSFER"));
+        });
+    });
+
     describe("toWhereConditions", () => {
         it("deve retornar array com as cláusulas para múltiplos tipos", () => {
             const conds = MovementEntryFilterPrismaRegistry.toWhereConditions(

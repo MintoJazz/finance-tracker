@@ -15,6 +15,7 @@ import type { InstallmentFormOptions } from "@/modules/installments/models/schem
 import { describeClassification } from "@/modules/recurrences/ui/utils/recurrence-classification.utils";
 import {
   computeInstallmentAmount,
+  computeLastInstallmentAmount,
   computeLastInstallmentDate,
 } from "@/modules/installments/ui/utils/installment-form.utils";
 
@@ -46,6 +47,10 @@ export function InstallmentReviewContent({
   const isInvoice = data.type !== "MONTHLY";
   const card = options.cards.find((c) => c.id === data.cardId);
   const installmentAmount = computeInstallmentAmount(
+    data.totalAmount,
+    data.totalInstallments
+  );
+  const lastAmount = computeLastInstallmentAmount(
     data.totalAmount,
     data.totalInstallments
   );
@@ -119,6 +124,13 @@ export function InstallmentReviewContent({
 
       <WizardReviewHint>
         As parcelas serão geradas mês a mês a partir da data informada.
+        {lastAmount !== installmentAmount && (
+          <>
+            {" "}
+            A última parcela ({formatMoney(lastAmount)}) absorve o resto da
+            divisão.
+          </>
+        )}
       </WizardReviewHint>
     </div>
   );

@@ -29,3 +29,36 @@ Para que o Estado Derivado não corrompa o extrato bancário, o modelo de lança
 1. **Geração da Janela:** O sistema lê a `CycleRule` vigente para o mês consultado e delimita o `start_date` e `end_date` da competência.
 2. **Saldo em Aberto (Cálculo):** Realiza-se a soma algébrica de todos os `Movements` no `Balance` consultado onde a `competenceDate` cai dentro da janela delimitada.
 3. **Liquidação (`SETTLEMENT`):** O ato de pagar um ciclo consiste em registrar um lançamento com a `dueDate` configurada para a data do pagamento real, mas preservando a `competenceDate` injetada obrigatoriamente dentro da janela do ciclo pago. Isso garante que a soma algébrica do ciclo alvo chegue a zero, independentemente de atrasos ou adiantamentos no pagamento.
+
+
+## 5. Classificação dos Movimentos de um Ciclo
+
+O saldo de um ciclo é a soma algébrica dos seus `Movements`, **independente do tipo do `Entry`** (`remaining`). Já o detalhamento (`recognized`, `paid`, `transferred`) classifica cada perna combinando o **tipo** do `Entry` com o **sentido** da perna no balance consultado.
+
+### Sentido da perna
+
+Seja `m' = amount × polaridade`, com polaridade `-1` para `PAYABLE`/`CREDIT` e `+1` para `RECEIVABLE`:
+
+- `m' > 0`: a perna **aumenta** o saldo da obrigação (a dívida chegou ou foi provisionada).
+- `m' < 0`: a perna **reduz** o saldo.
+
+### Tipos de `Entry`
+
+| Tipo | Significado |
+|---|---|
+| `DIRECT` | compra ou lançamento direto no balance |
+| `ACCRUAL` | provisão de uma obrigação |
+| `SETTLEMENT` | caixa liquidando a obrigação (pagamento) |
+| `TRANSFER` | dívida mudando de dono (sai de uma obrigação e chega a outra) |
+| `CLAIM_OPENING`, `CLAIM_PAYMENT`, `CLAIM_RECEIPT` | ciclo de vida da cobrança inter-contextos (ver Especificação 2) |
+| `ADJUSTMENT` | correção de saldo |
+
+### Regra de classificação
+
+| Grandeza | Soma |
+|---|---|
+| `recognized` | `DIRECT`, `ACCRUAL` e `ADJUSTMENT`, mais as pernas com `m' > 0` de `CLAIM_OPENING`, `TRANSFER`, `SETTLEMENT`, `CLAIM_PAYMENT` e `CLAIM_RECEIPT` |
+| `paid` | pernas com `m' < 0` de `SETTLEMENT`, `CLAIM_PAYMENT` e `CLAIM_RECEIPT` |
+| `transferred` | pernas com `m' < 0` de `TRANSFER` e `CLAIM_OPENING` |
+
+Em uma frase: perna que **aumenta** o saldo é reconhecida; perna que **reduz** é classificada pelo tipo (paga ou transferida). Assim, uma dívida que chega a um cartão por `TRANSFER` entra no total da fatura, e a mesma `TRANSFER`, vista da obrigação de origem, baixa o ciclo como `transferred` (status `TRANSFERRED`, nunca `PAID`).

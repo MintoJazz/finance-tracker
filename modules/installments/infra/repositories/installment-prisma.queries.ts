@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import type { IInstallmentQueries } from "../../application/interfaces/installment-queries.interface";
 import {
     getInstallmentStatus,
+    type InstallmentCard,
     type InstallmentFilters,
     type InstallmentListItem,
 } from "../../models/schemas/installment-item.schema";
@@ -58,6 +59,14 @@ export class InstallmentPrismaQueries implements IInstallmentQueries {
 
         const [item] = await this.hydrate([summary]);
         return item ?? null;
+    }
+
+    async listCardOptions(contextId: number): Promise<InstallmentCard[]> {
+        return prisma.balance.findMany({
+            where: { contextId, balanceType: "CREDIT", removedAt: null },
+            select: { id: true, name: true },
+            orderBy: { name: "asc" },
+        });
     }
 
     /** Junta nome/aparência do parcelamento, cartão e categoria (uma consulta para todos). */

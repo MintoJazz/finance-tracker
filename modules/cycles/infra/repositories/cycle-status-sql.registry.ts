@@ -50,6 +50,22 @@ function existsActiveMovementSql(
     )`;
 }
 
+/**
+ * Pernas que REDUZEM o saldo (`m.amount * polaridade < 0`) de liquidação: são as únicas que contam como
+ * "pago". Mesmo critério de `paid_amount` em `aggregateCycles`; perna de liquidação que aumenta o saldo
+ * é reconhecida (dívida que chegou), não paga.
+ */
+function reducingSettlementSql(ctx: PreFilterSqlContext): Prisma.Sql {
+    return Prisma.sql`AND e.type IN ('SETTLEMENT'::"EntryType", 'CLAIM_PAYMENT'::"EntryType", 'CLAIM_RECEIPT'::"EntryType")
+          AND (m.amount * ${ctx.polarity}) < 0`;
+}
+
+/** Pernas que reduzem o saldo por cessão/renegociação (mesmo critério de `transferred_amount`). */
+function reducingTransferSql(ctx: PreFilterSqlContext): Prisma.Sql {
+    return Prisma.sql`AND e.type IN ('TRANSFER'::"EntryType", 'CLAIM_OPENING'::"EntryType")
+          AND (m.amount * ${ctx.polarity}) < 0`;
+}
+
 export const CYCLE_STATUS_SQL_REGISTRY: Record<CycleStatus, CycleStatusSqlRule> = {
     PROJECTED: {
         status: "PROJECTED",
@@ -66,7 +82,7 @@ export const CYCLE_STATUS_SQL_REGISTRY: Record<CycleStatus, CycleStatusSqlRule> 
         preFilterSql: (ctx) =>
             existsActiveMovementSql(
                 ctx,
-                Prisma.sql`AND e.type IN ('SETTLEMENT'::"EntryType", 'CLAIM_PAYMENT'::"EntryType", 'CLAIM_RECEIPT'::"EntryType")`
+                reducingSettlementSql(ctx)
             ),
         postFilterSql: () =>
             Prisma.sql`(c.total_amount > 0 AND c.paid_amount >= c.total_amount)`,
@@ -78,10 +94,7 @@ export const CYCLE_STATUS_SQL_REGISTRY: Record<CycleStatus, CycleStatusSqlRule> 
         preFilterSql: (ctx) =>
             existsActiveMovementSql(
                 ctx,
-                Prisma.sql`AND (
-                    e.type = 'TRANSFER'::"EntryType"
-                    OR (e.type = 'CLAIM_OPENING'::"EntryType" AND (m.amount * ${ctx.polarity}) < 0)
-                )`
+                reducingTransferSql(ctx)
             ),
         postFilterSql: () =>
             Prisma.sql`(c.transferred_amount > 0 AND c.remaining_amount = 0 AND c.paid_amount < c.total_amount)`,
@@ -102,7 +115,7 @@ export const CYCLE_STATUS_SQL_REGISTRY: Record<CycleStatus, CycleStatusSqlRule> 
         preFilterSql: (ctx) =>
             Prisma.sql`(w.due_date >= ${ctx.today}::date AND ${existsActiveMovementSql(
                 ctx,
-                Prisma.sql`AND e.type IN ('SETTLEMENT'::"EntryType", 'CLAIM_PAYMENT'::"EntryType", 'CLAIM_RECEIPT'::"EntryType")`
+                reducingSettlementSql(ctx)
             )})`,
         postFilterSql: (today) =>
             Prisma.sql`(c.paid_amount > 0 AND c.paid_amount < c.total_amount AND c.due_date >= ${today}::date)`,
@@ -133,7 +146,7 @@ export const CYCLE_STATUS_SQL_REGISTRY: Record<CycleStatus, CycleStatusSqlRule> 
         preFilterSql: (ctx) =>
             existsActiveMovementSql(
                 ctx,
-                Prisma.sql`AND e.type IN ('SETTLEMENT'::"EntryType", 'CLAIM_PAYMENT'::"EntryType", 'CLAIM_RECEIPT'::"EntryType")`
+                reducingSettlementSql(ctx)
             ),
         postFilterSql: () =>
             Prisma.sql`(c.total_amount > 0 AND c.paid_amount >= c.total_amount)`,
