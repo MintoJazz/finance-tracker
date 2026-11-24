@@ -10,13 +10,14 @@ import {
 } from "./classification.steps";
 import { createInstallmentMainStep } from "./main.step";
 import {
-  createInstallmentPaymentStep,
+  createInstallmentCardStep,
   installmentBasicsStep,
+  installmentDateStep,
   installmentValuesStep,
 } from "./mobile.steps";
 import { createInstallmentReviewStep } from "./review.step";
 
-/** Mobile: um assunto por tela; criar categoria/subcategoria adiciona 3 passos cada (nome, cor, ícone). */
+/** Mobile: um assunto por tela; cartão aparece dinamicamente em INVOICE e criar categoria/subcategoria adiciona 3 passos cada. */
 export function buildInstallmentMobileSteps(
   options: InstallmentFormOptions
 ): WizardStep<InstallmentFormValues>[] {
@@ -27,7 +28,8 @@ export function buildInstallmentMobileSteps(
     installmentSubcategoryStep(options),
     ...installmentNewEntitySteps("subcategory", options),
     installmentValuesStep,
-    createInstallmentPaymentStep(options),
+    installmentDateStep,
+    createInstallmentCardStep(options),
     createInstallmentReviewStep(options),
   ];
 }

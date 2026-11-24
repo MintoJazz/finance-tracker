@@ -3,8 +3,8 @@
 import * as React from "react";
 import { useWatch } from "react-hook-form";
 import {
-    EntityPicker,
-    type EntityPickerItem,
+    CategoryEntityPicker,
+    SubcategoryEntityPicker,
 } from "@/modules/operations/ui/components/entity-picker";
 import type { RecurrenceFormValues } from "@/modules/recurrences/models/schemas/recurrence-form.schema";
 import type { RecurrenceCategoryOptions } from "@/modules/recurrences/infra/mock/recurrence-category-options.mock";
@@ -115,38 +115,9 @@ export function SubcategoryComboboxControl({ options, ...a11y }: ControlProps) {
 
 /* ------------------------------ Mobile ------------------------------ */
 
-const toPickerItem = (o: {
-    id: number;
-    name: string;
-    icon?: string | null;
-    color?: string | null;
-    subtitle?: string;
-}): EntityPickerItem<number> => ({
-    id: o.id,
-    title: o.name,
-    titleText: o.name,
-    subtitle: o.subtitle,
-    icon: o.icon,
-    color: o.color,
-});
-
 export function CategoryPickerControl({ options }: ControlProps) {
     const { apply, current } = useClassificationPatch();
     const { categoryId, newCategory } = useClassificationValues();
-
-    const items = React.useMemo(
-        () =>
-            options.categories.map((c) => {
-                const subs = options.subcategories
-                    .filter((s) => s.parentId === c.id)
-                    .map((s) => s.name);
-                return {
-                    ...toPickerItem({ ...c, subtitle: subs.join(", ") || "Sem subcategorias" }),
-                    keywords: subs,
-                };
-            }),
-        [options]
-    );
 
     return (
         <div className="flex flex-col gap-2">
@@ -155,15 +126,14 @@ export function CategoryPickerControl({ options }: ControlProps) {
                     Nova categoria: <strong>{newCategory.name}</strong>
                 </div>
             )}
-            <EntityPicker<number>
-                items={items}
+            <CategoryEntityPicker
+                categories={options.categories}
+                subcategories={options.subcategories}
                 value={newCategory ? null : categoryId}
                 onChange={(id) =>
                     apply(id == null ? clearClassificationPatch() : selectCategoryPatch(id, current()))
                 }
                 searchPlaceholder="Buscar ou criar categoria..."
-                emptyMessage="Nenhuma categoria encontrada"
-                indicator="radio"
                 listClassName="max-h-[240px]"
                 onCreate={(name) => apply(createCategoryPatch(name))}
             />
@@ -173,10 +143,16 @@ export function CategoryPickerControl({ options }: ControlProps) {
 
 export function SubcategoryPickerControl({ options }: ControlProps) {
     const { apply, current } = useClassificationPatch();
-    const { subcategoryId, newSubcategory } = useClassificationValues();
+    const { categoryId, newCategory, subcategoryId, newSubcategory } =
+        useClassificationValues();
     const list = useSubcategoryList(options);
-
-    const items = React.useMemo(() => list.map((s) => toPickerItem(s)), [list]);
+    const parentCategory = React.useMemo(
+        () =>
+            newCategory || categoryId == null
+                ? null
+                : (options.categories.find((c) => c.id === categoryId) ?? null),
+        [options.categories, categoryId, newCategory]
+    );
 
     return (
         <div className="flex flex-col gap-2">
@@ -185,8 +161,9 @@ export function SubcategoryPickerControl({ options }: ControlProps) {
                     Nova subcategoria: <strong>{newSubcategory.name}</strong>
                 </div>
             )}
-            <EntityPicker<number>
-                items={items}
+            <SubcategoryEntityPicker
+                subcategories={list}
+                parentCategory={parentCategory}
                 value={newSubcategory ? null : subcategoryId}
                 onChange={(id) => {
                     const sub = options.subcategories.find((s) => s.id === id);
@@ -194,7 +171,6 @@ export function SubcategoryPickerControl({ options }: ControlProps) {
                 }}
                 searchPlaceholder="Buscar ou criar subcategoria..."
                 emptyMessage="Nenhuma subcategoria. Digite para criar."
-                indicator="radio"
                 listClassName="max-h-[240px]"
                 onCreate={(name) => apply(createSubcategoryPatch(name, current(), options))}
             />

@@ -17,7 +17,8 @@ import {
     fromDateString,
     toDateString,
 } from "@/modules/installments/ui/utils/installment-form.utils";
-import { InstallmentCardSelect } from "./controls/card-select";
+import { CustodyEntityPicker } from "@/modules/operations/ui/components/entity-picker";
+import { InstallmentCardCombobox } from "./controls/card-combobox";
 import { InstallmentTypePicker } from "./controls/type-picker";
 
 type Item = FormFieldItem<InstallmentFormValues>;
@@ -174,10 +175,30 @@ export function createCardField(options: InstallmentFormOptions): Item {
         label: "Cartão",
         hidden: isNotType("INVOICE"),
         children: (_ctx, field) => (
-            <InstallmentCardSelect
+            <InstallmentCardCombobox
                 cards={options.cards}
                 value={field.value as number | null}
                 onChange={field.onChange}
+                onBlur={field.onBlur}
+            />
+        ),
+    };
+}
+
+/** Mobile: seletor de cartão em lista (recicla o `CustodyEntityPicker` do fluxo de operações). */
+export function createCardPickerField(options: InstallmentFormOptions): Item {
+    return {
+        name: "cardId",
+        children: (_ctx, field) => (
+            <CustodyEntityPicker
+                custodies={options.cards}
+                defaultType="CREDIT"
+                hideIcon
+                value={field.value as number | null}
+                onChange={(id) => field.onChange(id)}
+                searchPlaceholder="Buscar cartão..."
+                emptyMessage="Nenhum cartão encontrado"
+                listClassName="max-h-[240px]"
             />
         ),
     };

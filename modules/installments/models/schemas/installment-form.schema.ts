@@ -83,9 +83,19 @@ export const InstallmentValuesStepSchema = InstallmentFormBaseSchema.pick({
     totalInstallments: true,
 });
 
-/** Inclui `type` para a regra do cartão; o campo vem dos dados já acumulados. */
-export const InstallmentPaymentStepSchema = InstallmentFormBaseSchema.pick({
-    type: true,
+export const InstallmentDateStepSchema = InstallmentFormBaseSchema.pick({
     purchaseDate: true,
+});
+
+/** Passo dinâmico do cartão no mobile (exibido apenas quando `type` é `INVOICE`). */
+export const InstallmentCardStepSchema = InstallmentFormBaseSchema.pick({
     cardId: true,
-}).superRefine(refineInstallmentPayment);
+}).superRefine((data, ctx) => {
+    if (data.cardId == null) {
+        ctx.addIssue({
+            code: "custom",
+            path: ["cardId"],
+            message: "Selecione o cartão da fatura",
+        });
+    }
+});

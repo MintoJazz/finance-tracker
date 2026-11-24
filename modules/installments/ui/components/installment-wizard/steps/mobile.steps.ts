@@ -1,14 +1,17 @@
 import type { WizardStep } from "@/components/wizard";
 import {
   InstallmentBasicsStepSchema,
-  InstallmentPaymentStepSchema,
+  InstallmentCardStepSchema,
+  InstallmentDateStepSchema,
   InstallmentValuesStepSchema,
   type InstallmentFormValues,
 } from "@/modules/installments/models/schemas/installment-form.schema";
 import type { InstallmentFormOptions } from "@/modules/installments/models/schemas/installment-form-options.schema";
 import {
+  createCardPickerField,
   createNameField,
-  createPaymentRow,
+  firstDueDateField,
+  purchaseDateField,
   totalAmountField,
   totalInstallmentsFieldWithHint,
   typeField,
@@ -33,13 +36,22 @@ export const installmentValuesStep: Step = {
   fields: [totalAmountField, totalInstallmentsFieldWithHint],
 };
 
-export function createInstallmentPaymentStep(
+export const installmentDateStep: Step = {
+  id: "payment",
+  title: "Data",
+  schema: InstallmentDateStepSchema,
+  fields: [purchaseDateField, firstDueDateField],
+};
+
+/** Etapa dinâmica: só aparece quando o parcelamento é na fatura de um cartão. */
+export function createInstallmentCardStep(
   options: InstallmentFormOptions
 ): Step {
   return {
-    id: "payment",
-    title: "Data & Cartão",
-    schema: InstallmentPaymentStepSchema,
-    fields: [createPaymentRow(options)],
+    id: "card",
+    title: "Cartão",
+    when: (data) => data.type === "INVOICE",
+    schema: InstallmentCardStepSchema,
+    fields: [createCardPickerField(options)],
   };
 }

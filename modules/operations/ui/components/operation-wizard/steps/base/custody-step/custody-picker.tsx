@@ -1,10 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {
-  EntityPicker,
-  type EntityPickerItem,
-} from "@/modules/operations/ui/components/entity-picker"
+import { CustodyEntityPicker } from "@/modules/operations/ui/components/entity-picker"
 import { useOperationWizard } from "@/modules/operations/ui/components/operation-wizard/context"
 
 export interface CustodyPickerProps {
@@ -21,38 +18,11 @@ export function CustodyPicker({
   const { lookups, draft, updateDraft } = useOperationWizard()
   const isReceive = draft.nature === "RECEIVE"
 
-  const items = React.useMemo<EntityPickerItem<number>[]>(
+  const custodies = React.useMemo(
     () =>
-      lookups.custodies
-        .filter((c) => (isReceive ? c.type !== "CREDIT" : true))
-        .map((c) => {
-          const typeLabel =
-            c.type === "CREDIT"
-              ? "Cartão de crédito"
-              : c.type === "RESERVE"
-                ? "Reserva"
-                : "Carteira"
-
-          return {
-            id: c.id,
-            title: c.name,
-            subtitle: c.subtitle || typeLabel,
-            icon:
-              c.icon ??
-              (c.type === "CREDIT"
-                ? "CreditCard"
-                : c.type === "RESERVE"
-                  ? "PiggyBank"
-                  : "Wallet"),
-            color: c.color,
-            keywords: [
-              c.type.toLowerCase(),
-              typeLabel.toLowerCase(),
-              c.name,
-              c.subtitle ?? "",
-            ],
-          }
-        }),
+      isReceive
+        ? lookups.custodies.filter((c) => c.type !== "CREDIT")
+        : lookups.custodies,
     [lookups.custodies, isReceive]
   )
 
@@ -71,13 +41,11 @@ export function CustodyPicker({
   }
 
   return (
-    <EntityPicker<number>
-      items={items}
+    <CustodyEntityPicker
+      custodies={custodies}
       value={value}
       onChange={handleSelect}
       variant={variant}
-      searchPlaceholder="Buscar meio de pagamento..."
-      emptyMessage="Nenhum meio de pagamento encontrado"
     />
   )
 }

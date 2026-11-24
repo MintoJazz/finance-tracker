@@ -107,19 +107,34 @@ export function InstallmentReviewContent({
           </div>
         </WizardReviewRow>
 
-        <WizardReviewRow stepId="payment">
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <Stat
-              label={isInvoice ? "Data da compra" : "1ª parcela"}
-              value={formatDate(data.purchaseDate) || "—"}
+        {isInvoice ? (
+          <>
+            <WizardReviewRow
+              icon={<CreditCard className="size-4" />}
+              label="Cartão"
+              value={card?.name ?? "—"}
+              stepId="card"
             />
-            {isInvoice ? (
-              <Stat label="Cartão" value={card?.name ?? "—"} />
-            ) : (
-              <Stat label="Última parcela" value={(lastDate && formatDate(lastDate)) || "—"} />
-            )}
-          </div>
-        </WizardReviewRow>
+            <WizardReviewRow
+              label="Data da compra"
+              value={formatDate(data.purchaseDate) || "—"}
+              stepId="payment"
+            />
+          </>
+        ) : (
+          <WizardReviewRow stepId="payment">
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <Stat
+                label="1ª parcela"
+                value={formatDate(data.purchaseDate) || "—"}
+              />
+              <Stat
+                label="Última parcela"
+                value={(lastDate && formatDate(lastDate)) || "—"}
+              />
+            </div>
+          </WizardReviewRow>
+        )}
       </WizardReviewCard>
 
       <WizardReviewHint>

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { EntityPickerItem, EntityPicker } from "../../../../entity-picker"
+import { SubcategoryEntityPicker } from "../../../../entity-picker"
 import { useOperationWizard } from "../../../context"
 
 export interface SubcategoryPickerProps {
@@ -19,24 +19,9 @@ export function SubcategoryPicker({
   const parentCategoryId = draft.base?.categoryId
 
   const parentCategory = React.useMemo(
-    () => lookups.categories.find((c) => c.id === parentCategoryId),
+    () => lookups.categories.find((c) => c.id === parentCategoryId) ?? null,
     [lookups.categories, parentCategoryId]
   )
-
-  const items = React.useMemo<EntityPickerItem<number>[]>(() => {
-    const filtered = parentCategoryId
-      ? lookups.subcategories.filter((s) => s.parentId === parentCategoryId)
-      : lookups.subcategories
-
-    return filtered.map((sub) => ({
-      id: sub.id,
-      title: sub.name,
-      subtitle: `Subcategoria de ${parentCategory?.name ?? sub.parentName ?? "Categoria"}`,
-      icon: sub.icon ?? parentCategory?.icon ?? "Tag",
-      color: sub.color ?? parentCategory?.color,
-      keywords: [sub.name, parentCategory?.name ?? ""],
-    }))
-  }, [lookups.subcategories, parentCategoryId, parentCategory])
 
   const handleSelect = (id: number | null) => {
     onChange(id)
@@ -48,17 +33,12 @@ export function SubcategoryPicker({
   }
 
   return (
-    <EntityPicker<number>
-      items={items}
+    <SubcategoryEntityPicker
+      subcategories={lookups.subcategories}
+      parentCategory={parentCategory}
       value={value}
       onChange={handleSelect}
       variant={variant}
-      searchPlaceholder={
-        parentCategory
-          ? `Buscar subcategoria em ${parentCategory.name}...`
-          : "Buscar subcategoria..."
-      }
-      emptyMessage="Nenhuma subcategoria encontrada"
     />
   )
 }
