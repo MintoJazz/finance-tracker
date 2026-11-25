@@ -303,4 +303,28 @@ describe("CyclePrismaQueries.aggregateCycles - semântica por sinal", () => {
             assert.equal(receivable.remainingAmount, 0);
             assert.equal(receivable.status, "PAID");
         }));
+
+    it("settlementDate retorna Entry.dueDate (data real do pagamento) quando diferente de competanceDate", () =>
+        inRollback(async (tx) => {
+            const { ids, entry, cycle } = await setup(tx);
+            await entry("ACCRUAL", [debit(ids.payable, 100), credit(ids.category, 100)], NOV_15);
+
+            // Pago com atraso em 10/dez (dueDate), mas ancorado na competência de novembro (NOV_15)
+            const actualPaymentDate = new Date("2026-12-10T12:00:00.000Z");
+            await tx.entry.create({
+                data: {
+                    description: "pagamento atrasado",
+                    type: "SETTLEMENT",
+                    dueDate: actualPaymentDate,
+                    competanceDate: NOV_15,
+                    movements: {
+                        create: [debit(ids.wallet, 100), credit(ids.payable, 100)],
+                    },
+                },
+            });
+
+            const c = await cycle(ids.payable, "PAYABLE", NOVEMBER);
+            assert.equal(c.status, "PAID");
+            assert.equal(c.settlementDate?.toISOString().slice(0, 10), "2026-12-10");
+        }));
 });

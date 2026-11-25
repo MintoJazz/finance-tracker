@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
-import { WalletFactory } from "@/modules/wallets/infra/factories/wallet.factory";
+import { getWalletByIdAction } from "@/modules/wallets/ui/actions/get-wallet-by-id.action";
 import { ViewContainer } from "@/components/adaptive";
 import { EditWalletModalConfig } from "@/modules/wallets/ui/views/edit-wallet-modal";
 import { getDeviceViewport } from "@/lib/device";
@@ -20,10 +20,7 @@ export default async function EditWalletModalPage(props: Props) {
         notFound();
     }
 
-    const result = await WalletFactory.makeGetWalletByIdUseCase().execute({
-        session,
-        walletId,
-    });
+    const result = await getWalletByIdAction(walletId);
 
     if (!result.success || !result.data) {
         notFound();

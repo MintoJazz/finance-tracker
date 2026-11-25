@@ -53,6 +53,7 @@ export function useMobileInstallmentOverview(
         loadMore,
         sentinelRef,
         actionsMenuContext: shared.actionsMenuContext,
+        archiveContext: shared.archiveContext,
         onAddClick: shared.onAddClick,
         filters: shared.filters,
         activeFilterCount: shared.activeFilterCount,

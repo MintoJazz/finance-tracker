@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
-import { CardFactory } from "@/modules/cards/infra/factories/card.factory";
+import { getCardByIdAction } from "@/modules/cards/ui/actions/get-card-by-id.action";
 import { ViewContainer } from "@/components/adaptive";
 import { EditCardModalConfig } from "@/modules/cards/ui/views/edit-card-modal";
 import { getDeviceViewport } from "@/lib/device";
@@ -20,10 +20,7 @@ export default async function EditCardModalPage(props: Props) {
         notFound();
     }
 
-    const result = await CardFactory.makeGetCardByIdUseCase().execute({
-        session,
-        cardId,
-    });
+    const result = await getCardByIdAction(cardId);
 
     if (!result.success || !result.data) {
         notFound();

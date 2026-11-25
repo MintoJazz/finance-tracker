@@ -8,11 +8,13 @@ import { InstallmentFilter } from "../../../components/installment-filter";
 import { InstallmentFilterModal } from "../../../components/installment-filter/modal";
 import { InstallmentSearchBar } from "../../../components/installment-filter/search-bar";
 import InstallmentTable from "../../../components/installment-table";
+import { ArchiveInstallmentModalViewDesktop } from "../../archive-installment-modal";
 import type { InstallmentOverviewProps } from "../types";
 
 export default function InstallmentsOverviewViewDesktop({
     data,
     actionsMenuContext,
+    archiveContext,
     onAddClick,
     paginationContext,
     filters,
@@ -73,6 +75,8 @@ export default function InstallmentsOverviewViewDesktop({
                 <InstallmentFilter.Status />
                 <InstallmentFilter.Type />
             </InstallmentFilterModal>
+
+            <ArchiveInstallmentModalViewDesktop {...archiveContext} />
         </div>
     );
 }

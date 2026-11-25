@@ -4,16 +4,35 @@ import {
     isAfter,
     isBefore,
     max,
-    min,
     startOfDay,
     subDays,
 } from "date-fns";
+import {
+    civilToLocalMidnight,
+    utcDateToCivil,
+} from "@/modules/agreements/application/services/civil-date";
 import { CycleRange } from "@/modules/cycles/models/cycle-primitives.schema";
 import {
     AgreementScheduleContext,
     CycleEngineRegistry,
     CycleRuleRecord,
 } from "./cycle-engine.registry";
+
+/**
+ * Normaliza colunas `@db.Date` (meia-noite UTC) para meia-noite civil local sem deslocar -1 dia
+ * em fusos negativos, preservando datas já construídas em horário local.
+ */
+function normalizeCivilDate(date: Date): Date {
+    if (
+        date.getUTCHours() === 0 &&
+        date.getUTCMinutes() === 0 &&
+        date.getUTCSeconds() === 0 &&
+        date.getUTCMilliseconds() === 0
+    ) {
+        return civilToLocalMidnight(utcDateToCivil(date));
+    }
+    return startOfDay(date);
+}
 
 export interface CycleWindowBoundaries {
     range: CycleRange; // { from: 'YYYY-MM-DD', to: 'YYYY-MM-DD' }
@@ -55,20 +74,25 @@ export class CycleWindowEngine {
             return [];
         }
 
-        const sortedRules = [...rules].sort(
-            (a, b) => a.effectiveFrom.getTime() - b.effectiveFrom.getTime()
-        );
+        const sortedRules = [...rules]
+            .map((r) => ({ ...r, effectiveFrom: normalizeCivilDate(r.effectiveFrom) }))
+            .sort((a, b) => a.effectiveFrom.getTime() - b.effectiveFrom.getTime());
 
-        const winFrom = startOfDay(window.from);
-        const winTo = startOfDay(window.to);
-        const agreementStart = startOfDay(agreement.startsAt);
-        const agreementEnd = agreement.endsAt ? startOfDay(agreement.endsAt) : null;
+        const winFrom = normalizeCivilDate(window.from);
+        const winTo = normalizeCivilDate(window.to);
+        const agreementStart = normalizeCivilDate(agreement.startsAt);
+        const agreementEnd = agreement.endsAt ? normalizeCivilDate(agreement.endsAt) : null;
+        const normalizedAgreement: AgreementScheduleContext = {
+            ...agreement,
+            startsAt: agreementStart,
+            endsAt: agreementEnd,
+        };
 
         // Caso especial ONCE: possui apenas 1 ciclo na vida toda do acordo
-        if (agreement.frequency === "ONCE") {
+        if (normalizedAgreement.frequency === "ONCE") {
             const single = this.resolveWindowForDate(
                 agreementStart,
-                agreement,
+                normalizedAgreement,
                 sortedRules
             );
             if (!single) return [];
@@ -86,17 +110,17 @@ export class CycleWindowEngine {
 
         // Recua 1 ciclo antes de winFrom para garantir que um ciclo que começou no fim do ano anterior
         // mas vence/fecha dentro de [winFrom, winTo] seja capturado inteiro!
-        const strategy = CycleEngineRegistry.getStrategy(agreement.frequency);
+        const strategy = CycleEngineRegistry.getStrategy(normalizedAgreement.frequency);
         const initialSweepDate = max([
             agreementStart,
-            strategy.stepDate(winFrom, -1, agreement.interval),
+            strategy.stepDate(winFrom, -1, normalizedAgreement.interval),
         ]);
 
         const results: CycleWindowBoundaries[] = [];
         const seenKeys = new Set<string>();
 
         let cursor = startOfDay(initialSweepDate);
-        const maxSweepLimit = strategy.stepDate(winTo, 1, agreement.interval);
+        const maxSweepLimit = strategy.stepDate(winTo, 1, normalizedAgreement.interval);
         const MAX_ITERATIONS = 500; // Guardrail contra loops infinitos
         let iterations = 0;
 
@@ -108,7 +132,7 @@ export class CycleWindowEngine {
                 break;
             }
 
-            const resolved = this.resolveWindowForDate(cursor, agreement, sortedRules);
+            const resolved = this.resolveWindowForDate(cursor, normalizedAgreement, sortedRules);
             if (!resolved) {
                 break;
             }
@@ -153,27 +177,36 @@ export class CycleWindowEngine {
     ): CycleWindowBoundaries | null {
         if (sortedRules.length === 0) return null;
 
-        const targetDate = startOfDay(cursor);
-        const strategy = CycleEngineRegistry.getStrategy(agreement.frequency);
+        const targetDate = normalizeCivilDate(cursor);
+        const normalizedAgreement: AgreementScheduleContext = {
+            ...agreement,
+            startsAt: normalizeCivilDate(agreement.startsAt),
+            endsAt: agreement.endsAt ? normalizeCivilDate(agreement.endsAt) : null,
+        };
+        const normalizedRules = sortedRules.map((r) => ({
+            ...r,
+            effectiveFrom: normalizeCivilDate(r.effectiveFrom),
+        }));
+        const strategy = CycleEngineRegistry.getStrategy(normalizedAgreement.frequency);
 
         // 1. Localiza a regra vigente em targetDate (última com effectiveFrom <= targetDate, ou a primeira disponível)
         let activeRuleIndex = 0;
-        for (let i = 0; i < sortedRules.length; i++) {
-            if (!isAfter(startOfDay(sortedRules[i].effectiveFrom), targetDate)) {
+        for (let i = 0; i < normalizedRules.length; i++) {
+            if (!isAfter(normalizedRules[i].effectiveFrom, targetDate)) {
                 activeRuleIndex = i;
             } else {
                 break;
             }
         }
 
-        const activeRule = sortedRules[activeRuleIndex];
-        const prevRule = activeRuleIndex > 0 ? sortedRules[activeRuleIndex - 1] : null;
+        const activeRule = normalizedRules[activeRuleIndex];
+        const prevRule = activeRuleIndex > 0 ? normalizedRules[activeRuleIndex - 1] : null;
         const nextRule =
-            activeRuleIndex < sortedRules.length - 1
-                ? sortedRules[activeRuleIndex + 1]
+            activeRuleIndex < normalizedRules.length - 1
+                ? normalizedRules[activeRuleIndex + 1]
                 : null;
 
-        const raw = strategy.resolveGeometryForDate(targetDate, agreement, activeRule);
+        const raw = strategy.resolveGeometryForDate(targetDate, normalizedAgreement, activeRule);
 
         let beginsAt = raw.beginsAt;
         let endsAt = raw.endsAt;
@@ -184,20 +217,24 @@ export class CycleWindowEngine {
         let isBridgeCycle = false;
 
         // 2. Transição com Regra Anterior (Ciclo Ponte na entrada da nova regra):
-        // Se havia uma regra anterior, o ciclo atual jamais pode começar antes ou sobrepor o último fechamento da regra anterior.
+        // Se havia uma regra anterior e este ciclo contém `ruleStart`, o início nunca pode sobrepor
+        // a regra anterior: começa no dia seguinte ao fechamento anterior ou no `beginsAt` do ciclo
+        // da regra anterior que cruzou `ruleStart`.
         if (prevRule) {
-            const ruleStart = startOfDay(activeRule.effectiveFrom);
-            const lastDayOfPrevRule = subDays(ruleStart, 1);
-            const prevGeo = strategy.resolveGeometryForDate(
-                lastDayOfPrevRule,
-                agreement,
-                prevRule
-            );
+            const ruleStart = activeRule.effectiveFrom;
+            if (!isAfter(beginsAt, ruleStart) && !isAfter(ruleStart, endsAt)) {
+                const lastDayOfPrevRule = subDays(ruleStart, 1);
+                const prevGeo = strategy.resolveGeometryForDate(
+                    lastDayOfPrevRule,
+                    normalizedAgreement,
+                    prevRule
+                );
 
-            // Se a regra anterior fechou antes de ruleStart, a ponte começa no dia seguinte ao fechamento anterior
-            if (isBefore(prevGeo.endsAt, ruleStart)) {
-                const expectedBridgeStart = addDays(prevGeo.endsAt, 1);
-                if (beginsAt.getTime() !== expectedBridgeStart.getTime() && isBefore(targetDate, endsAt)) {
+                const expectedBridgeStart = isBefore(prevGeo.endsAt, ruleStart)
+                    ? addDays(prevGeo.endsAt, 1)
+                    : prevGeo.beginsAt;
+
+                if (beginsAt.getTime() !== expectedBridgeStart.getTime()) {
                     beginsAt = expectedBridgeStart;
                     isBridgeCycle = true;
                 }
@@ -208,11 +245,11 @@ export class CycleWindowEngine {
         // Se uma nova regra entra em vigor (`nextRule.effectiveFrom`) no meio desta vigência (antes de endsAt),
         // a nova regra assume o fechamento e o vencimento deste ciclo de transição!
         if (nextRule) {
-            const nextRuleStart = startOfDay(nextRule.effectiveFrom);
+            const nextRuleStart = nextRule.effectiveFrom;
             if (!isAfter(nextRuleStart, endsAt) && !isBefore(nextRuleStart, beginsAt)) {
                 const nextGeo = strategy.resolveGeometryForDate(
                     nextRuleStart,
-                    agreement,
+                    normalizedAgreement,
                     nextRule
                 );
                 endsAt = nextGeo.endsAt;

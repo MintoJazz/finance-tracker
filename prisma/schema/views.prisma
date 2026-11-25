@@ -24,18 +24,22 @@ view EntryCategoryView {
 }
 
 view InstallmentSummaryView {
-  balanceId         Int       @unique
-  contextId         Int
-  totalInstallments Int
-  paidInstallments  Int
-  installmentAmount Int
-  totalAmount       Int
-  firstDueDate      DateTime
-  nextDueDate       DateTime?
-  endsAt            DateTime
-  isOverdue         Boolean
-  cardBalanceId     Int?
-  categoryBalanceId Int?
+  balanceId                Int       @unique
+  contextId                Int
+  totalInstallments        Int
+  paidInstallments         Int
+  paidAmount               Int
+  consolidatedInstallments Int
+  consolidatedAmount       Int
+  installmentAmount        Int
+  totalAmount              Int
+  firstDueDate             DateTime?
+  nextDueDate              DateTime?
+  endsAt                   DateTime?
+  isOverdue                Boolean
+  cardBalanceId            Int?
+  categoryBalanceId        Int?
+  removedAt                DateTime?
 
   @@map("vw_installment_summary")
 }

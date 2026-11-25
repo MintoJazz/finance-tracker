@@ -1,0 +1,43 @@
+import { notFound, redirect } from "next/navigation";
+import { ViewContainer } from "@/components/adaptive";
+import { getDeviceViewport } from "@/lib/device";
+import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
+import { isFullyConsolidated } from "@/modules/installments/models/schemas/installment-item.schema";
+import { getInstallmentByIdAction } from "@/modules/installments/ui/actions/get-installment-by-id.action";
+import { AdjustInstallmentDeadlinesModalConfig } from "@/modules/installments/ui/views/adjust-installment-deadlines-modal";
+
+interface Props {
+    params: Promise<{ id: string }>;
+}
+
+export default async function AdjustInstallmentDeadlinesModalPage(props: Props) {
+    const session = await SessionHandler.getSession();
+    if (!session) redirect("/login");
+
+    const { id } = await props.params;
+    const balanceId = Number(id);
+    if (!Number.isInteger(balanceId) || balanceId <= 0) notFound();
+
+    const result = await getInstallmentByIdAction(balanceId, {
+        preferredType: "MONTHLY",
+    });
+    if (
+        !result.success ||
+        !result.data ||
+        result.data.isArchived ||
+        result.data.type !== "MONTHLY" ||
+        isFullyConsolidated(result.data)
+    ) {
+        notFound();
+    }
+
+    const initialViewport = await getDeviceViewport();
+
+    return (
+        <ViewContainer
+            initialViewport={initialViewport}
+            data={{ installment: result.data }}
+            {...AdjustInstallmentDeadlinesModalConfig}
+        />
+    );
+}

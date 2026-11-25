@@ -35,7 +35,8 @@ export function InstallmentAvatar({
     size = "md",
     className,
 }: InstallmentAvatarProps) {
-    const color = item.color ?? item.category?.color;
+    const color = item.category?.color ?? item.color;
+    const icon = item.category?.icon ?? item.icon;
     const { palette, style: colorStyle } = getCategoryTheme(color);
 
     return (
@@ -51,7 +52,7 @@ export function InstallmentAvatar({
                 className
             )}
         >
-            <CategoryIcon name={item.icon} size={ICON_SIZES[size]} />
+            <CategoryIcon name={icon} size={ICON_SIZES[size]} />
         </div>
     );
 }

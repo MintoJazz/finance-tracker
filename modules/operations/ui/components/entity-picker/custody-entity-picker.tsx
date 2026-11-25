@@ -30,6 +30,8 @@ export interface CustodyEntityPickerProps
   custodies: readonly CustodyEntityOption[]
   /** Tipo padrão usado quando os itens não informam `type` (ex.: lista apenas de cartões). */
   defaultType?: CustodyBalanceType
+  /** Oculta o subtítulo dos itens (útil quando todos são do mesmo tipo, ex.: apenas cartões). */
+  hideSubtitle?: boolean
 }
 
 const CUSTODY_META: Record<
@@ -45,6 +47,7 @@ const CUSTODY_META: Record<
 export function CustodyEntityPicker({
   custodies,
   defaultType = "WALLET",
+  hideSubtitle = false,
   searchPlaceholder = "Buscar meio de pagamento...",
   emptyMessage = "Nenhum meio de pagamento encontrado",
   ...pickerProps
@@ -58,7 +61,7 @@ export function CustodyEntityPicker({
           id: c.id,
           title: c.name,
           titleText: c.name,
-          subtitle: c.subtitle || meta.label,
+          subtitle: hideSubtitle ? undefined : c.subtitle || meta.label,
           icon: c.icon ?? meta.icon,
           color: c.color,
           keywords: [
@@ -69,7 +72,7 @@ export function CustodyEntityPicker({
           ],
         }
       }),
-    [custodies, defaultType]
+    [custodies, defaultType, hideSubtitle]
   )
 
   return (

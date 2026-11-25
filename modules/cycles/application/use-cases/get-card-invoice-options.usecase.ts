@@ -5,6 +5,10 @@ import { failure, Result, success } from "@/types/result.types";
 import { CycleOption } from "@/modules/cycles/models/cycle-option.schema";
 import { CycleStatus } from "@/modules/cycles/models/cycle-primitives.schema";
 import { ICycleQueries } from "@/modules/cycles/application/interfaces/cycle-queries.interface";
+import {
+    civilToLocalMidnight,
+    utcDateToCivil,
+} from "@/modules/agreements/application/services/civil-date";
 import { CycleHorizonCalculator } from "@/modules/cycles/application/services/cycle-horizon.calculator";
 import { CycleWindowEngine } from "@/modules/cycles/application/services/cycle-window.engine";
 import { CycleMapper } from "../../infra/mappers/cycle-option.mapper";
@@ -78,7 +82,7 @@ export class GetCardInvoiceOptionsUseCase {
                 agreement: {
                     frequency: "MONTHLY",
                     interval: 1,
-                    startsAt: rules[0].effectiveFrom,
+                    startsAt: civilToLocalMidnight(utcDateToCivil(rules[0].effectiveFrom)),
                     endsAt: null,
                 },
                 rules,

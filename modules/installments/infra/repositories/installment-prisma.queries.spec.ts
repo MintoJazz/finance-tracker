@@ -6,8 +6,10 @@ import { InstallmentPrismaQueries } from "./installment-prisma.queries";
 describe("InstallmentPrismaQueries - Integração com Banco", () => {
     const queries = new InstallmentPrismaQueries();
 
-    it("lista e mapeia os parcelamentos de um contexto com parcelas", async () => {
-        const row = await prisma.installmentSummaryView.findFirst();
+    it("lista e mapeia os parcelamentos ativos de um contexto com parcelas", async () => {
+        const row = await prisma.installmentSummaryView.findFirst({
+            where: { removedAt: null },
+        });
         if (!row) return;
 
         const items = await queries.listInstallmentsByContextId(row.contextId);
@@ -18,12 +20,19 @@ describe("InstallmentPrismaQueries - Integração com Banco", () => {
         assert.equal(item.type, row.cardBalanceId != null ? "INVOICE" : "MONTHLY");
         assert.equal(item.totalInstallments, row.totalInstallments);
         assert.equal(item.paidInstallments, row.paidInstallments);
+        assert.equal(item.paidAmount, row.paidAmount);
+        assert.equal(item.consolidatedInstallments, row.consolidatedInstallments);
+        assert.equal(item.consolidatedAmount, row.consolidatedAmount);
         assert.equal(item.isOverdue, row.isOverdue);
+        assert.equal(item.isArchived, false);
         assert.ok(item.paidInstallments <= item.totalInstallments);
+        assert.ok(item.consolidatedInstallments <= item.totalInstallments);
     });
 
     it("filtra por tipo e devolve null para balance de outro contexto", async () => {
-        const row = await prisma.installmentSummaryView.findFirst();
+        const row = await prisma.installmentSummaryView.findFirst({
+            where: { removedAt: null },
+        });
         if (!row) return;
 
         const wrongType = row.cardBalanceId != null ? "MONTHLY" : "INVOICE";

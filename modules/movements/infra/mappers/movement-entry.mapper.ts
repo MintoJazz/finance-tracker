@@ -64,7 +64,7 @@ export class MovementEntryMapper {
             id: movement.id,
             entryId: entry.id,
             movementId: movement.id,
-            date: entry.competanceDate ?? entry.dueDate,
+            date: entry.dueDate,
             description: entry.description,
             type,
             direction: movement.direction,

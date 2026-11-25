@@ -2,8 +2,10 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { AmountSpan } from "@/components/amount-span";
+import { formatMoney } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import {
+    getRemainingAmount,
     isInstallmentPaid,
     type InstallmentListItem,
 } from "@/modules/installments/models/schemas/installment-item.schema";
@@ -69,14 +71,23 @@ export const INSTALLMENT_COLUMNS: ColumnDef<InstallmentListItem>[] = [
         header: () => <div className="text-right">Parcela</div>,
         accessorKey: "installmentAmount",
         cell: ({ row }) => {
-            const paid = isInstallmentPaid(row.original);
+            const item = row.original;
+            const paid = isInstallmentPaid(item);
+            const remaining = getRemainingAmount(item);
             return (
-                <AmountSpan
-                    className="text-right"
-                    amount={row.original.installmentAmount}
-                    isNegative={!paid}
-                    isCancelled={paid}
-                />
+                <div className="flex flex-col items-end min-w-0">
+                    <AmountSpan
+                        className="text-right"
+                        amount={item.installmentAmount}
+                        isNegative={!paid}
+                        isCancelled={paid}
+                    />
+                    {!paid && remaining > 0 && (
+                        <span className="truncate text-xs text-muted-foreground tabular-nums">
+                            Restam {formatMoney(remaining)}
+                        </span>
+                    )}
+                </div>
             );
         },
     },

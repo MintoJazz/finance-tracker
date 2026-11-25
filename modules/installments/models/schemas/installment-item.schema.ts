@@ -12,6 +12,7 @@ export const InstallmentCategorySchema = z.object({
     balanceId: z.number().int().positive(),
     name: z.string().min(1),
     color: z.string().nullable(),
+    icon: z.string().nullable().optional(),
 });
 
 export const InstallmentCardSchema = z.object({
@@ -25,15 +26,22 @@ export const InstallmentListItemSchema = z.object({
     type: InstallmentTypeSchema,
     /** Valor total da compra, em centavos. */
     totalAmount: z.number().int().nonnegative(),
-    /** Valor de cada parcela, em centavos. */
+    /** Valor vigente da próxima parcela em aberto (ou da última, se quitado), em centavos. */
     installmentAmount: z.number().int().nonnegative(),
-    totalInstallments: z.number().int().positive(),
+    totalInstallments: z.number().int().nonnegative(),
     paidInstallments: z.number().int().nonnegative(),
-    purchaseDate: DateStringSchema,
-    /** Vencimento da próxima parcela (null quando quitado). */
+    /** Soma real das parcelas efetivamente pagas, em centavos. */
+    paidAmount: z.number().int().nonnegative(),
+    /** Parcelas imutáveis para edição (pagas no mês a mês; pagas ou fatura fechada no cartão). */
+    consolidatedInstallments: z.number().int().nonnegative(),
+    /** Soma real das parcelas consolidadas, em centavos. */
+    consolidatedAmount: z.number().int().nonnegative(),
+    purchaseDate: DateStringSchema.nullable(),
+    /** Vencimento da próxima parcela (null quando quitado ou sem parcelas). */
     nextDueDate: DateStringSchema.nullable(),
-    endsAt: DateStringSchema,
+    endsAt: DateStringSchema.nullable(),
     isOverdue: z.boolean(),
+    isArchived: z.boolean().default(false),
     card: InstallmentCardSchema.nullable(),
     category: InstallmentCategorySchema.nullable(),
     icon: z.string().nullable(),
@@ -65,7 +73,7 @@ export function resolveInstallmentType(
 export function isInstallmentPaid(
     item: Pick<InstallmentListItem, "paidInstallments" | "totalInstallments">
 ): boolean {
-    return item.paidInstallments >= item.totalInstallments;
+    return item.totalInstallments > 0 && item.paidInstallments >= item.totalInstallments;
 }
 
 export function getInstallmentStatus(
@@ -86,20 +94,31 @@ export function getRemainingInstallments(
     return Math.max(0, item.totalInstallments - item.paidInstallments);
 }
 
-/** Saldo devedor aproximado: parcelas restantes × valor da parcela (centavos). */
-export function getRemainingAmount(
-    item: Pick<
-        InstallmentListItem,
-        "paidInstallments" | "totalInstallments" | "installmentAmount"
-    >
+/** Quantidade de parcelas ainda em aberto (mutáveis) respeitando a fronteira de consolidação. */
+export function getOpenInstallmentsCount(
+    item: Pick<InstallmentListItem, "consolidatedInstallments" | "totalInstallments">
 ): number {
-    return getRemainingInstallments(item) * item.installmentAmount;
+    return Math.max(0, item.totalInstallments - item.consolidatedInstallments);
+}
+
+export function isFullyConsolidated(
+    item: Pick<InstallmentListItem, "consolidatedInstallments" | "totalInstallments">
+): boolean {
+    return getOpenInstallmentsCount(item) === 0;
+}
+
+/** Saldo devedor exato em centavos: total menos o que já foi efetivamente pago. */
+export function getRemainingAmount(
+    item: Pick<InstallmentListItem, "totalAmount" | "paidAmount">
+): number {
+    return Math.max(0, item.totalAmount - item.paidAmount);
 }
 
 /** Progresso de 0 a 100. */
 export function getInstallmentProgress(
     item: Pick<InstallmentListItem, "paidInstallments" | "totalInstallments">
 ): number {
+    if (item.totalInstallments <= 0) return 0;
     return Math.min(
         100,
         Math.round((item.paidInstallments / item.totalInstallments) * 100)

@@ -2,8 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { ViewContainer } from "@/components/adaptive";
 import { getDeviceViewport } from "@/lib/device";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
-import { RecurrenceFactory } from "@/modules/recurrences/infra/factories/recurrence.factory";
 import { MOCK_RECURRENCE_CATEGORY_OPTIONS } from "@/modules/recurrences/infra/mock/recurrence-category-options.mock";
+import { getRecurrenceFormOptionsAction } from "@/modules/recurrences/ui/actions/get-recurrence-form-options.action";
 import { getRecurrenceProfileAction } from "@/modules/recurrences/ui/actions/get-recurrence-profile.action";
 import { EditRecurrenceModalConfig } from "@/modules/recurrences/ui/views/edit-recurrence-modal";
 
@@ -21,7 +21,7 @@ export default async function EditRecurrenceModalPage(props: Props) {
 
     const [profileResult, optionsResult] = await Promise.all([
         getRecurrenceProfileAction(balanceId),
-        RecurrenceFactory.makeGetRecurrenceFormOptionsUseCase().execute({ session }),
+        getRecurrenceFormOptionsAction(),
     ]);
     if (!profileResult.success || !profileResult.data) notFound();
 

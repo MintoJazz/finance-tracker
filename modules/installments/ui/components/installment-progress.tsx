@@ -25,7 +25,7 @@ export function InstallmentProgress({
         <div className={cn("flex items-center gap-2", className)}>
             <Progress
                 value={item.paidInstallments}
-                max={item.totalInstallments}
+                max={Math.max(1, item.totalInstallments)}
                 className="w-20 sm:w-24"
                 trackClassName="h-1.5"
                 indicatorClassName={cn(
@@ -52,7 +52,7 @@ export function InstallmentProgressRing({
         <div className={cn("flex items-center gap-1.5 min-w-0", className)}>
             <CircularProgress
                 value={item.paidInstallments}
-                max={item.totalInstallments}
+                max={Math.max(1, item.totalInstallments)}
                 size={16}
                 indicatorClassName={cn(
                     status === "OVERDUE" && "stroke-rose-500",

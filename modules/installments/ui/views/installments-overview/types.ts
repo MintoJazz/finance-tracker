@@ -4,6 +4,7 @@ import type { Page } from "@/types/pagination.types";
 import type { InstallmentActionContext } from "../../components/installment-actions-drawer";
 import type { InstallmentFilterValues } from "../../components/installment-filter";
 import type { InstallmentFilterBadgeKey } from "../../hooks/use-installment-filters";
+import type { ArchiveInstallmentModalProps } from "../archive-installment-modal";
 
 export interface InstallmentPaginationContext {
     setPage: (val: number) => void;
@@ -12,6 +13,7 @@ export interface InstallmentPaginationContext {
 
 export interface InstallmentOverviewSharedProps {
     actionsMenuContext: InstallmentActionContext;
+    archiveContext: ArchiveInstallmentModalProps;
     onAddClick: () => void;
     filters: InstallmentFilterValues;
     activeFilterCount: number;

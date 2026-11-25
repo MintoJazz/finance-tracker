@@ -255,7 +255,7 @@ export class CyclePrismaQueries implements ICycleQueries {
                     -- Saldo líquido em aberto dos movimentos reais (soma com sinal, independe do tipo)
                     GREATEST(0, COALESCE(SUM(m.amount * ${polarity}), 0))::int AS net_open_amount,
 
-                    MAX(COALESCE(e."competanceDate", e."dueDate")::date) FILTER (
+                    MAX(e."dueDate"::date) FILTER (
                         WHERE e.type IN ('SETTLEMENT'::"EntryType", 'CLAIM_PAYMENT'::"EntryType", 'CLAIM_RECEIPT'::"EntryType")
                           AND (m.amount * ${polarity}) < 0
                     ) AS latest_settlement_date,

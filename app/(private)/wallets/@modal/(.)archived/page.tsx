@@ -1,4 +1,4 @@
-import { WalletFactory } from "@/modules/wallets/infra/factories/wallet.factory";
+import { getWalletsAction } from "@/modules/wallets/ui/actions/get-wallets.action";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { redirect } from "next/navigation";
 import { ArchivedSheet } from "@/components/archived/archived-sheet";
@@ -9,9 +9,7 @@ export default async function ArchivedWalletsModal() {
   const session = await SessionHandler.getSession();
   if (!session) redirect("/login");
 
-  const useCase = WalletFactory.makeGetContextWalletsUseCase();
-  const { success, data, error } = await useCase.execute({
-    session,
+  const { success, data, error } = await getWalletsAction({
     pageRequest: { page: 1, pageSize: 50 },
     filter: { archivedOnly: true },
   });

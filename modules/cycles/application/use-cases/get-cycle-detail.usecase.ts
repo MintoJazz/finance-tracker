@@ -3,6 +3,10 @@ import { BalanceType, CycleFrequency } from "@/prisma/generated/prisma/client";
 import { SessionPayload } from "@/modules/auth/infra/cryptography/jwt-utils";
 import { ISpaceAccessProvider } from "@/modules/space/application/interfaces/space-access-provider.interface";
 import { failure, Result, success } from "@/types/result.types";
+import {
+    civilToLocalMidnight,
+    utcDateToCivil,
+} from "@/modules/agreements/application/services/civil-date";
 import { toCivilDate } from "@/lib/formatters";
 import {
     CycleRange,
@@ -114,11 +118,12 @@ export class GetCycleDetailUseCase {
                 );
             }
 
+            const dbDateToLocal = (d: Date) => civilToLocalMidnight(utcDateToCivil(d));
             const scheduleContext = {
                 frequency: agreementCtx.frequency,
                 interval: agreementCtx.interval,
-                startsAt: agreementCtx.startsAt,
-                endsAt: agreementCtx.endsAt,
+                startsAt: dbDateToLocal(agreementCtx.startsAt),
+                endsAt: agreementCtx.endsAt ? dbDateToLocal(agreementCtx.endsAt) : null,
             };
 
             let effectiveRange = range;

@@ -191,14 +191,15 @@ export class RecurrencePrismaQueries implements IRecurrenceQueries {
             SELECT m."balanceId"
             FROM "Movement" m
             INNER JOIN "Entry" e ON e.id = m."entryId"
+            INNER JOIN "Balance" b ON b.id = m."balanceId"
             WHERE m."balanceId" IN (${Prisma.join(balanceIds)})
               AND e."reversesEntryId" IS NULL
               AND NOT EXISTS (
                   SELECT 1 FROM "Entry" rev WHERE rev."reversesEntryId" = e.id
               )
               AND e."dueDate"::date < ${today}::date
-            GROUP BY m."balanceId"
-            HAVING SUM(m.amount) < 0
+            GROUP BY m."balanceId", b."balanceType"
+            HAVING SUM(m.amount * CASE WHEN b."balanceType" = 'RECEIVABLE' THEN 1 ELSE -1 END) > 0
         `;
 
         return new Set(overdueRows.map((r) => r.balanceId));

@@ -70,6 +70,31 @@ export const routes = defineRoutes({
     label: "Novo parcelamento",
     parent: "installments",
   },
+  installmentEdit: {
+    pattern: "/installments/[id]/edit",
+    label: "Editar nome",
+    parent: "installments",
+  },
+  installmentChangeCategory: {
+    pattern: "/installments/[id]/change-category",
+    label: "Trocar categoria",
+    parent: "installments",
+  },
+  installmentAdjustValues: {
+    pattern: "/installments/[id]/adjust-values",
+    label: "Ajustar valores e parcelas",
+    parent: "installments",
+  },
+  installmentAdjustDeadlines: {
+    pattern: "/installments/[id]/adjust-deadlines",
+    label: "Ajustar prazos",
+    parent: "installments",
+  },
+  installmentChangeCard: {
+    pattern: "/installments/[id]/change-card",
+    label: "Trocar cartão",
+    parent: "installments",
+  },
   recurrenceCreate: {
     pattern: "/recurrences/create",
     label: "Nova recorrência",

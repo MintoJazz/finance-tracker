@@ -1,4 +1,4 @@
-import { Calendar, CreditCard, MoreHorizontal } from "lucide-react";
+import { Calendar, MoreHorizontal } from "lucide-react";
 import { AmountSpan } from "@/components/amount-span";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,14 +14,16 @@ import {
     ListItemSubtitle,
     ListItemTitle,
 } from "@/components/list-item";
+import { formatMoney } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import {
+    getRemainingAmount,
     isInstallmentPaid,
     type InstallmentListItem as InstallmentListItemType,
 } from "@/modules/installments/models/schemas/installment-item.schema";
 import {
     formatInstallmentNextDue,
-    INSTALLMENT_TYPE_LABELS,
+    getInstallmentSourceLabel,
 } from "@/modules/installments/ui/themes/installment.themes";
 import { InstallmentAvatar } from "../installment-avatar";
 import { InstallmentProgressRing } from "../installment-progress";
@@ -40,8 +42,9 @@ export default function InstallmentListItem({
     onOpenActions,
     onSelect,
 }: Props) {
-    const { description, installmentAmount, category, type } = installment;
+    const { description, installmentAmount, category } = installment;
     const paid = isInstallmentPaid(installment);
+    const remaining = getRemainingAmount(installment);
 
     return (
         <ListItem
@@ -70,7 +73,7 @@ export default function InstallmentListItem({
                     </ListItemTitle>
                     <ListItemSubtitle>
                         {category?.name ?? "Sem categoria"} ·{" "}
-                        {INSTALLMENT_TYPE_LABELS[type]}
+                        {getInstallmentSourceLabel(installment)}
                     </ListItemSubtitle>
                 </ListItemContent>
                 <ListItemActions>
@@ -98,7 +101,7 @@ export default function InstallmentListItem({
                         })}
                     </ListItemFooterInfo>
                 </ListItemFooterLeft>
-                <ListItemFooterRight>
+                <ListItemFooterRight className="flex flex-col items-end">
                     <AmountSpan
                         amount={installmentAmount}
                         isNegative={!paid}

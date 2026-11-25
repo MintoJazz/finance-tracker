@@ -2,16 +2,15 @@ import { redirect } from "next/navigation";
 import { ViewContainer } from "@/components/adaptive";
 import { getDeviceViewport } from "@/lib/device";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
-import { InstallmentFactory } from "@/modules/installments/infra/factories/installment.factory";
 import { MOCK_INSTALLMENT_FORM_OPTIONS } from "@/modules/installments/infra/mock/installment-form-options.mock";
+import { getInstallmentFormOptionsAction } from "@/modules/installments/ui/actions/get-installment-form-options.action";
 import { CreateInstallmentModalConfig } from "@/modules/installments/ui/views/create-installment-modal";
 
 export default async function CreateInstallmentModalPage() {
     const session = await SessionHandler.getSession();
     if (!session) redirect("/login");
 
-    const optionsResult =
-        await InstallmentFactory.makeGetInstallmentFormOptionsUseCase().execute({ session });
+    const optionsResult = await getInstallmentFormOptionsAction();
 
     if (!optionsResult.success) {
         console.error(

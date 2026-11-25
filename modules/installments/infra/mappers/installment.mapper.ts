@@ -15,8 +15,8 @@ export type InstallmentBalanceRecord = PrismaBalance & {
 
 export interface InstallmentMapperInput {
     summary: PrismaInstallmentSummary;
-    /** Balance `INSTALLMENT` (nome e aparência). */
-    balance: InstallmentBalanceRecord;
+    /** Balance `INSTALLMENT` (nome). Parcelamentos não possuem BalanceAppearance próprio. */
+    balance: PrismaBalance;
     card: PrismaBalance | null;
     category: InstallmentBalanceRecord | null;
 }
@@ -30,6 +30,9 @@ export class InstallmentMapper {
         card,
         category,
     }: InstallmentMapperInput): InstallmentListItem {
+        const categoryIcon = category?.appearance?.icon ?? null;
+        const categoryColor = category?.appearance?.color ?? null;
+
         return {
             id: summary.balanceId,
             description: balance.name,
@@ -38,21 +41,25 @@ export class InstallmentMapper {
             installmentAmount: summary.installmentAmount,
             totalInstallments: summary.totalInstallments,
             paidInstallments: summary.paidInstallments,
-            purchaseDate: toDay(summary.firstDueDate),
+            paidAmount: summary.paidAmount,
+            consolidatedInstallments: summary.consolidatedInstallments,
+            consolidatedAmount: summary.consolidatedAmount,
+            purchaseDate: summary.firstDueDate ? toDay(summary.firstDueDate) : null,
             nextDueDate: summary.nextDueDate ? toDay(summary.nextDueDate) : null,
-            endsAt: toDay(summary.endsAt),
+            endsAt: summary.endsAt ? toDay(summary.endsAt) : null,
             isOverdue: summary.isOverdue,
+            isArchived: summary.removedAt != null,
             card: card ? { id: card.id, name: card.name } : null,
             category: category
                 ? {
                       balanceId: category.id,
                       name: category.name,
-                      color: category.appearance?.color ?? null,
+                      color: categoryColor,
+                      icon: categoryIcon,
                   }
                 : null,
-            icon: balance.appearance?.icon ?? category?.appearance?.icon ?? null,
-            color:
-                balance.appearance?.color ?? category?.appearance?.color ?? null,
+            icon: categoryIcon,
+            color: categoryColor,
         };
     }
 }

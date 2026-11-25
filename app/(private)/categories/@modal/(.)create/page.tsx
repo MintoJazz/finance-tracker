@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ViewContainer } from "@/components/adaptive";
 import { getDeviceViewport } from "@/lib/device";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
-import { CategoryFactory } from "@/modules/categories/infra/factories/category.factory";
+import { getCategoryBasicInfoAction } from "@/modules/categories/ui/actions/get-category-basic-info.action";
 import type { CategoryParentSummary } from "@/modules/categories/ui/components/category-form/types";
 import { CreateCategoryModalConfig } from "@/modules/categories/ui/views/create-category-modal";
 
@@ -27,12 +27,7 @@ export default async function CreateCategoryModalPage(
   if (rawParentId) {
     const parsedId = Number(rawParentId);
     if (Number.isInteger(parsedId) && parsedId > 0) {
-      const basicInfoUseCase =
-        CategoryFactory.makeGetCategoryBasicInfoUseCase();
-      const result = await basicInfoUseCase.execute({
-        session,
-        id: parsedId,
-      });
+      const result = await getCategoryBasicInfoAction({ id: parsedId });
 
       // Subcategoria só pode ser vinculada a uma categoria raiz (parentId === null)
       if (result.success && result.data && result.data.parentId === null && result.data.id) {

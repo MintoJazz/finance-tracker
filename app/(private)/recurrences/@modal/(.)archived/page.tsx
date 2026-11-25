@@ -1,4 +1,4 @@
-import { RecurrenceFactory } from "@/modules/recurrences/infra/factories/recurrence.factory";
+import { getRecurrencesAction } from "@/modules/recurrences/ui/actions/get-recurrences.action";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { redirect } from "next/navigation";
 import { ArchivedSheet } from "@/components/archived/archived-sheet";
@@ -9,10 +9,9 @@ export default async function ArchivedRecurrencesModal() {
   const session = await SessionHandler.getSession();
   if (!session) redirect("/login");
 
-  const useCase = RecurrenceFactory.makeGetContextRecurrencesUseCase();
-  const { success, data, error } = await useCase.execute({
-    session,
-    filter: { archivedOnly: true, active: "ALL" },
+  const { success, data, error } = await getRecurrencesAction({
+    archivedOnly: true,
+    active: "ALL",
   });
 
   if (!success || !data) {

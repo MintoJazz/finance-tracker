@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { ViewContainer } from "@/components/adaptive";
 import { getDeviceViewport } from "@/lib/device";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
-import { CardFactory } from "@/modules/cards/infra/factories/card.factory";
+import { getCardByIdAction } from "@/modules/cards/ui/actions/get-card-by-id.action";
 import { AdjustCardLimitModalConfig } from "@/modules/cards/ui/views/adjust-card-limit-modal";
 
 interface Props {
@@ -17,10 +17,7 @@ export default async function AdjustCardLimitModalPage(props: Props) {
     const cardId = Number(id);
     if (Number.isNaN(cardId) || cardId <= 0) notFound();
 
-    const result = await CardFactory.makeGetCardByIdUseCase().execute({
-        session,
-        cardId,
-    });
+    const result = await getCardByIdAction(cardId);
     if (!result.success || !result.data) notFound();
 
     const initialViewport = await getDeviceViewport();

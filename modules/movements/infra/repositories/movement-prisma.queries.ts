@@ -314,7 +314,9 @@ export class MovementPrismaQueries implements IMovementQueries {
             };
         }
 
-        // Filtro por período (from / to) considerando competanceDate com fallback para dueDate
+        // Filtro por período (from / to):
+        // - Em WALLET (extrato de caixa histórico), filtra por dueDate (data efetiva do pagamento/recebimento).
+        // - Nos demais escopos (ciclos, faturas e obrigações), filtra por competanceDate com fallback para dueDate.
         // Ignora datas apenas se options.ignoreDateFilter for explicitamente true (ex: contratos ONCE)
         if (!options?.ignoreDateFilter && (filter?.from || filter?.to)) {
             const dateFilter: DateTimeFilter<"Entry"> = {};
@@ -324,10 +326,14 @@ export class MovementPrismaQueries implements IMovementQueries {
             if (filter.to) {
                 dateFilter.lte = new Date(`${filter.to}T23:59:59.999Z`);
             }
-            entryWhere.OR = [
-                { competanceDate: dateFilter },
-                { competanceDate: null, dueDate: dateFilter },
-            ];
+            if (scope === "WALLET") {
+                entryWhere.dueDate = dateFilter;
+            } else {
+                entryWhere.OR = [
+                    { competanceDate: dateFilter },
+                    { competanceDate: null, dueDate: dateFilter },
+                ];
+            }
         }
 
         const where: MovementWhereInput = {

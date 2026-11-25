@@ -1,4 +1,4 @@
-import { CardFactory } from "@/modules/cards/infra/factories/card.factory";
+import { getCardsAction } from "@/modules/cards/ui/actions/get-cards.action";
 import { SessionHandler } from "@/modules/auth/infra/handlers/session.handler";
 import { redirect } from "next/navigation";
 import { ArchivedSheet } from "@/components/archived/archived-sheet";
@@ -9,9 +9,7 @@ export default async function ArchivedCardsModal() {
   const session = await SessionHandler.getSession();
   if (!session) redirect("/login");
 
-  const useCase = CardFactory.makeGetContextCardsUseCase();
-  const { success, data, error } = await useCase.execute({
-    session,
+  const { success, data, error } = await getCardsAction({
     pageRequest: { page: 1, pageSize: 50 },
     filter: { archivedOnly: true },
   });

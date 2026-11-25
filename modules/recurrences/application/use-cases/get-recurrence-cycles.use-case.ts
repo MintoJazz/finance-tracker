@@ -10,6 +10,7 @@ import { BalanceType } from "@/prisma/generated/prisma/client";
 import { SessionPayload } from "@/modules/auth/infra/cryptography/jwt-utils";
 import { ISpaceAccessProvider } from "@/modules/space/application/interfaces/space-access-provider.interface";
 import { failure, success, Result } from "@/types/result.types";
+import { civilToLocalMidnight } from "@/modules/agreements/application/services/civil-date";
 import { formatDate, toCivilDate } from "@/lib/formatters";
 import type { ICycleQueries } from "@/modules/cycles/application/interfaces/cycle-queries.interface";
 import { CycleHorizonCalculator } from "@/modules/cycles/application/services/cycle-horizon.calculator";
@@ -168,9 +169,11 @@ export class GetRecurrenceCyclesUseCase {
                 frequency: recurrence.frequency,
                 interval: recurrence.interval,
                 startsAt: recurrence.startsAt
-                    ? new Date(recurrence.startsAt)
+                    ? civilToLocalMidnight(recurrence.startsAt)
                     : today,
-                endsAt: recurrence.endsAt ? new Date(recurrence.endsAt) : null,
+                endsAt: recurrence.endsAt
+                    ? civilToLocalMidnight(recurrence.endsAt)
+                    : null,
             };
 
             const windows = CycleWindowEngine.generateWindows({

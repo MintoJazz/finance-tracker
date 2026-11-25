@@ -8,6 +8,7 @@ import { InstallmentFilter } from "../../../components/installment-filter";
 import { InstallmentFilterDrawer } from "../../../components/installment-filter/drawer";
 import { InstallmentSearchBar } from "../../../components/installment-filter/search-bar";
 import InstallmentList from "../../../components/installment-list";
+import { ArchiveInstallmentModalViewMobile } from "../../archive-installment-modal";
 import type { MobileInstallmentOverviewProps } from "../types";
 
 export default function InstallmentsOverviewViewMobile({
@@ -17,6 +18,7 @@ export default function InstallmentsOverviewViewMobile({
     isLoadingMore,
     sentinelRef,
     actionsMenuContext,
+    archiveContext,
     onAddClick,
     filters,
     activeFilterCount,
@@ -95,6 +97,8 @@ export default function InstallmentsOverviewViewMobile({
                 <InstallmentFilter.Status />
                 <InstallmentFilter.Type />
             </InstallmentFilterDrawer>
+
+            <ArchiveInstallmentModalViewMobile {...archiveContext} />
         </div>
     );
 }

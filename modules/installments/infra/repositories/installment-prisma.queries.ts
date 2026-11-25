@@ -19,6 +19,7 @@ export class InstallmentPrismaQueries implements IInstallmentQueries {
         const summaries = await prisma.installmentSummaryView.findMany({
             where: {
                 contextId,
+                removedAt: null,
                 ...(filter?.cardId ? { cardBalanceId: filter.cardId } : {}),
             },
         });

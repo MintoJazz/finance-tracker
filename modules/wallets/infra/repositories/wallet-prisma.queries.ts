@@ -15,7 +15,7 @@ export class WalletPrismaQueries implements IWalletQueries {
                 entry: { dueDate: "desc" },
             },
             where: {
-                entry: { reversedBy: null },
+                entry: { reversedBy: null, reversesEntryId: null },
             },
             include: {
                 entry: {
